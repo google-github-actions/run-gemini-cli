@@ -1,100 +1,168 @@
 # run-gemini-cli
 
-This action invokes the Gemini CLI.
+This action invokes the Gemini CLI. Use this to automate software development
+tasks within your GitHub repositories with [Gemini CLI].
+
+You can interact with Gemini by mentioning it in pull request comments and
+issues to perform tasks like code generation, analysis, and modification.
 
 **This is not an officially supported Google product, and it is not covered by a
 Google Cloud support contract. To report bugs or request features in a Google
-Cloud product, please contact [Google Cloud
-support](https://cloud.google.com/support).**
+Cloud product, please contact [Google Cloud support].**
 
+- [run-gemini-cli](#run-gemini-cli)
+  - [Features](#features)
+  - [Getting Started](#getting-started)
+  - [Configuration](#configuration)
+    - [Inputs](#inputs)
+    - [Outputs](#outputs)
+    - [Environment Variables](#environment-variables)
+    - [Secrets](#secrets)
+  - [Usage and Examples](#usage-and-examples)
+  - [Issue Triage](#issue-triage)
+  - [Pull Request Review](#pull-request-review)
+  - [Authentication](#authentication)
+  - [Observability with OpenTelemetry](#observability-with-opentelemetry)
+    - [OpenTelemetry in Google Cloud](#opentelemetry-in-google-cloud)
+  - [Customization](#customization)
+  - [Contributing](#contributing)
 
-## Prerequisites
+## Features
 
--   This action requires Google Cloud credentials that are authorized to invoke
-    the Gemini API. See [Authorization](#authorization) for more information.
+- **Extensible with Tools**: Leverage Gemini's tool-calling capabilities to
+  interact with other CLIs like the `gh` CLI for powerful automations.
+- **Customizable**: Use a `GEMINI.md` file in your repository to provide
+  project-specific instructions and context to Gemini.
+- **Comment-based Interaction**: Trigger workflows in issue and pull request
+  comments.
 
--   This action runs using Node 20. If you are using self-hosted GitHub Actions
-    runners, you must use a [runner
-    version](https://github.com/actions/virtual-environments) that supports this
-    version or newer.
+## Getting Started
 
-## Usage
+Before using this action, you need to:
 
-```yaml
-jobs:
-  job_id:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+1.  **Get a Gemini API Key**: Obtain your API key from [Google AI Studio].
+2.  **Add it as a GitHub Secret**: Store your API key as a secret in your
+    repository with the name `GEMINI_API_KEY`. For more information, see the
+    [official GitHub documentation on creating and using encrypted secrets][secrets].
 
-    steps:
-    - id: 'TODO'
-```
+## Configuration
 
+This action is configured via a combination of workflow inputs, outputs,
+environment variables, and secrets.
 
-## Inputs
+### Inputs
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
 <!-- END_AUTOGEN_INPUTS -->
 
-
-## Outputs
+### Outputs
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 <!-- END_AUTOGEN_OUTPUTS -->
 
+### Environment Variables
 
-## Authorization
+Set the following environment variables in your repository or workflow:
 
-There are a few ways to authenticate this action. The caller must have
-permissions to invoke the Gemini API.
-
-### Via google-github-actions/auth
-
-Use [google-github-actions/auth](https://github.com/google-github-actions/auth)
-to authenticate the action. You can use [Workload Identity Federation][wif] or
-traditional [Service Account Key JSON][sa] authentication.
-
-```yaml
-jobs:
-  job_id:
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-
-    steps:
-    - uses: 'actions/checkout@v4'
-
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
-        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
-
-    - id: 'gemini-cli'
-      uses: 'google-github-actions/run-gemini-cli@v1'
-```
-
-### Via Application Default Credentials
-
-If you are hosting your own runners, **and** those runners are on Google Cloud,
-you can leverage the Application Default Credentials of the instance. This will
-authenticate requests as the service account attached to the instance. **This
-only works using a custom runner hosted on GCP.**
-
-```yaml
-jobs:
-  job_id:
-    steps:
-    - id: 'gemini-cli'
-      uses: 'google-github-actions/run-gemini-cli@v1'
-```
-
-The action will automatically detect and use the Application Default
-Credentials.
+| Name                      | Description                                                                                 | Type     | Required | When Required                |
+|---------------------------|---------------------------------------------------------------------------------------------|----------|----------|------------------------------|
+| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports npm versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override CLI version |
+| OTLP_GCP_WIF_PROVIDER     | The full resource name of the Workload Identity Provider.                                   | Variable | No       | If using observability       |
+| OTLP_GOOGLE_CLOUD_PROJECT | The Google Cloud project for telemetry.                                                     | Variable | No       | If using observability       |
+| APP_ID                    | GitHub App ID for custom authentication.                                                    | Variable | No       | If using a custom GitHub App |
 
 
-[wif]: https://cloud.google.com/iam/docs/workload-identity-federation
-[sa]: https://cloud.google.com/iam/docs/creating-managing-service-accounts
-[gh-runners]: https://help.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners
-[gh-secret]: https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
+To add an environment variable, go to your repository's **Settings > Secrets and
+variables > Actions > New variable**. Enter the variable name and value, then
+save. For organization-wide or environment-specific variables, see the
+[GitHub documentation on variables][variables].
+
+### Secrets
+
+The following secrets are required for security:
+
+| Name              | Description                                   | Required | When Required                |
+|-------------------|-----------------------------------------------|----------|------------------------------|
+| GEMINI_API_KEY    | Your Gemini API key.                          | Yes      | Always                       |
+| APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App |
+
+To add a secret, go to your repository's **Settings > Secrets and variables >
+Actions > New repository secret**. For more information, see the
+[official GitHub documentation on creating and using encrypted secrets][secrets].
+
+## Usage and Examples
+
+To use this action, create a workflow file in your repository (e.g.,
+`.github/workflows/gemini.yml`).
+
+The best way to get started is to copy one of the pre-built workflows from the
+[`/examples`](./examples) directory into your project's `.github/workflows`
+folder and customize it.
+
+See the sections below for specific examples.
+
+## Issue Triage
+
+This action can be used to triage GitHub issues automatically or on a schedule.
+For a detailed guide on how to set up the issue triage system, please see the
+[**Issue Triage documentation**](./docs/issue-triage.md).
+
+## Pull Request Review
+
+This action can be used to automatically review pull requests when they are
+opened. Additionally, users with `OWNER`, `MEMBER`, or `COLLABORATOR`
+permissions can trigger a review by commenting `@gemini-cli /review` in a pull
+request.
+
+For a detailed guide on how to set up the pull request review system, please see
+the [**Pull Request Review documentation**](./docs/pr-review.md).
+
+## Authentication
+
+This action requires a GitHub token to interact with the GitHub API. You can
+authenticate in two ways:
+
+1.  **Custom GitHub App (Recommended):** For the most secure and flexible
+    authentication, we recommend creating a custom GitHub App.
+2.  **Default `GITHUB_TOKEN`:** For simpler use cases, the action can use the
+    default `GITHUB_TOKEN` provided by the workflow.
+
+For a detailed guide on how to set up authentication, including creating a
+custom app and the required permissions, please see the
+[**Authentication documentation**](./docs/github-app.md).
+
+## Observability with OpenTelemetry
+
+This action can be configured to send telemetry data (traces, metrics, and logs)
+to your own Google Cloud project. This allows you to monitor the performance and
+behavior of the Gemini CLI within your workflows, providing valuable insights
+for debugging and optimization.
+
+For detailed instructions on how to set up and configure observability, please
+see the [Observability documentation](./docs/observability.md).
+
+### OpenTelemetry in Google Cloud
+
+To use observability features with Google Cloud, you'll need to set up Workload
+Identity Federation. For detailed setup instructions, see the
+[Workload Identity Federation documentation](./docs/workload-identity.md).
+
+## Customization
+
+Create a `GEMINI.md` file in the root of your repository to provide
+project-specific context and instructions to Gemini. This is useful for defining
+coding conventions, architectural patterns, or other guidelines the model should
+follow.
+
+## Contributing
+
+Contributions are welcome! Please see our
+[**Contributing Guide**](./CONTRIBUTING.md) for more details on how to get
+started.
+
+[secrets]: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+[settings_json]: https://github.com/google-gemini/gemini-cli/blob/main/docs/
+[Google AI Studio]: https://aistudio.google.com/apikey
+[Gemini CLI]: https://github.com/google-github-actions/run-gemini-cli
+[Google Cloud support]: https://cloud.google.com/support
+[variables]: https://docs.github.com/en/actions/learn-github-actions/variables

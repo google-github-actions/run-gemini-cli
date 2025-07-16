@@ -1,6 +1,7 @@
+---
 name: 'Draft release'
 
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
     inputs:
       version_strategy:
@@ -19,7 +20,7 @@ permissions:
 
 jobs:
   draft-release:
-    uses: 'google-github-actions/.github/.github/workflows/draft-release.yml@v3' # ratchet:exclude
+    uses: 'google-github-actions/.github/.github/workflows/draft-release.yml@v3'  # ratchet:exclude
     with:
       version_strategy: '${{ github.event.inputs.version_strategy }}'
     secrets:

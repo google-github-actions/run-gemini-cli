@@ -1,6 +1,7 @@
+---
 name: 'Test'
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
     branches:
       - 'main'
@@ -13,7 +14,7 @@ on:
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
-  cancel-in-progress: true
+  cancel-in-progress: true  # yamllint disable-line rule:truthy
 
 defaults:
   run:
@@ -24,30 +25,16 @@ permissions:
   statuses: 'write'
 
 jobs:
-  unit:
-    name: 'unit'
+  yamllint:
+    name: 'yamllint'
     runs-on: 'ubuntu-latest'
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
-      - uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
-
-      - uses: 'actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a' # ratchet:actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: 'npm build'
-        run: 'npm ci && npm run build'
-
-      - name: 'npm lint'
-        run: 'npm run lint'
-
-      - uses: 'google-github-actions/auth@v2' # ratchet:exclude
-        with:
-          workload_identity_provider: '${{ vars.WIF_PROVIDER_NAME }}'
-          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-
-      - name: 'npm test'
-        run: 'npm run test'
+      - name: 'Checkout repository'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # ratchet:actions/checkout@v4
+      - name: Validate all YAML files
+        run: |
+          yamllint . --format github
