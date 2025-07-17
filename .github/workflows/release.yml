@@ -1,7 +1,6 @@
----
 name: 'Release'
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - 'main'
@@ -13,6 +12,6 @@ permissions:
 
 jobs:
   release:
-    uses: 'google-github-actions/.github/.github/workflows/release.yml@v3'  # ratchet:exclude
+    uses: 'google-github-actions/.github/.github/workflows/release.yml@v3' # ratchet:exclude
     secrets:
       ACTIONS_BOT_TOKEN: '${{ secrets.ACTIONS_BOT_TOKEN }}'

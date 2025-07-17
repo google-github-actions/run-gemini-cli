@@ -1,30 +1,38 @@
----
 name: '🏷️ Gemini Automated Issue Triage'
-on:  # yamllint disable-line rule:truthy
+
+on:
   issues:
     types:
       - 'opened'
       - 'reopened'
 
+concurrency:
+  group: '${{ github.workflow }}-${{ github.event.issue.number }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+  issues: 'write'
+  statuses: 'write'
+
 jobs:
   triage-issue:
     timeout-minutes: 5
-    permissions:
-      issues: 'write'
-      contents: 'read'
-      id-token: 'write'
-    concurrency:
-      group: '${{ github.workflow }}-${{ github.event.issue.number }}'
-      # yamllint disable-line rule:truthy
-      cancel-in-progress: true
     runs-on: 'ubuntu-latest'
+
     steps:
       - name: 'Checkout repository'
         uses: 'actions/checkout@v4'
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: ${{ vars.APP_ID }}
+        if: |-
+          ${{ vars.APP_ID }}
         uses: 'actions/create-github-app-token@v1'
         with:
           app-id: '${{ vars.APP_ID }}'
@@ -43,7 +51,7 @@ jobs:
           OTLP_GCP_WIF_PROVIDER: '${{ vars.OTLP_GCP_WIF_PROVIDER }}'
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
         with:
-          settings_json: |
+          settings_json: |-
             {
               "coreTools": [
                 "run_shell_command(gh label list)",
@@ -55,7 +63,7 @@ jobs:
               },
               "sandbox": false
             }
-          prompt: |
+          prompt: |-
             ## Role
 
             You are an issue triage assistant. Analyze the current GitHub issue

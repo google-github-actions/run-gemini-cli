@@ -1,7 +1,6 @@
----
 name: 'Test'
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - 'main'
@@ -14,7 +13,7 @@ on:  # yamllint disable-line rule:truthy
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
-  cancel-in-progress: true  # yamllint disable-line rule:truthy
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -25,16 +24,13 @@ permissions:
   statuses: 'write'
 
 jobs:
-  yamllint:
-    name: 'yamllint'
+  test:
     runs-on: 'ubuntu-latest'
-    permissions:
-      contents: 'read'
-      id-token: 'write'
 
     steps:
-      - name: 'Checkout repository'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # ratchet:actions/checkout@v4
-      - name: Validate all YAML files
-        run: |
-          yamllint . --format github
+      - uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
+
+      - name: 'Lint YAML'
+        uses: 'abcxyz/actions/.github/actions/lint-yaml@48bf3573880bcd307661522345bbe419115c3d4b' # ratchet:abcxyz/actions/.github/actions/lint-yaml@main
+        with:
+          yamllint_url: 'https://raw.githubusercontent.com/google-github-actions/.github/main/.yamllint.yml'

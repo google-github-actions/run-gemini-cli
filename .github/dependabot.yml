@@ -1,4 +1,3 @@
----
 version: 2
 updates:
   - package-ecosystem: 'npm'
@@ -8,4 +7,4 @@ updates:
       interval: 'daily'
     commit-message:
       prefix: 'security: '
-    open-pull-requests-limit: 0  # only check security updates
+    open-pull-requests-limit: 0 # only check security updates

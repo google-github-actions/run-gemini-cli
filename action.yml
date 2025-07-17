@@ -1,4 +1,3 @@
----
 # Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,35 +29,43 @@ inputs:
     required: false
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Configure Gemini CLI
-      if: inputs.settings_json != ''
+    - name: 'Configure Gemini CLI'
+      if: |-
+        ${{ inputs.settings_json != '' }}
       run: |
-        mkdir -p .gemini
-        echo "$SETTINGS_JSON" > .gemini/settings.json
-      shell: bash
+        mkdir -p .gemini/
+        echo "${SETTINGS_JSON}" > ".gemini/settings.json"
+      shell: 'bash'
       env:
-        SETTINGS_JSON: ${{ inputs.settings_json }}
+        SETTINGS_JSON: '${{ inputs.settings_json }}'
 
-    - name: Authenticate to Google Cloud for Telemetry
-      if: env.OTLP_GCP_WIF_PROVIDER != ''
-      id: auth
+    - name: 'Authenticate to Google Cloud for Telemetry'
+      if: |-
+        ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
+      id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
-        project_id: ${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}
-        workload_identity_provider: ${{ env.OTLP_GCP_WIF_PROVIDER }}
+        project_id: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
+        workload_identity_provider: '${{ env.OTLP_GCP_WIF_PROVIDER }}'
 
-    - name: Setup Telemetry Collector for Google Cloud
-      if: env.OTLP_GCP_WIF_PROVIDER != ''
-      run: node "${{ github.action_path }}/scripts/telemetry.js"
-      shell: bash
+    - name: 'Setup Telemetry Collector for Google Cloud'
+      if: |-
+        ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
       env:
-        OTLP_GOOGLE_CLOUD_PROJECT: ${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}
+        OTLP_GOOGLE_CLOUD_PROJECT: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
+        GITHUB_ACTION_PATH: '${{ github.action_path }}'
+      shell: 'bash'
+      run: |-
+        node "${GITHUB_ACTION_PATH}/scripts/telemetry.js"
 
-    - name: Install Gemini CLI
-      id: install
-      run: |
+    - name: 'Install Gemini CLI'
+      id: 'install'
+      env:
+        GEMINI_CLI_VERSION: '${{ env.GEMINI_CLI_VERSION }}'
+      shell: 'bash'
+      run: |-
         set -euo pipefail
 
         VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
@@ -77,17 +84,14 @@ runs:
           echo "Error: Gemini CLI not found in PATH"
           exit 1
         fi
-      shell: bash
-      env:
-        GEMINI_CLI_VERSION: ${{ env.GEMINI_CLI_VERSION }}
 
-    - name: Run Gemini CLI
-      run: |
-        gemini --yolo --prompt "$PROMPT"
-      shell: bash
+    - name: 'Run Gemini CLI'
       env:
-        GEMINI_API_KEY: ${{ env.GEMINI_API_KEY }}
-        PROMPT: ${{ inputs.prompt }}
+        GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
+        PROMPT: '${{ inputs.prompt }}'
+      shell: 'bash'
+      run: |
+        gemini --yolo --prompt "${PROMPT}"
 
 branding:
   icon: 'terminal'

@@ -1,5 +1,6 @@
 node_modules/
 runner/
+tmp/
 
 # Rest of the file pulled from https://github.com/github/gitignore/blob/main/Node.gitignore
 # Logs
