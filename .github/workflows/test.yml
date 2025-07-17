@@ -24,13 +24,19 @@ permissions:
   statuses: 'write'
 
 jobs:
-  test:
+  lint:
     runs-on: 'ubuntu-latest'
 
     steps:
       - uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
 
+      - name: 'Lint GitHub Actions'
+        uses: 'abcxyz/actions/.github/actions/lint-github-actions@main' # ratchet:exclude
+
+      - name: 'Lint Shell'
+        uses: 'abcxyz/actions/.github/actions/lint-shell@main' # ratchet:exclude
+
       - name: 'Lint YAML'
-        uses: 'abcxyz/actions/.github/actions/lint-yaml@48bf3573880bcd307661522345bbe419115c3d4b' # ratchet:abcxyz/actions/.github/actions/lint-yaml@main
+        uses: 'abcxyz/actions/.github/actions/lint-yaml@main' # ratchet:exclude
         with:
           yamllint_url: 'https://raw.githubusercontent.com/google-github-actions/.github/main/.yamllint.yml'
