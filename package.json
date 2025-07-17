@@ -1,0 +1,24 @@
+{
+  "name": "run-gemini-cli",
+  "version": "0.1.0",
+  "description": "This works with our versioning tools, this is NOT an NPM repo",
+  "scripts": {
+    "build": "echo \"No build required for composite action\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/google-github-actions/run-vertexai-notebook.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/google-github-actions/run-vertexai-notebook/issues"
+  },
+  "homepage": "https://github.com/google-github-actions/run-vertexai-notebook#readme"
+}
