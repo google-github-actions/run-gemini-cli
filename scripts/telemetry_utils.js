@@ -32,7 +32,14 @@ export function getJson(url) {
   );
   try {
     const headers = ['-H "User-Agent: gemini-cli-dev-script"'];
-    if (process.env.GITHUB_TOKEN && url.startsWith('https://api.github.com')) {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname !== 'api.github.com') {
+      throw new Error(
+        `URL must be from api.github.com, but got ${parsedUrl.hostname}`,
+      );
+    }
+
+    if (process.env.GITHUB_TOKEN) {
       headers.push(`-H "Authorization: Bearer ${process.env.GITHUB_TOKEN}"`);
     }
 
@@ -65,6 +72,12 @@ export function getJson(url) {
 
 export function downloadFile(url, dest) {
   try {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname !== 'github.com') {
+      throw new Error(
+        `URL must be from github.com, but got ${parsedUrl.hostname}`,
+      );
+    }
     execSync(`curl -fL -sS -o "${dest}" "${url}"`, {
       stdio: 'pipe',
     });
