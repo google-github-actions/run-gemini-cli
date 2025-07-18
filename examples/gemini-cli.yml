@@ -1,0 +1,251 @@
+name: '💬 Gemini CLI'
+
+on:
+  pull_request_review_comment:
+    types:
+      - 'created'
+  pull_request_review:
+    types:
+      - 'submitted'
+  issue_comment:
+    types:
+      - 'created'
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref || github.event.issue.number }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+permissions:
+  contents: 'write'
+  id-token: 'write'
+  pull-requests: 'write'
+  issues: 'write'
+
+jobs:
+  gemini-cli:
+    # This condition is complex to ensure we only run when explicitly invoked.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issues' && github.event.action == 'opened' &&
+        contains(github.event.issue.body, '@gemini-cli') &&
+        !contains(github.event.issue.body, '/review') &&
+        !contains(github.event.issue.body, '/triage') &&
+        (
+          github.event.sender.type == 'User' && (
+            github.event.issue.author_association == 'OWNER' ||
+            github.event.issue.author_association == 'MEMBER' ||
+            github.event.issue.author_association == 'COLLABORATOR'
+          )
+        )
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@gemini-cli') &&
+        !contains(github.event.comment.body, '/review') &&
+        !contains(github.event.comment.body, '/triage') &&
+        (
+          github.event.sender.type == 'User' && (
+            github.event.comment.author_association == 'OWNER' ||
+            github.event.comment.author_association == 'MEMBER' ||
+            github.event.comment.author_association == 'COLLABORATOR'
+          )
+        )
+      ) ||
+      (
+        github.event_name == 'pull_request_review' &&
+        contains(github.event.review.body, '@gemini-cli') &&
+        !contains(github.event.review.body, '/review') &&
+        !contains(github.event.review.body, '/triage') &&
+        (
+          github.event.sender.type == 'User' && (
+            github.event.review.author_association == 'OWNER' ||
+            github.event.review.author_association == 'MEMBER' ||
+            github.event.review.author_association == 'COLLABORATOR'
+          )
+        )
+      ) ||
+      (
+        github.event_name == 'pull_request_review_comment' &&
+        contains(github.event.comment.body, '@gemini-cli') &&
+        !contains(github.event.comment.body, '/review') &&
+        !contains(github.event.comment.body, '/triage') &&
+        (
+          github.event.sender.type == 'User' && (
+            github.event.comment.author_association == 'OWNER' ||
+            github.event.comment.author_association == 'MEMBER' ||
+            github.event.comment.author_association == 'COLLABORATOR'
+          )
+        )
+      )
+    timeout-minutes: 15
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - name: 'Generate GitHub App Token'
+        id: 'generate_token'
+        if: |-
+          ${{ vars.APP_ID }}
+        uses: 'actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e' # ratchet:actions/create-github-app-token@v2
+        with:
+          app-id: '${{ vars.APP_ID }}'
+          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
+
+      - name: 'Get context from event'
+        id: 'get_context'
+        env:
+          EVENT_NAME: '${{ github.event_name }}'
+          EVENT_PAYLOAD: '${{ toJSON(github.event) }}'
+        run: |-
+          set -euo pipefail
+
+          USER_REQUEST=""
+          ISSUE_NUMBER=""
+          IS_PR="false"
+
+          if [[ "${EVENT_NAME}" == "issues" ]]; then
+            USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.body)
+            ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.number)
+          elif [[ "${EVENT_NAME}" == "issue_comment" ]]; then
+            USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .comment.body)
+            ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.number)
+            if [[ $(echo "${EVENT_PAYLOAD}" | jq -r .issue.pull_request) != "null" ]]; then
+              IS_PR="true"
+            fi
+          elif [[ "${EVENT_NAME}" == "pull_request_review" ]]; then
+            USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .review.body)
+            ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .pull_request.number)
+            IS_PR="true"
+          elif [[ "${EVENT_NAME}" == "pull_request_review_comment" ]]; then
+            USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .comment.body)
+            ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .pull_request.number)
+            IS_PR="true"
+          fi
+
+          # Clean up user request
+          USER_REQUEST=$(echo "${USER_REQUEST}" | sed 's/.*@gemini-cli//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+          {
+            echo "user_request=${USER_REQUEST}"
+            echo "issue_number=${ISSUE_NUMBER}"
+            echo "is_pr=${IS_PR}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: 'Checkout PR branch'
+        if: |-
+          ${{  steps.get_context.outputs.is_pr == 'true' }}
+        uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
+        with:
+          token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          repository: '${{ github.repository }}'
+          ref: 'refs/pull/${{ steps.get_context.outputs.issue_number }}/head'
+          fetch-depth: 0
+
+      - name: 'Checkout main branch'
+        if: |-
+          ${{  steps.get_context.outputs.is_pr == 'false' }}
+        uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
+        with:
+          token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          repository: '${{ github.repository }}'
+          fetch-depth: 0
+
+      - name: 'Acknowledge request'
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
+          REPOSITORY: '${{ github.repository }}'
+        run: |-
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "I've received your request and I'm working on it now! 🤖" \
+            --repo "${REPOSITORY}"
+
+      - name: 'Run Gemini'
+        uses: './'
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          REPOSITORY: '${{ github.repository }}'
+          USER_REQUEST: '${{ steps.get_context.outputs.user_request }}'
+          ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
+          IS_PR: '${{ steps.get_context.outputs.is_pr }}'
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          OTLP_GCP_WIF_PROVIDER: '${{ vars.OTLP_GCP_WIF_PROVIDER }}'
+          OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
+        with:
+          settings_json: |
+            {
+              "coreTools": [
+                "run_shell_command(echo)",
+                "run_shell_command(gh pr view)",
+                "run_shell_command(gh pr diff)",
+                "run_shell_command(gh pr list)",
+                "run_shell_command(gh issue view)",
+                "run_shell_command(gh issue comment)",
+                "run_shell_command(gh issue list)",
+                "run_shell_command(gh pr comment)",
+                "run_shell_command(cat)",
+                "run_shell_command(head)",
+                "run_shell_command(tail)",
+                "run_shell_command(grep)",
+                "run_shell_command(git config)",
+                "run_shell_command(git status)",
+                "run_shell_command(git add)",
+                "run_shell_command(git commit)",
+                "run_shell_command(git push)",
+                "run_shell_command(git diff)",
+                "write_file"
+              ],
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              },
+              "sandbox": false
+            }
+          prompt: |
+            ## Role
+
+            You are a helpful AI assistant invoked via a CLI interface in a GitHub workflow.
+            You have access to tools to interact with the repository and respond to the user.
+
+            ## Context
+
+            - **Repository**: `${{ github.repository }}`
+            - **Triggering Event**: `${{ github.event_name }}`
+            - **Issue/PR Number**: `${{ steps.get_context.outputs.issue_number }}`
+            - **Is this a PR?**: `${{ steps.get_context.outputs.is_pr }}`
+
+            ## User Request
+
+            The user has sent the following request:
+            `${{ steps.get_context.outputs.user_request }}`
+
+            ## Steps
+
+            1.  **Understand the context.** Use the available tools to gather information about the issue or PR.
+                - For PRs, you can use `gh pr view "${ISSUE_NUMBER}"`, `gh pr diff "${ISSUE_NUMBER}"` and `gh pr list`.
+                - For issues, you can use `gh issue view "${ISSUE_NUMBER}"` or `gh issue list` to list all issues.
+                - To view file contents, use `cat`, `head`, or `tail`.
+                - The code has been checked out for you if this is a PR.
+
+            2.  **Fulfill the user's request.** The request is: `${{ steps.get_context.outputs.user_request }}`.
+                - If the request involves modifying code, use `write_file` or other tools to make the changes.
+                - After making changes, you **MUST** commit them.
+                  - `git add .`
+                  - `git commit -m "Your descriptive commit message"`
+                  - `git push`
+
+            3.  **Respond to the user.**
+                - Write your final response in a markdown file: `write_file("response.md", "<your response here>")`
+                - Post the response as a comment:
+                  - For PRs: `gh pr comment "${ISSUE_NUMBER}" --body-file response.md`
+                  - For Issues: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
+
+            ## Guidelines
+
+            - **Be concise.** Provide the information or perform the action requested without unnecessary chatter.
+            - **Reference all shell variables as `"${VAR}"`** (with quotes and braces) to prevent errors.
+            - **If you make changes, always commit and push them.**
