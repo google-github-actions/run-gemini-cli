@@ -5,6 +5,15 @@ on:
     types:
       - 'opened'
       - 'reopened'
+  issue_comment:
+    types:
+      - 'created'
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'issue number to triage'
+        required: true
+        type: 'number'
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.event.issue.number }}'
@@ -22,6 +31,14 @@ permissions:
 
 jobs:
   triage-issue:
+    if: >
+      github.event_name == 'issues' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '@gemini-cli /triage') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
     timeout-minutes: 5
     runs-on: 'ubuntu-latest'
 

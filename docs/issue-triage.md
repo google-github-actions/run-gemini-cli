@@ -18,28 +18,30 @@ graph TD
         A[Issue Opened or Reopened]
         B[Scheduled Cron Job]
         C[Manual Dispatch]
+        D[Issue Comment with '@gemini-cli /triage' Created]
     end
 
     subgraph "Gemini CLI on GitHub"
-        D[Get Issue Details]
-        E{Issue needs triage?}
-        F[Analyze Issue with Gemini]
-        G[Apply Labels]
+        E[Get Issue Details]
+        F{Issue needs triage?}
+        G[Analyze Issue with Gemini]
+        H[Apply Labels]
     end
 
-    A --> D
-    B --> D
-    C --> D
+    A --> E
+    B --> E
+    C --> E
     D --> E
-    E -- Yes --> F
-    F --> G
-    E -- No --> J((End))
-    G --> J
+    E --> F
+    F -- Yes --> G
+    G --> H
+    F -- No --> J((End))
+    H --> J
 ```
 
 The two workflows work together to ensure that all new and existing issues are triaged in a timely manner.
 
-1.  **Real-Time Triage**: When a new issue is opened or reopened, a GitHub Actions workflow is triggered. This workflow uses the Gemini CLI to analyze the issue and apply the most appropriate labels. This provides immediate feedback and categorization of new issues.
+1. **Real-Time Triage**: When a new issue is opened or reopened, an issue comment that contains `@gemini-cli /triage` is created or when a maintainer of the repo dispatch the triage event, a GitHub Actions workflow is triggered. This workflow uses the Gemini CLI to analyze the issue and apply the most appropriate labels. This provides immediate feedback and categorization of new issues.
 
 2.  **Scheduled Triage**: To catch any issues that might have been missed by the real-time triage, a scheduled workflow runs every hour. This workflow specifically looks for issues that have no labels or have the `status/needs-triage` label. This ensures that all issues are eventually triaged.
 
