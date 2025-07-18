@@ -50,7 +50,7 @@ runs:
         project_id: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
         workload_identity_provider: '${{ env.OTLP_GCP_WIF_PROVIDER }}'
 
-    - name: 'Setup Telemetry Collector for Google Cloud'
+    - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
         ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
       env:
@@ -58,7 +58,15 @@ runs:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
       shell: 'bash'
       run: |-
-        node "${GITHUB_ACTION_PATH}/scripts/telemetry.js"
+        set -euo pipefail
+        mkdir -p .gemini/
+        sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
+
+        docker run -d --name gemini-telemetry-collector --network host \
+          -v "${GITHUB_WORKSPACE}:/github/workspace" \
+          -e "GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS/$GITHUB_WORKSPACE//github/workspace}" \
+          -w "/github/workspace" \
+          otel/opentelemetry-collector-contrib:0.128.0
 
     - name: 'Install Gemini CLI'
       id: 'install'
