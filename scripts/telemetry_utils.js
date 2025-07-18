@@ -31,16 +31,21 @@ export function getJson(url) {
     `gemini-cli-releases-${Date.now()}.json`,
   );
   try {
+    const headers = ['-H "User-Agent: gemini-cli-dev-script"'];
+    if (process.env.GITHUB_TOKEN && url.startsWith('https://api.github.com')) {
+      headers.push(`-H "Authorization: Bearer ${process.env.GITHUB_TOKEN}"`);
+    }
+
     execSync(
-      `curl -sL -H "User-Agent: gemini-cli-dev-script" -o "${tmpFile}" "${url}"`,
+      `curl -sL ${headers.join(' ')} -o "${tmpFile}" "${url}"`,
       { stdio: 'pipe' },
     );
     const content = fs.readFileSync(tmpFile, 'utf-8');
-    
+
     if (!content || content.trim() === '') {
       throw new Error(`Empty response from ${url}`);
     }
-    
+
     try {
       return JSON.parse(content);
     } catch (parseError) {
