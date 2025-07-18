@@ -1,0 +1,38 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 'localhost:4317'
+processors:
+  batch:
+    timeout: '1s'
+exporters:
+  googlecloud:
+    project: 'OTLP_GOOGLE_CLOUD_PROJECT'
+    metric:
+      prefix: 'custom.googleapis.com/gemini_cli'
+    log:
+      default_log_name: 'gemini_cli'
+  debug:
+    verbosity: 'detailed'
+    sampling_initial: '2'
+    sampling_thereafter: '500'
+service:
+  telemetry:
+    logs:
+      level: 'debug'
+    metrics:
+      level: 'none'
+  pipelines:
+    traces:
+      receivers: ['otlp']
+      processors: ['batch']
+      exporters: ['googlecloud', 'debug']
+    metrics:
+      receivers: ['otlp']
+      processors: ['batch']
+      exporters: ['googlecloud', 'debug']
+    logs:
+      receivers: ['otlp']
+      processors: ['batch']
+      exporters: ['googlecloud', 'debug']
