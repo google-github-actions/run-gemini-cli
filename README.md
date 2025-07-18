@@ -67,6 +67,8 @@ environment variables, and secrets.
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
+-   `summary`: The summarized output from the Gemini CLI execution.
+
 
 <!-- END_AUTOGEN_OUTPUTS -->
 

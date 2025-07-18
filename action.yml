@@ -28,6 +28,11 @@ inputs:
       .gemini/settings.json.
     required: false
 
+outputs:
+  summary:
+    description: 'The summarized output from the Gemini CLI execution.'
+    value: '${{ steps.gemini_run.outputs.gemini_response }}'
+
 runs:
   using: 'composite'
   steps:
@@ -94,15 +99,20 @@ runs:
         fi
 
     - name: 'Run Gemini CLI'
+      id: 'gemini_run'
+      run: |
+        set -e
+        GEMINI_RESPONSE=$(gemini --yolo --prompt "${PROMPT}")
+        # Set the captured response as a step output, supporting multiline
+        echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
+        echo "EOF" >> "${GITHUB_OUTPUT}"
+        echo "${GEMINI_RESPONSE}"
+      shell: 'bash'
       env:
         GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
         SURFACE: 'GitHub'
         PROMPT: '${{ inputs.prompt }}'
-      shell: 'bash'
-      run: |
-        gemini --yolo --prompt "${PROMPT}"
-
-outputs: {}
 
 branding:
   icon: 'terminal'
