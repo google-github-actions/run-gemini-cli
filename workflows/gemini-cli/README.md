@@ -49,7 +49,13 @@ When invoked with `@gemini-cli`, the assistant uses a customizable set of tools 
 
 ### Workflow File
 
-Copy the example workflow file from `examples/gemini-cli.yml` to `.github/workflows/gemini-cli.yml` in your repository.
+Create the necessary directories and download the example workflow file into your repository's `.github/workflows` directory.
+
+```bash
+mkdir -p .github/workflows
+curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/gemini-cli.yml
+```
+Alternatively, you can manually copy the contents of the workflow file from this repository into the corresponding file in your own repository.
 
 ## Usage
 

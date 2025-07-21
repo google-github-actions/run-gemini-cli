@@ -18,9 +18,10 @@ Cloud product, please contact [Google Cloud support].**
     - [Outputs](#outputs)
     - [Environment Variables](#environment-variables)
     - [Secrets](#secrets)
-  - [Usage and Examples](#usage-and-examples)
-  - [Issue Triage](#issue-triage)
-  - [Pull Request Review](#pull-request-review)
+  - [Workflows](#workflows)
+    - [Issue Triage](#issue-triage)
+    - [Pull Request Review](#pull-request-review)
+    - [Generic Gemini CLI](#generic-gemini-cli)
   - [Authentication](#authentication)
   - [Observability with OpenTelemetry](#observability-with-opentelemetry)
     - [OpenTelemetry in Google Cloud](#opentelemetry-in-google-cloud)
@@ -99,24 +100,24 @@ To add a secret, go to your repository's **Settings > Secrets and variables >
 Actions > New repository secret**. For more information, see the
 [official GitHub documentation on creating and using encrypted secrets][secrets].
 
-## Usage and Examples
+## Workflows
 
 To use this action, create a workflow file in your repository (e.g.,
 `.github/workflows/gemini.yml`).
 
 The best way to get started is to copy one of the pre-built workflows from the
-[`/examples`](./examples) directory into your project's `.github/workflows`
+[`/workflows`](./workflows) directory into your project's `.github/workflows`
 folder and customize it.
 
 See the sections below for specific examples.
 
-## Issue Triage
+### Issue Triage
 
 This action can be used to triage GitHub issues automatically or on a schedule.
 For a detailed guide on how to set up the issue triage system, please see the
-[**Issue Triage documentation**](./docs/issue-triage.md).
+[documentation](./workflows/issue-triage).
 
-## Pull Request Review
+### Pull Request Review
 
 This action can be used to automatically review pull requests when they are
 opened. Additionally, users with `OWNER`, `MEMBER`, or `COLLABORATOR`
@@ -124,7 +125,14 @@ permissions can trigger a review by commenting `@gemini-cli /review` in a pull
 request.
 
 For a detailed guide on how to set up the pull request review system, please see
-the [**Pull Request Review documentation**](./docs/pr-review.md).
+the [documentation](./workflows/pr-review).
+
+### Generic Gemini CLI
+
+This action can be used to invoke a general-purpose, conversational AI assistant
+that can be invoked within pull requests and issues to perform a wide range of
+tasks. For a detailed guide on how to set up the Gemini CLI, please see the
+[documentation](./workflows/gemini-cli).
 
 ## Authentication
 

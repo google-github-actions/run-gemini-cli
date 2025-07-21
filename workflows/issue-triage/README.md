@@ -49,10 +49,15 @@ The two workflows work together to ensure that all new and existing issues are t
 
 To implement this issue triage system in your repository, you will need to do the following:
 
-1.  **Create the Workflows**: Copy the example workflow files into your repository's `.github/workflows` directory.
+1.  **Create the Workflow Files**: Create the necessary directories and download the example workflow files into `.github/workflows` directory in your repository.
 
-    *   `examples/gemini-issue-automated-triage.yml`
-    *   `examples/gemini-issue-scheduled-triage.yml`
+```bash
+mkdir -p .github/workflows
+curl -o .github/workflows/gemini-issue-automated-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/gemini-issue-automated-triage.yml
+curl -o .github/workflows/gemini-issue-scheduled-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/gemini-issue-scheduled-triage.yml
+```
+
+Alternatively, you can manually copy the contents of the workflow files from this repository into the corresponding files in your own repository.
 
 2.  **Configure Secrets**: The workflows require secrets for authentication. You will need to create the following secrets in your repository's settings:
 
@@ -66,8 +71,8 @@ To implement this issue triage system in your repository, you will need to do th
 
 ### Real-Time Issue Triage
 
-This workflow is defined in `examples/gemini-issue-automated-triage.yml` and is triggered when an issue is opened or reopened. It uses the Gemini CLI to analyze the issue and apply relevant labels.
+This workflow is defined in `workflows/issue-triage/gemini-issue-automated-triage.yml` and is triggered when an issue is opened or reopened. It uses the Gemini CLI to analyze the issue and apply relevant labels.
 
 ### Scheduled Issue Triage
 
-This workflow is defined in `examples/gemini-issue-scheduled-triage.yml` and runs on a schedule (e.g., every hour). It finds any issues that have no labels or have the `status/needs-triage` label and then uses the Gemini CLI to triage them. This workflow can also be manually triggered.
+This workflow is defined in `workflows/issue-triage/gemini-issue-scheduled-triage.yml` and runs on a schedule (e.g., every hour). It finds any issues that have no labels or have the `status/needs-triage` label and then uses the Gemini CLI to triage them. This workflow can also be manually triggered.

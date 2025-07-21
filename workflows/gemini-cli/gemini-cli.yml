@@ -165,7 +165,7 @@ jobs:
             --repo "${REPOSITORY}"
 
       - name: 'Run Gemini'
-        uses: './'
+        uses: 'google-github-actions/run-gemini-cli@main'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
