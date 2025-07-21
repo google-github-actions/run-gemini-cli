@@ -101,6 +101,8 @@ runs:
       run: |
         gemini --yolo --prompt "${PROMPT}"
 
+outputs: {}
+
 branding:
   icon: 'terminal'
   color: 'blue'
