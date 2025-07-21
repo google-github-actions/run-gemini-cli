@@ -50,7 +50,7 @@ runs:
         project_id: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
         workload_identity_provider: '${{ env.OTLP_GCP_WIF_PROVIDER }}'
 
-    - name: 'Setup Telemetry Collector for Google Cloud'
+    - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
         ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
       env:
@@ -58,7 +58,15 @@ runs:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
       shell: 'bash'
       run: |-
-        node "${GITHUB_ACTION_PATH}/scripts/telemetry.js"
+        set -euo pipefail
+        mkdir -p .gemini/
+        sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
+
+        docker run -d --name gemini-telemetry-collector --network host \
+          -v "${GITHUB_WORKSPACE}:/github/workspace" \
+          -e "GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS/$GITHUB_WORKSPACE//github/workspace}" \
+          -w "/github/workspace" \
+          otel/opentelemetry-collector-contrib:0.128.0
 
     - name: 'Install Gemini CLI'
       id: 'install'
@@ -86,12 +94,46 @@ runs:
         fi
 
     - name: 'Run Gemini CLI'
+      id: 'run_gemini_cli'
       env:
         GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
         PROMPT: '${{ inputs.prompt }}'
       shell: 'bash'
       run: |
         gemini --yolo --prompt "${PROMPT}"
+
+    - name: Failing step
+      id: demo
+      run: exit 1
+
+    - name: Notify on Failure
+      if: ${{ failure() && steps.run_gemini_cli.conclusion == 'failure' }}
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ steps.get_token.outputs.token }} # Assuming a prior step named 'get_token' generates the app token
+        script: |
+          const prNumber = '${{ github.event.pull_request.number }}';
+          if (!prNumber) {
+            console.log('Could not find PR number, skipping comment.');
+            return;
+          }
+          const workflowRunUrl = `https://github.com/${{ github.repository.owner }}/${{ github.repository.name }}/actions/runs/${{ github.run_id }}`;
+          const failureMessage = `
+          🚨 **Workflow Failed!** 🚨
+
+          The workflow encountered an error and could not complete.
+
+          - **Action Run:** [View Failed Run](${workflowRunUrl})
+          `;
+
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            body: failureMessage
+          });
+
+outputs: {}
 
 branding:
   icon: 'terminal'
