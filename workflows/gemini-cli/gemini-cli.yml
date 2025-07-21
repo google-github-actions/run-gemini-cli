@@ -135,6 +135,16 @@ jobs:
             echo "is_pr=${IS_PR}"
           } >> "${GITHUB_OUTPUT}"
 
+      - name: 'Acknowledge request'
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
+          REPOSITORY: '${{ github.repository }}'
+        run: |-
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "I've received your request and I'm working on it now! 🤖" \
+            --repo "${REPOSITORY}"
+
       - name: 'Checkout PR branch'
         if: |-
           ${{  steps.get_context.outputs.is_pr == 'true' }}
@@ -154,15 +164,10 @@ jobs:
           repository: '${{ github.repository }}'
           fetch-depth: 0
 
-      - name: 'Acknowledge request'
-        env:
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
-          ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
-          REPOSITORY: '${{ github.repository }}'
-        run: |-
-          gh issue comment "${ISSUE_NUMBER}" \
-            --body "I've received your request and I'm working on it now! 🤖" \
-            --repo "${REPOSITORY}"
+      - name: 'Configure git user'
+        run: |
+          git config user.name "gemini-cli[bot]"
+          git config user.email "gemini-cli[bot]@users.noreply.github.com"
 
       - name: 'Run Gemini'
         uses: 'google-github-actions/run-gemini-cli@main'
@@ -220,32 +225,55 @@ jobs:
 
             ## User Request
 
-            The user has sent the following request:
-            `${{ steps.get_context.outputs.user_request }}`
+            The user has sent the following request: `${{ steps.get_context.outputs.user_request }}`
 
-            ## Steps
+            ## Workflow
 
-            1.  **Understand the context.** Use the available tools to gather information about the issue or PR.
-                - For PRs, you can use `gh pr view "${ISSUE_NUMBER}"`, `gh pr diff "${ISSUE_NUMBER}"` and `gh pr list`.
-                - For issues, you can use `gh issue view "${ISSUE_NUMBER}"` or `gh issue list` to list all issues.
-                - To view file contents, use `cat`, `head`, or `tail`.
-                - The code has been checked out for you if this is a PR.
+            You must create a plan if the user's request requires any of the following:
+            - Creating, modifying, or deleting files in the repository.
+            - A multi-step process to arrive at an answer.
 
-            2.  **Fulfill the user's request.** The request is: `${{ steps.get_context.outputs.user_request }}`.
-                - If the request involves modifying code, use `write_file` or other tools to make the changes.
-                - After making changes, you **MUST** commit them.
+            If the request is a simple question, you can respond directly without a plan. In all other cases, create a plan.
+
+            ### Plan Creation
+
+            When you create a plan, you must follow these steps:
+            1.  **Generate a unique `plan-id`**. The `plan-id` must be a random UUID. Generate a new one for each plan.
+            2.  **Create the plan.** The plan must be in the following markdown format:
+                ```markdown
+                plan-id: <the-new-id>
+                **Plan Title:** A brief description of the plan.
+                **Steps:**
+                1. A clear and concise step.
+                2. Another clear and concise step.
+                To approve this plan, comment on this issue with the following command:
+                `@gemini-cli plan#<the-new-id> approved`
+                ```
+            3.  **Post the plan.**
+                - Write the plan to a file: `write_file("response.md", "<your-plan-here>")`
+                - Post it as a comment: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
+            4.  **Exit.** Your work is done until the user approves the plan.
+
+            ### Plan Approval
+
+            If the user approves a plan (e.g., `@gemini-cli plan#1 approved`), you must execute it.
+            1.  **Extract the `plan-id`** from the user's request.
+            2.  **Find the plan.** Run `gh issue view "${ISSUE_NUMBER}" --json comments -q '.comments[].body'` and find the comment containing the correct `plan-id`.
+            3.  **Execute the plan.** Carry out the steps described in the plan. This may involve:
+                - Using `write_file` to modify or create files.
+                - Running other shell commands.
+            4.  **Commit and push changes (if any).**
+                - Check if you have made changes: `git status --porcelain`
+                - If there are changes:
                   - `git add .`
-                  - `git commit -m "Your descriptive commit message"`
+                  - `git commit -m "Implement plan #<plan-id>"`
                   - `git push`
-
-            3.  **Respond to the user.**
-                - Write your final response in a markdown file: `write_file("response.md", "<your response here>")`
-                - Post the response as a comment:
-                  - For PRs: `gh pr comment "${ISSUE_NUMBER}" --body-file response.md`
-                  - For Issues: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
+            5.  **Notify the user.**
+                - Write a final response to `response.md`.
+                - Post the response: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
 
             ## Guidelines
-
-            - **Be concise.** Provide the information or perform the action requested without unnecessary chatter.
-            - **Reference all shell variables as `"${VAR}"`** (with quotes and braces) to prevent errors.
-            - **If you make changes, always commit and push them.**
+            - **Be concise.**
+            - **Reference all shell variables as `"${VAR}"`** to prevent errors.
+            - **Do not commit `response.md`**.
+            - **The `plan-id` must be a random UUID**.
