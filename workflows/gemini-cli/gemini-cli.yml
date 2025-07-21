@@ -170,7 +170,7 @@ jobs:
           git config user.email "gemini-cli[bot]@users.noreply.github.com"
 
       - name: 'Run Gemini'
-        uses: './'
+        uses: 'google-github-actions/run-gemini-cli@main'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
@@ -256,7 +256,7 @@ jobs:
                 `@gemini-cli plan#<the-new-id> approved`
                 ```
             3.  **Post the plan.**
-                - Write the plan to a file: `write_file("response.md", "<your-plan-here>")`
+                - Write the plan to a file: `write_file("plan.md", "<your-plan-here>")`
                 - Post it as a comment: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
             4.  **Exit.** Your work is done until the user approves the plan.
 
@@ -283,5 +283,5 @@ jobs:
             ## Guidelines
             - **Be concise.**
             - **Reference all shell variables as `"${VAR}"`** to prevent errors.
-            - **Do not commit `response.md`**.
+            - **Do not commit `response.md` and `plan.md`**.
             - **The `plan-id` must be a random UUID**.
