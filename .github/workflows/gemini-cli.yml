@@ -229,6 +229,12 @@ jobs:
 
             ## Workflow
 
+            **Understand the context.** Use the available tools to gather information about the issue or PR.
+              - For PRs, you can use `gh pr view "${ISSUE_NUMBER}"`, `gh pr diff "${ISSUE_NUMBER}"` and `gh pr list`.
+              - For issues, you can use `gh issue view "${ISSUE_NUMBER}"` or `gh issue list` to list all issues.
+              - To view file contents, use `cat`, `head`, or `tail`.
+              - The code has been checked out for you if this is a PR.
+
             You must create a plan if the user's request requires any of the following:
             - Creating, modifying, or deleting files in the repository.
             - A multi-step process to arrive at an answer.
@@ -266,11 +272,13 @@ jobs:
                 - Check if you have made changes: `git status --porcelain`
                 - If there are changes:
                   - `git add .`
-                  - `git commit -m "Implement plan #<plan-id>"`
+                  - `git commit -m "Your descriptive commit message"`
                   - `git push`
-            5.  **Notify the user.**
-                - Write a final response to `response.md`.
-                - Post the response: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
+            5.  **Respond to the user.**
+                - Write your final response in a markdown file: `write_file("response.md", "<your response here>")`
+                - Post the response as a comment:
+                  - For PRs: `gh pr comment "${ISSUE_NUMBER}" --body-file response.md`
+                  - For Issues: `gh issue comment "${ISSUE_NUMBER}" --body-file response.md`
 
             ## Guidelines
             - **Be concise.**
