@@ -196,7 +196,7 @@ print_header "Step 1: Enabling required Google Cloud APIs"
 apis_to_enable="iamcredentials.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com sts.googleapis.com logging.googleapis.com monitoring.googleapis.com cloudtrace.googleapis.com"
 
 print_info "Enabling APIs: ${apis_to_enable}"
-gcloud services enable "${apis_to_enable}" --project="${GCP_PROJECT_ID}"
+# gcloud services enable "${apis_to_enable}" --project="${GCP_PROJECT_ID}"
 print_success "APIs enabled successfully"
 
 # Step 2: Create Workload Identity Pool
@@ -267,6 +267,13 @@ gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
+
+print_info "Granting vertex permissions..."
+gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+    --role="roles/aiplatform.user" \
+    --member="${PRINCIPAL_SET}" \
+    --condition=None
+
 print_success "Standard permissions granted to Workload Identity Pool"
 
 # Get the full provider name for output
@@ -300,6 +307,12 @@ echo "   Value: ${WIF_PROVIDER_FULL}"
 echo ""
 echo "☁️  Variable Name: OTLP_GOOGLE_CLOUD_PROJECT"
 echo "   Value: ${GCP_PROJECT_ID}"
+echo ""
+echo "☁️ Secret Name: GOOGLE_CLOUD_LOCATION"
+echo "   Secret Value: global"
+echo ""
+echo "☁️  Secret Name: GOOGLE_CLOUD_PROJECT"
+echo "   Secret Value: ${GCP_PROJECT_ID}"
 echo ""
 
 print_success "Setup completed successfully! 🚀"

@@ -110,8 +110,10 @@ runs:
         echo "${GEMINI_RESPONSE}"
       shell: 'bash'
       env:
-        GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
         SURFACE: 'GitHub'
+        GOOGLE_CLOUD_PROJECT: '${{ env.GOOGLE_CLOUD_PROJECT }}'
+        GOOGLE_CLOUD_LOCATION: '${{ env.GOOGLE_CLOUD_LOCATION }}'
+        GOOGLE_GENAI_USE_VERTEXAI: '${{ env.GOOGLE_GENAI_USE_VERTEXAI }}'
         PROMPT: '${{ inputs.prompt }}'
 
 branding:
