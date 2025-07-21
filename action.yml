@@ -96,6 +96,7 @@ runs:
     - name: 'Run Gemini CLI'
       env:
         GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
+        SURFACE: 'GitHub'
         PROMPT: '${{ inputs.prompt }}'
       shell: 'bash'
       run: |
