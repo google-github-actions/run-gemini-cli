@@ -4,6 +4,7 @@
   "description": "This works with our versioning tools, this is NOT an NPM repo",
   "scripts": {
     "build": "echo \"No build required for composite action\"",
+    "docs": "./node_modules/.bin/actions-gen-readme",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -12,13 +13,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/google-github-actions/run-vertexai-notebook.git"
+    "url": "git+https://github.com/google-github-actions/run-gemini-cli.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "gemini",
+    "gemini-cli"
+  ],
+  "author": "Google",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/google-github-actions/run-vertexai-notebook/issues"
+    "url": "https://github.com/google-github-actions/run-gemini-cli/issues"
   },
-  "homepage": "https://github.com/google-github-actions/run-vertexai-notebook#readme"
+  "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
+  "devDependencies": {
+    "@google-github-actions/actions-utils": "^0.8.8"
+  }
 }
