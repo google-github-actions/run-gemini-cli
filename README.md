@@ -101,6 +101,13 @@ folder and customize it.
 
 See the sections below for specific examples.
 
+### Hello World
+
+A simple "Hello World" example that demonstrates how to use the action to get a
+response from Gemini.
+
+See: [`/examples/hello-world.yml`](./examples/hello-world.yml)
+
 ## Issue Triage
 
 This action can be used to triage GitHub issues automatically or on a schedule.
