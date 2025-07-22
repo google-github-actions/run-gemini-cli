@@ -139,6 +139,11 @@ that can be invoked within pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the Gemini CLI, please see the
 [documentation](./workflows/gemini-cli).
 
+You can configure the [maxSessionTurns](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#available-settings-in-settingsjson)
+when running the gemini cli in the workflow's yml file if you want to restrict
+maximum session turns for each yolo gemini cli run. In the step 'Run Gemini',
+you can configure the maxSessionTurns in the settings.
+
 ## Authentication
 
 This action requires a GitHub token to interact with the GitHub API. You can
