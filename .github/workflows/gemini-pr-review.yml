@@ -174,8 +174,7 @@ jobs:
                 "enabled": true,
                 "target": "gcp"
               },
-              "sandbox": false,
-              "selectedAuthType": "vertex-ai"
+              "sandbox": false
             }
           prompt: |-
             ## Role

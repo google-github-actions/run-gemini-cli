@@ -88,7 +88,12 @@ runs:
           npm install -g @google/gemini-cli@$VERSION_INPUT
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#$VERSION_INPUT"
-          npm install -g github:google-gemini/gemini-cli#$VERSION_INPUT
+          git clone https://github.com/google-gemini/gemini-cli.git
+          cd gemini-cli
+          git checkout $VERSION_INPUT
+          npm install
+          npm run bundle
+          npm install -g .
         fi
         echo "Verifying installation:"
         if command -v gemini >/dev/null 2>&1; then
