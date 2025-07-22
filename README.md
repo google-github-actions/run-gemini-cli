@@ -97,7 +97,7 @@ The following secrets are required for security:
 
 | Name              | Description                                   | Required | When Required                          |
 |-------------------|-----------------------------------------------|----------|----------------------------------------|
-| GEMINI_API_KEY    | Your Gemini API key.                          | No       | If you don't intend to use vertex auth |
+| GEMINI_API_KEY    | Your Gemini API key.                          | No       | If using API key from AI Studio |
 | APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App           |
 
 To add a secret, go to your repository's **Settings > Secrets and variables >

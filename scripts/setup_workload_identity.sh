@@ -107,6 +107,10 @@ while [[ $# -gt 0 ]]; do
             POOL_NAME="$2"
             shift 2
             ;;
+        -l|--location)
+            GOOGLE_CLOUD_LOCATION="$2"
+            shift 2
+            ;;
         -h|--help)
             show_help
             exit 0
