@@ -81,6 +81,8 @@ Set the following environment variables in your repository or workflow:
 | GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports npm versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override CLI version |
 | OTLP_GCP_WIF_PROVIDER     | The full resource name of the Workload Identity Provider.                                   | Variable | No       | If using observability       |
 | OTLP_GOOGLE_CLOUD_PROJECT | The Google Cloud project for telemetry.                                                     | Variable | No       | If using observability       |
+| GOOGLE_CLOUD_PROJECT      | The Google Cloud project for Vertex auth.                                                   | Variable | No       | If using Vertex auth         |
+| GOOGLE_CLOUD_LOCATION     | The location of the Google Cloud project for Vertex auth.                                   | Variable | No       | If using Vertex auth         |
 | APP_ID                    | GitHub App ID for custom authentication.                                                    | Variable | No       | If using a custom GitHub App |
 
 
@@ -93,10 +95,10 @@ save. For organization-wide or environment-specific variables, see the
 
 The following secrets are required for security:
 
-| Name              | Description                                   | Required | When Required                |
-|-------------------|-----------------------------------------------|----------|------------------------------|
-| GEMINI_API_KEY    | Your Gemini API key.                          | Yes      | Always                       |
-| APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App |
+| Name              | Description                                   | Required | When Required                          |
+|-------------------|-----------------------------------------------|----------|----------------------------------------|
+| GEMINI_API_KEY    | Your Gemini API key.                          | No       | If you don't intend to use vertex auth |
+| APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App           |
 
 To add a secret, go to your repository's **Settings > Secrets and variables >
 Actions > New repository secret**. For more information, see the
