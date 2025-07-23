@@ -72,7 +72,7 @@ Your user account needs these permissions in the target GCP project:
 |--------|-------------|---------|
 | `--repo OWNER/REPO` | **Required**: GitHub repository | `--repo google/my-repo` |
 | `--project GOOGLE_CLOUD_PROJECT` | GCP project ID (auto-detected if not provided) | `--project my-gcp-project` |
-| `--location GCP Project Location` | GCP project Location (defaults to 'global') | `--location us-east1` |
+| `--location GOOGLE_CLOUD_LOCATION` | GCP project Location (defaults to 'global') | `--location us-east1` |
 | `--pool-name NAME` | Custom pool name (default: `github`) | `--pool-name my-pool` |
 | `--help` | Show help message | |
 
