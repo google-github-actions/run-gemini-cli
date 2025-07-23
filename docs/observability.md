@@ -62,7 +62,7 @@ After running the setup script, configure your GitHub Actions workflow with the 
     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   with:
     # Enable telemetry in settings
-    settings_json: |
+    settings: |
       {
         "telemetry": {
           "enabled": true,
@@ -73,7 +73,7 @@ After running the setup script, configure your GitHub Actions workflow with the 
     # ... other inputs ...
 ```
 
-**Important**: To enable telemetry, you must include the `settings_json` configuration as shown above. This tells the Gemini CLI to:
+**Important**: To enable telemetry, you must include the `settings` configuration as shown above. This tells the Gemini CLI to:
 - Enable telemetry collection
 - Send data to the local OpenTelemetry collector (which forwards to GCP)
 - Disable sandbox mode (required for telemetry)

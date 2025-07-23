@@ -137,7 +137,7 @@ The most powerful feature is the ability to define the tools the AI can use. In 
 **Example: Adding the `ls` command**
 ```yaml
 with:
-  settings_json: |
+  settings: |
     {
       "coreTools": [
         "run_shell_command(ls)",

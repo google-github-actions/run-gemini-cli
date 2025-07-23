@@ -57,7 +57,7 @@ environment variables, and secrets.
 
 -   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A specific prompt to guide Gemini.
 
--   <a name="settings_json"></a><a href="#user-content-settings_json"><code>settings_json</code></a>: _(Optional)_ A JSON string to configure the Gemini CLI. This will be written to
+-   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string to configure the Gemini CLI. This will be written to
     .gemini/settings.json.
 
 

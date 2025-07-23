@@ -22,7 +22,7 @@ inputs:
     description: 'A specific prompt to guide Gemini.'
     required: false
     default: 'You are a helpful assistant.'
-  settings_json:
+  settings:
     description: |
       A JSON string to configure the Gemini CLI. This will be written to
       .gemini/settings.json.
@@ -38,13 +38,13 @@ runs:
   steps:
     - name: 'Configure Gemini CLI'
       if: |-
-        ${{ inputs.settings_json != '' }}
+        ${{ inputs.settings != '' }}
       run: |
         mkdir -p .gemini/
-        echo "${SETTINGS_JSON}" > ".gemini/settings.json"
+        echo "${SETTINGS}" > ".gemini/settings.json"
       shell: 'bash'
       env:
-        SETTINGS_JSON: '${{ inputs.settings_json }}'
+        SETTINGS: '${{ inputs.settings }}'
 
     - name: 'Authenticate to Google Cloud for Telemetry'
       if: |-

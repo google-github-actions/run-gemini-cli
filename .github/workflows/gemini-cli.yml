@@ -180,7 +180,7 @@ jobs:
           GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
         with:
-          settings_json: |
+          settings: |
             {
               "coreTools": [
                 "run_shell_command(echo)",
