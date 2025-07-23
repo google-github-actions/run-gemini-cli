@@ -83,6 +83,7 @@ Set the following environment variables in your repository or workflow:
 | OTLP_GOOGLE_CLOUD_PROJECT | The Google Cloud project for telemetry.                                                     | Variable | No       | If using observability       |
 | GOOGLE_CLOUD_PROJECT      | The Google Cloud project for Vertex auth.                                                   | Variable | No       | If using Vertex auth         |
 | GOOGLE_CLOUD_LOCATION     | The location of the Google Cloud project for Vertex auth.                                   | Variable | No       | If using Vertex auth         |
+| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                                                  | Variable | No       | If using Vertex auth |
 | APP_ID                    | GitHub App ID for custom authentication.                                                    | Variable | No       | If using a custom GitHub App |
 
 
