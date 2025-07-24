@@ -196,16 +196,8 @@ fi
 
 print_success "Authentication and project access verified"
 
-# Step 1: Enable required APIs
-print_header "Step 1: Enabling required Google Cloud APIs"
-apis_to_enable="iamcredentials.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com sts.googleapis.com logging.googleapis.com monitoring.googleapis.com cloudtrace.googleapis.com"
-
-print_info "Enabling APIs: ${apis_to_enable}"
-gcloud services enable "${apis_to_enable}" --project="${GOOGLE_CLOUD_PROJECT}"
-print_success "APIs enabled successfully"
-
-# Step 2: Create Workload Identity Pool
-print_header "Step 2: Creating Workload Identity Pool"
+# Step 1: Create Workload Identity Pool
+print_header "Step 1: Creating Workload Identity Pool"
 if ! gcloud iam workload-identity-pools describe "${POOL_NAME}" \
     --project="${GOOGLE_CLOUD_PROJECT}" \
     --location="${GOOGLE_CLOUD_LOCATION}" &> /dev/null; then
@@ -225,8 +217,8 @@ WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${POOL_NAME}" \
     --location="${GOOGLE_CLOUD_LOCATION}" \
     --format="value(name)")
 
-# Step 3: Create Workload Identity Provider
-print_header "Step 3: Creating Workload Identity Provider"
+# Step 2: Create Workload Identity Provider
+print_header "Step 2: Creating Workload Identity Provider"
 ATTRIBUTE_CONDITION="assertion.repository_owner == '${REPO_OWNER}'"
 
 if ! gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
@@ -247,13 +239,13 @@ else
     print_success "Workload Identity Provider already exists"
 fi
 
-# Step 4: Grant standard permissions to the Workload Identity Pool
-print_header "Step 4: Granting standard permissions to Workload Identity Pool"
+# Step 3: Grant required permissions to the Workload Identity Pool
+print_header "Step 3: Granting required permissions to Workload Identity Pool"
 PRINCIPAL_SET="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
-print_info "Granting standard CI/CD permissions directly to the Workload Identity Pool..."
+print_info "Granting required permissions directly to the Workload Identity Pool..."
 
-# Core observability permissions
+# Observability permissions
 print_info "Granting logging permissions..."
 gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/logging.logWriter" \
@@ -272,14 +264,14 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
-
+# Model inference permissions
 print_info "Granting vertex permissions..."
 gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/aiplatform.user" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
-print_success "Standard permissions granted to Workload Identity Pool"
+print_success "Required permissions granted to Workload Identity Pool"
 
 # Get the full provider name for output
 WIF_PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
@@ -288,7 +280,7 @@ WIF_PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${PRO
     --workload-identity-pool="${POOL_NAME}" \
     --format="value(name)")
 
-# Step 5: Output configuration
+# Step 4: Output configuration
 print_header "🎉 Setup Complete!"
 echo ""
 print_success "Direct Workload Identity Federation has been configured for your repository!"
@@ -300,6 +292,7 @@ print_success "The following permissions have been automatically granted to your
 echo "• roles/logging.logWriter - Write logs to Cloud Logging"
 echo "• roles/monitoring.editor - Create and update metrics in Cloud Monitoring"
 echo "• roles/cloudtrace.agent - Send traces to Cloud Trace"
+echo "• roles/aiplatform.user - Use Vertex AI for model inference"
 echo ""
 
 print_header "GitHub Environment Variables Configuration"
@@ -307,17 +300,17 @@ echo ""
 print_warning "Add these variables to your GitHub repository or workflow configuration:"
 echo "  Repository: https://github.com/${GITHUB_REPO}/settings/variables/actions"
 echo ""
-echo "🔑 Variable Name: OTLP_GCP_WIF_PROVIDER"
-echo "   Value: ${WIF_PROVIDER_FULL}"
+echo "🔑 Variable Name: GCP_WIF_PROVIDER"
+echo "   Variable Value: ${WIF_PROVIDER_FULL}"
 echo ""
 echo "☁️  Variable Name: OTLP_GOOGLE_CLOUD_PROJECT"
-echo "   Value: ${GOOGLE_CLOUD_PROJECT}"
+echo "   Variable VariableValue: ${GOOGLE_CLOUD_PROJECT}"
 echo ""
-echo "☁️ Secret Name: GOOGLE_CLOUD_LOCATION"
-echo "   Secret Value: ${GOOGLE_CLOUD_LOCATION}"
+echo "☁️  Variable Name: GOOGLE_CLOUD_PROJECT"
+echo "   Variable Value: ${GOOGLE_CLOUD_PROJECT}"
 echo ""
-echo "☁️  Secret Name: GOOGLE_CLOUD_PROJECT"
-echo "   Secret Value: ${GOOGLE_CLOUD_PROJECT}"
+echo "☁️ Variable Name: GOOGLE_CLOUD_LOCATION"
+echo "   Variable Value: ${GOOGLE_CLOUD_LOCATION}"
 echo ""
 
 print_success "Setup completed successfully! 🚀"

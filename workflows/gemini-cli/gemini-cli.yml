@@ -174,7 +174,7 @@ jobs:
           ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
           IS_PR: '${{ steps.get_context.outputs.is_pr }}'
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-          OTLP_GCP_WIF_PROVIDER: '${{ vars.OTLP_GCP_WIF_PROVIDER }}'
+          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
           GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
           GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'

@@ -51,7 +51,7 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 2. **Gemini API Key**: Required for AI functionality
    - Set `GEMINI_API_KEY` secret in your repository
 3. **Telemetry (Optional)**: For observability
-   - Set `OTLP_GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable
+   - Set `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable
 
 ### Workflow File
 

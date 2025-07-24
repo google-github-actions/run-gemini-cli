@@ -46,18 +46,18 @@ runs:
       env:
         SETTINGS: '${{ inputs.settings }}'
 
-    - name: 'Authenticate to Google Cloud for Telemetry'
+    - name: 'Authenticate to Google Cloud'
       if: |-
-        ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
+        ${{ env.GCP_WIF_PROVIDER != '' }}
       id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
-        project_id: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
-        workload_identity_provider: '${{ env.OTLP_GCP_WIF_PROVIDER }}'
+        project_id: '${{ env.GOOGLE_CLOUD_PROJECT }}'
+        workload_identity_provider: '${{ env.GCP_WIF_PROVIDER }}'
 
     - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
-        ${{ env.OTLP_GCP_WIF_PROVIDER != '' }}
+        ${{ env.GCP_WIF_PROVIDER != '' }}
       env:
         OTLP_GOOGLE_CLOUD_PROJECT: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
         GITHUB_ACTION_PATH: '${{ github.action_path }}'

@@ -79,7 +79,7 @@ Set the following environment variables in your repository or workflow:
 | Name                      | Description                                                                                 | Type     | Required | When Required                |
 |---------------------------|---------------------------------------------------------------------------------------------|----------|----------|------------------------------|
 | GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports npm versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override CLI version |
-| OTLP_GCP_WIF_PROVIDER     | The full resource name of the Workload Identity Provider.                                   | Variable | No       | If using observability       |
+| GCP_WIF_PROVIDER     | The full resource name of the Workload Identity Provider.                                   | Variable | No       | If using observability       |
 | OTLP_GOOGLE_CLOUD_PROJECT | The Google Cloud project for telemetry.                                                     | Variable | No       | If using observability       |
 | GOOGLE_CLOUD_PROJECT      | The Google Cloud project for Vertex auth.                                                   | Variable | No       | If using Vertex auth         |
 | GOOGLE_CLOUD_LOCATION     | The location of the Google Cloud project for Vertex auth.                                   | Variable | No       | If using Vertex auth         |

@@ -49,15 +49,9 @@ For advanced configuration options, manual setup instructions, troubleshooting, 
 After running the setup script, configure your GitHub Actions workflow with the provided values:
 
 ```yaml
-- uses: google-github-actions/auth@v2
-  with:
-    workload_identity_provider: ${{ vars.OTLP_GCP_WIF_PROVIDER }}
-    project_id: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-
-
 - uses: google-github-actions/run-gemini-cli@v1
   env:
-    OTLP_GCP_WIF_PROVIDER: ${{ vars.OTLP_GCP_WIF_PROVIDER }}
+    GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
     OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   with:

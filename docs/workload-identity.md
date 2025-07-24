@@ -39,6 +39,7 @@ The script automatically grants these essential permissions:
 - **`roles/logging.logWriter`** - Write logs to Cloud Logging
 - **`roles/monitoring.metricWriter`** - Write metrics to Cloud Monitoring
 - **`roles/cloudtrace.agent`** - Send traces to Cloud Trace
+- **`roles/aiplatform.user `** - Make inference calls to Vertex AI
 
 ## Quick Start
 
@@ -94,11 +95,10 @@ Your user account needs these permissions in the target GCP project:
 
 ### What the Script Does
 
-1. **Enables required APIs**: IAM, STS, Logging, Monitoring, Tracing
-2. **Creates Workload Identity Pool**: Shared resource (named `github` by default)
-3. **Creates Workload Identity Provider**: Unique per repository
-4. **Grants permissions**: Automatic observability permissions
-5. **Outputs configuration**: GitHub secrets and workflow example
+1. **Creates Workload Identity Pool**: Shared resource (named `github` by default)
+2. **Creates Workload Identity Provider**: Unique per repository
+3. **Grants permissions**: Automatic observability and inference permissions
+4. **Outputs configuration**: GitHub secrets and workflow example
 
 ## GitHub Configuration
 
@@ -109,7 +109,7 @@ Go to: `https://github.com/OWNER/REPO/settings/variables/actions`
 
 | Environment Variable Name         | Description                                      |
 |-----------------------------------|--------------------------------------------------|
-| `OTLP_GCP_WIF_PROVIDER`           | Workload Identity Provider resource name         |
+| `GCP_WIF_PROVIDER`                | Workload Identity Provider resource name         |
 | `OTLP_GOOGLE_CLOUD_PROJECT`       | Your Google Cloud project ID                     |
 | `GOOGLE_CLOUD_PROJECT`            | Your Google Cloud project ID                     |
 | `GOOGLE_CLOUD_LOCATION`           | Your Google Cloud project Location               |
