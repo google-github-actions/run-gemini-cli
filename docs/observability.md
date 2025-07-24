@@ -11,12 +11,13 @@ The action uses its own built-in telemetry system that ensures consistent and re
   - [Advanced Setup](#advanced-setup)
   - [GitHub Actions Configuration](#github-actions-configuration)
   - [Viewing Telemetry Data](#viewing-telemetry-data)
+  - [Collector Configuration](#collector-configuration)
   - [Troubleshooting](#troubleshooting)
 
 
 ## Required Environment Variables
 
-For a complete list of required environment variables, their descriptions, and how to configure them, see [Configuration](./configuration.md#environment-variables).
+For a complete list of required environment variables, their descriptions, and how to configure them, see [docs](../README.md#environment-variables).
 
 When enabled, the action will automatically start an OpenTelemetry collector that forwards traces, metrics, and logs to your specified GCP project. You can then use Google Cloud's operations suite (formerly Stackdriver) to visualize and analyze this data.
 
@@ -79,6 +80,14 @@ Once configured, you can view your telemetry data in the Google Cloud Console:
 - **Traces**: [Cloud Trace Console](https://console.cloud.google.com/traces)
 - **Metrics**: [Cloud Monitoring Console](https://console.cloud.google.com/monitoring)
 - **Logs**: [Cloud Logging Console](https://console.cloud.google.com/logs)
+
+## Collector Configuration
+
+The action automatically handles the setup of the OpenTelemetry (OTel) collector. 
+This includes generating the necessary Google Cloud configuration, setting the correct
+file permissions for credentials, and running the collector in a Docker container. The
+collector is configured to use only the `googlecloud` exporter, ensuring telemetry
+is sent directly to your Google Cloud project. 
 
 ## Troubleshooting
 

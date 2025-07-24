@@ -67,11 +67,13 @@ runs:
         mkdir -p .gemini/
         sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
+        chmod 444 "$GOOGLE_APPLICATION_CREDENTIALS"
         docker run -d --name gemini-telemetry-collector --network host \
           -v "${GITHUB_WORKSPACE}:/github/workspace" \
           -e "GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS/$GITHUB_WORKSPACE//github/workspace}" \
           -w "/github/workspace" \
-          otel/opentelemetry-collector-contrib:0.128.0
+          otel/opentelemetry-collector-contrib:0.128.0 \
+          --config /github/workspace/.gemini/collector-gcp.yaml
 
     - name: 'Install Gemini CLI'
       id: 'install'
