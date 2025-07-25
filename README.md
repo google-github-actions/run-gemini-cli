@@ -101,7 +101,8 @@ The following secrets are required for security:
 
 | Name              | Description                                   | Required | When Required                          |
 |-------------------|-----------------------------------------------|----------|----------------------------------------|
-| GEMINI_API_KEY    | Your Gemini API key. You can also pass this as the `google_api_key` input.                          | No       | If using API key from AI Studio |
+| GEMINI_API_KEY    | Your Gemini API key.                          | No       | If using API key from AI Studio        |
+| GOOGLE_API_KEY    | Your Google API key.                          | No       | If using API key from Google Cloud     |
 | APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App           |
 
 To add a secret, go to your repository's **Settings > Secrets and variables >
