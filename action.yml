@@ -85,14 +85,14 @@ runs:
 
         VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
 
-        if [[ "$VERSION_INPUT" == "latest" || "$VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
-          echo "Installing Gemini CLI from npm: @google/gemini-cli@$VERSION_INPUT"
-          npm install -g @google/gemini-cli@$VERSION_INPUT
+        if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
+          echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
+          npm install -g @google/gemini-cli@"${VERSION_INPUT}"
         else
-          echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#$VERSION_INPUT"
+          echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
           git clone https://github.com/google-gemini/gemini-cli.git
           cd gemini-cli
-          git checkout $VERSION_INPUT
+          git checkout "${VERSION_INPUT}"
           npm install
           npm run bundle
           npm install -g .
