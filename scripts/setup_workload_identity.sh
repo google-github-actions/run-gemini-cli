@@ -196,8 +196,26 @@ fi
 
 print_success "Authentication and project access verified"
 
-# Step 1: Create Workload Identity Pool
-print_header "Step 1: Creating Workload Identity Pool"
+# Step 1: Enable required APIs
+print_header "Step 1: Enabling required Google Cloud APIs"
+required_apis=(
+    "aiplatform.googleapis.com"
+    "cloudaicompanion.googleapis.com"
+    "cloudresourcemanager.googleapis.com"
+    "cloudtrace.googleapis.com"
+    "iam.googleapis.com"
+    "iamcredentials.googleapis.com"
+    "logging.googleapis.com"
+    "monitoring.googleapis.com"
+    "sts.googleapis.com"
+)
+
+gcloud services enable "${required_apis[@]}" --project="${GOOGLE_CLOUD_PROJECT}"
+print_success "APIs enabled successfully."
+
+# Step 2: Create Workload Identity Pool
+print_header "Step 2: Creating Workload Identity Pool"
+
 if ! gcloud iam workload-identity-pools describe "${POOL_NAME}" \
     --project="${GOOGLE_CLOUD_PROJECT}" \
     --location="${GOOGLE_CLOUD_LOCATION}" &> /dev/null; then
@@ -273,6 +291,45 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
 
 print_success "Required permissions granted to Workload Identity Pool"
 
+# Step 5: Create and Configure Service Account for Gemini CLI
+print_header "Step 5: Create and Configure Service Account for Gemini CLI"
+SERVICE_ACCOUNT_NAME="gemini-cli-${REPO_HASH}"
+SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
+
+# Create service account if it doesn't exist
+if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT_EMAIL}" --project="${GOOGLE_CLOUD_PROJECT}" &> /dev/null; then
+    print_info "Creating Service Account: ${SERVICE_ACCOUNT_NAME}"
+    gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --display-name="Gemini CLI Service Account"
+    print_success "Service Account created: ${SERVICE_ACCOUNT_EMAIL}"
+else
+    print_success "Service Account already exists: ${SERVICE_ACCOUNT_EMAIL}"
+fi
+
+# Grant permissions to the service account on the project
+print_info "Granting 'Cloud AI Companion User' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/cloudaicompanion.user" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Allow the service account to generate an access tokens
+print_info "Granting 'Service Account Token Creator' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/iam.serviceAccountTokenCreator" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Allow the Workload Identity Pool to impersonate the Service Account
+print_info "Allowing GitHub Actions from '${GITHUB_REPO}' to impersonate the Service Account..."
+gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/iam.workloadIdentityUser" \
+    --member="${PRINCIPAL_SET}"
+
+print_success "GitHub Actions can now impersonate ${SERVICE_ACCOUNT_NAME}"
+
 # Get the full provider name for output
 WIF_PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
     --project="${GOOGLE_CLOUD_PROJECT}" \
@@ -280,7 +337,9 @@ WIF_PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${PRO
     --workload-identity-pool="${POOL_NAME}" \
     --format="value(name)")
 
-# Step 4: Output configuration
+
+# Step 6: Output configuration
+
 print_header "🎉 Setup Complete!"
 echo ""
 print_success "Direct Workload Identity Federation has been configured for your repository!"
@@ -293,6 +352,11 @@ echo "• roles/logging.logWriter - Write logs to Cloud Logging"
 echo "• roles/monitoring.editor - Create and update metrics in Cloud Monitoring"
 echo "• roles/cloudtrace.agent - Send traces to Cloud Trace"
 echo "• roles/aiplatform.user - Use Vertex AI for model inference"
+
+echo ""
+print_success "A Service Account (${SERVICE_ACCOUNT_EMAIL}) was created with the following roles:"
+echo "• roles/cloudaicompanion.user - Use Code Assist for model inference"
+echo "• roles/iam.serviceAccountTokenCreator"
 echo ""
 
 print_header "GitHub Environment Variables Configuration"
@@ -311,6 +375,9 @@ echo "   Variable Value: ${GOOGLE_CLOUD_PROJECT}"
 echo ""
 echo "☁️ Variable Name: GOOGLE_CLOUD_LOCATION"
 echo "   Variable Value: ${GOOGLE_CLOUD_LOCATION}"
+echo ""
+echo "☁️ Variable Name: SERVICE_ACCOUNT_EMAIL"
+echo "   Variable Value: ${SERVICE_ACCOUNT_EMAIL}"
 echo ""
 
 print_success "Setup completed successfully! 🚀"

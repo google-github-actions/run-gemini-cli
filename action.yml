@@ -54,6 +54,9 @@ runs:
       with:
         project_id: '${{ env.GOOGLE_CLOUD_PROJECT }}'
         workload_identity_provider: '${{ env.GCP_WIF_PROVIDER }}'
+        service_account: '${{ env.SERVICE_ACCOUNT_EMAIL }}'
+        token_format: 'access_token'
+        access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
 
     - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
@@ -122,6 +125,8 @@ runs:
         GOOGLE_CLOUD_PROJECT: '${{ env.GOOGLE_CLOUD_PROJECT }}'
         GOOGLE_CLOUD_LOCATION: '${{ env.GOOGLE_CLOUD_LOCATION }}'
         GOOGLE_GENAI_USE_VERTEXAI: '${{ env.GOOGLE_GENAI_USE_VERTEXAI }}'
+        GOOGLE_GENAI_USE_GCA: '${{ env.GOOGLE_GENAI_USE_GCA }}'
+        GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
 
 branding:
