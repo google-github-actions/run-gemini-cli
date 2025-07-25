@@ -55,6 +55,9 @@ environment variables, and secrets.
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
 
+-   <a name="google_api_key"></a><a href="#user-content-google_api_key"><code>google_api_key</code></a>: _(Optional)_ The Google API key to use for authentication. This can be
+    used as an alternative to the `GEMINI_API_KEY` secret.
+
 -   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A specific prompt to guide Gemini.
 
 -   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string to configure the Gemini CLI. This will be written to
@@ -98,7 +101,7 @@ The following secrets are required for security:
 
 | Name              | Description                                   | Required | When Required                          |
 |-------------------|-----------------------------------------------|----------|----------------------------------------|
-| GEMINI_API_KEY    | Your Gemini API key.                          | No       | If using API key from AI Studio |
+| GEMINI_API_KEY    | Your Gemini API key. You can also pass this as the `google_api_key` input.                          | No       | If using API key from AI Studio |
 | APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If using a custom GitHub App           |
 
 To add a secret, go to your repository's **Settings > Secrets and variables >
