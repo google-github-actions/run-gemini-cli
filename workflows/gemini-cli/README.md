@@ -45,7 +45,7 @@ When invoked with `@gemini-cli`, the assistant uses a customizable set of tools 
 2.  **GitHub App Token (Optional)**: Required for authentication if using custom github app.
     -   Set `APP_ID` and `APP_PRIVATE_KEY` secrets in your repository.
 3.  **Telemetry (Optional)**: For observability.
-    -   Set `OTLP_GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable.
+    -   Set `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable.
 
 ### Workflow File
 
@@ -148,7 +148,7 @@ The most powerful feature is the ability to define the tools the AI can use. In 
 **Example: Adding the `ls` command**
 ```yaml
 with:
-  settings_json: |
+  settings: |
     {
       "coreTools": [
         "run_shell_command(ls)",

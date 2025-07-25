@@ -73,10 +73,15 @@ jobs:
           REPOSITORY: '${{ github.repository }}'
           GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
-          OTLP_GCP_WIF_PROVIDER: '${{ vars.OTLP_GCP_WIF_PROVIDER }}'
+          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
         with:
-          settings_json: |-
+          settings: |-
             {
               "coreTools": [
                 "run_shell_command(echo)",

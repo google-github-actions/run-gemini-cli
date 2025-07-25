@@ -13,10 +13,6 @@ exporters:
       prefix: 'custom.googleapis.com/gemini_cli'
     log:
       default_log_name: 'gemini_cli'
-  debug:
-    verbosity: 'detailed'
-    sampling_initial: '2'
-    sampling_thereafter: '500'
 service:
   telemetry:
     logs:
@@ -27,12 +23,12 @@ service:
     traces:
       receivers: ['otlp']
       processors: ['batch']
-      exporters: ['googlecloud', 'debug']
+      exporters: ['googlecloud']
     metrics:
       receivers: ['otlp']
       processors: ['batch']
-      exporters: ['googlecloud', 'debug']
+      exporters: ['googlecloud']
     logs:
       receivers: ['otlp']
       processors: ['batch']
-      exporters: ['googlecloud', 'debug']
+      exporters: ['googlecloud']

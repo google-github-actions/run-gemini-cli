@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Universal Direct Workload Identity Federation Setup Script for GitHub Actions
 # This script sets up Google Cloud Direct Workload Identity Federation for any GitHub repository
 # to work with the google-github-actions/auth action.
@@ -37,7 +51,8 @@ print_header() {
 }
 
 # Default values
-GCP_PROJECT_ID=""
+GOOGLE_CLOUD_PROJECT=""
+GOOGLE_CLOUD_LOCATION="global"
 GITHUB_REPO=""
 POOL_NAME="github"
 
@@ -85,11 +100,15 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -p|--project)
-            GCP_PROJECT_ID="$2"
+            GOOGLE_CLOUD_PROJECT="$2"
             shift 2
             ;;
         --pool-name)
             POOL_NAME="$2"
+            shift 2
+            ;;
+        -l|--location)
+            GOOGLE_CLOUD_LOCATION="$2"
             shift 2
             ;;
         -h|--help)
@@ -125,17 +144,17 @@ if [[ ! "${GITHUB_REPO}" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]]; then
 fi
 
 # Auto-detect project ID if not provided
-if [[ -z "${GCP_PROJECT_ID}" ]]; then
+if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
     print_info "Auto-detecting Google Cloud project..."
-    GCP_PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
-    if [[ -z "${GCP_PROJECT_ID}" ]]; then
+    GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project 2>/dev/null)
+    if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
         print_error "Could not auto-detect Google Cloud project ID"
         echo "Please either:"
         echo "  1. Set default project: gcloud config set project YOUR_PROJECT_ID"
         echo "  2. Use --project flag: $0 --repo ${GITHUB_REPO} --project YOUR_PROJECT_ID"
         exit 1
     fi
-    print_success "Using project: ${GCP_PROJECT_ID}"
+    print_success "Using project: ${GOOGLE_CLOUD_PROJECT}"
 fi
 
 # Extract repository components
@@ -150,7 +169,7 @@ PROVIDER_NAME="gh-${REPO_HASH}"
 
 print_header "Starting Direct Workload Identity Federation setup"
 echo "📦 Repository: ${GITHUB_REPO}"
-echo "☁️ Project: ${GCP_PROJECT_ID}"
+echo "☁️ Project: ${GOOGLE_CLOUD_PROJECT}"
 echo "🏊 Pool: ${POOL_NAME}"
 echo "🆔 Provider: ${PROVIDER_NAME}"
 echo ""
@@ -166,8 +185,8 @@ if [[ -z "${GCLOUD_AUTH_LIST}" ]]; then
 fi
 
 # Test project access
-if ! gcloud projects describe "${GCP_PROJECT_ID}" > /dev/null 2>&1; then
-    print_error "Cannot access project '${GCP_PROJECT_ID}'"
+if ! gcloud projects describe "${GOOGLE_CLOUD_PROJECT}" > /dev/null 2>&1; then
+    print_error "Cannot access project '${GOOGLE_CLOUD_PROJECT}'"
     echo "Please verify:"
     echo "  1. Project ID is correct"
     echo "  2. You have permissions on this project"
@@ -179,21 +198,31 @@ print_success "Authentication and project access verified"
 
 # Step 1: Enable required APIs
 print_header "Step 1: Enabling required Google Cloud APIs"
-apis_to_enable="iamcredentials.googleapis.com cloudresourcemanager.googleapis.com iam.googleapis.com sts.googleapis.com logging.googleapis.com monitoring.googleapis.com cloudtrace.googleapis.com"
+required_apis=(
+    "aiplatform.googleapis.com"
+    "cloudaicompanion.googleapis.com"
+    "cloudresourcemanager.googleapis.com"
+    "cloudtrace.googleapis.com"
+    "iam.googleapis.com"
+    "iamcredentials.googleapis.com"
+    "logging.googleapis.com"
+    "monitoring.googleapis.com"
+    "sts.googleapis.com"
+)
 
-print_info "Enabling APIs: ${apis_to_enable}"
-gcloud services enable "${apis_to_enable}" --project="${GCP_PROJECT_ID}"
-print_success "APIs enabled successfully"
+gcloud services enable "${required_apis[@]}" --project="${GOOGLE_CLOUD_PROJECT}"
+print_success "APIs enabled successfully."
 
 # Step 2: Create Workload Identity Pool
 print_header "Step 2: Creating Workload Identity Pool"
+
 if ! gcloud iam workload-identity-pools describe "${POOL_NAME}" \
-    --project="${GCP_PROJECT_ID}" \
-    --location="global" &> /dev/null; then
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --location="${GOOGLE_CLOUD_LOCATION}" &> /dev/null; then
     print_info "Creating Workload Identity Pool: ${POOL_NAME}"
     gcloud iam workload-identity-pools create "${POOL_NAME}" \
-        --project="${GCP_PROJECT_ID}" \
-        --location="global" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --location="${GOOGLE_CLOUD_LOCATION}" \
         --display-name="GitHub Actions Pool"
     print_success "Workload Identity Pool created"
 else
@@ -202,22 +231,22 @@ fi
 
 # Get the pool ID
 WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${POOL_NAME}" \
-    --project="${GCP_PROJECT_ID}" \
-    --location="global" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --location="${GOOGLE_CLOUD_LOCATION}" \
     --format="value(name)")
 
-# Step 3: Create Workload Identity Provider
-print_header "Step 3: Creating Workload Identity Provider"
+# Step 2: Create Workload Identity Provider
+print_header "Step 2: Creating Workload Identity Provider"
 ATTRIBUTE_CONDITION="assertion.repository_owner == '${REPO_OWNER}'"
 
 if ! gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
-    --project="${GCP_PROJECT_ID}" \
-    --location="global" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --location="${GOOGLE_CLOUD_LOCATION}" \
     --workload-identity-pool="${POOL_NAME}" &> /dev/null; then
     print_info "Creating Workload Identity Provider: ${PROVIDER_NAME}"
     gcloud iam workload-identity-pools providers create-oidc "${PROVIDER_NAME}" \
-        --project="${GCP_PROJECT_ID}" \
-        --location="global" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --location="${GOOGLE_CLOUD_LOCATION}" \
         --workload-identity-pool="${POOL_NAME}" \
         --display-name="${PROVIDER_NAME}" \
         --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
@@ -228,41 +257,89 @@ else
     print_success "Workload Identity Provider already exists"
 fi
 
-# Step 4: Grant standard permissions to the Workload Identity Pool
-print_header "Step 4: Granting standard permissions to Workload Identity Pool"
+# Step 3: Grant required permissions to the Workload Identity Pool
+print_header "Step 3: Granting required permissions to Workload Identity Pool"
 PRINCIPAL_SET="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
-print_info "Granting standard CI/CD permissions directly to the Workload Identity Pool..."
+print_info "Granting required permissions directly to the Workload Identity Pool..."
 
-# Core observability permissions
+# Observability permissions
 print_info "Granting logging permissions..."
-gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/logging.logWriter" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
 print_info "Granting monitoring permissions..."
-gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/monitoring.editor" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
 print_info "Granting tracing permissions..."
-gcloud projects add-iam-policy-binding "${GCP_PROJECT_ID}" \
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/cloudtrace.agent" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
-print_success "Standard permissions granted to Workload Identity Pool"
+# Model inference permissions
+print_info "Granting vertex permissions..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/aiplatform.user" \
+    --member="${PRINCIPAL_SET}" \
+    --condition=None
+
+print_success "Required permissions granted to Workload Identity Pool"
+
+# Step 5: Create and Configure Service Account for Gemini CLI
+print_header "Step 5: Create and Configure Service Account for Gemini CLI"
+SERVICE_ACCOUNT_NAME="gemini-cli-${REPO_HASH}"
+SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
+
+# Create service account if it doesn't exist
+if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT_EMAIL}" --project="${GOOGLE_CLOUD_PROJECT}" &> /dev/null; then
+    print_info "Creating Service Account: ${SERVICE_ACCOUNT_NAME}"
+    gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --display-name="Gemini CLI Service Account"
+    print_success "Service Account created: ${SERVICE_ACCOUNT_EMAIL}"
+else
+    print_success "Service Account already exists: ${SERVICE_ACCOUNT_EMAIL}"
+fi
+
+# Grant permissions to the service account on the project
+print_info "Granting 'Cloud AI Companion User' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/cloudaicompanion.user" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Allow the service account to generate an access tokens
+print_info "Granting 'Service Account Token Creator' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/iam.serviceAccountTokenCreator" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Allow the Workload Identity Pool to impersonate the Service Account
+print_info "Allowing GitHub Actions from '${GITHUB_REPO}' to impersonate the Service Account..."
+gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/iam.workloadIdentityUser" \
+    --member="${PRINCIPAL_SET}"
+
+print_success "GitHub Actions can now impersonate ${SERVICE_ACCOUNT_NAME}"
 
 # Get the full provider name for output
 WIF_PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
-    --project="${GCP_PROJECT_ID}" \
-    --location="global" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
+    --location="${GOOGLE_CLOUD_LOCATION}" \
     --workload-identity-pool="${POOL_NAME}" \
     --format="value(name)")
 
-# Step 5: Output configuration
+
+# Step 6: Output configuration
+
 print_header "🎉 Setup Complete!"
 echo ""
 print_success "Direct Workload Identity Federation has been configured for your repository!"
@@ -274,6 +351,12 @@ print_success "The following permissions have been automatically granted to your
 echo "• roles/logging.logWriter - Write logs to Cloud Logging"
 echo "• roles/monitoring.editor - Create and update metrics in Cloud Monitoring"
 echo "• roles/cloudtrace.agent - Send traces to Cloud Trace"
+echo "• roles/aiplatform.user - Use Vertex AI for model inference"
+
+echo ""
+print_success "A Service Account (${SERVICE_ACCOUNT_EMAIL}) was created with the following roles:"
+echo "• roles/cloudaicompanion.user - Use Code Assist for model inference"
+echo "• roles/iam.serviceAccountTokenCreator"
 echo ""
 
 print_header "GitHub Environment Variables Configuration"
@@ -281,11 +364,20 @@ echo ""
 print_warning "Add these variables to your GitHub repository or workflow configuration:"
 echo "  Repository: https://github.com/${GITHUB_REPO}/settings/variables/actions"
 echo ""
-echo "🔑 Variable Name: OTLP_GCP_WIF_PROVIDER"
-echo "   Value: ${WIF_PROVIDER_FULL}"
+echo "🔑 Variable Name: GCP_WIF_PROVIDER"
+echo "   Variable Value: ${WIF_PROVIDER_FULL}"
 echo ""
 echo "☁️  Variable Name: OTLP_GOOGLE_CLOUD_PROJECT"
-echo "   Value: ${GCP_PROJECT_ID}"
+echo "   Variable VariableValue: ${GOOGLE_CLOUD_PROJECT}"
+echo ""
+echo "☁️  Variable Name: GOOGLE_CLOUD_PROJECT"
+echo "   Variable Value: ${GOOGLE_CLOUD_PROJECT}"
+echo ""
+echo "☁️ Variable Name: GOOGLE_CLOUD_LOCATION"
+echo "   Variable Value: ${GOOGLE_CLOUD_LOCATION}"
+echo ""
+echo "☁️ Variable Name: SERVICE_ACCOUNT_EMAIL"
+echo "   Variable Value: ${SERVICE_ACCOUNT_EMAIL}"
 echo ""
 
 print_success "Setup completed successfully! 🚀"

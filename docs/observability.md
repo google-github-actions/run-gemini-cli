@@ -11,12 +11,13 @@ The action uses its own built-in telemetry system that ensures consistent and re
   - [Advanced Setup](#advanced-setup)
   - [GitHub Actions Configuration](#github-actions-configuration)
   - [Viewing Telemetry Data](#viewing-telemetry-data)
+  - [Collector Configuration](#collector-configuration)
   - [Troubleshooting](#troubleshooting)
 
 
 ## Required Environment Variables
 
-For a complete list of required environment variables, their descriptions, and how to configure them, see [Configuration](./configuration.md#environment-variables).
+For a complete list of required environment variables, their descriptions, and how to configure them, see [docs](../README.md#environment-variables).
 
 When enabled, the action will automatically start an OpenTelemetry collector that forwards traces, metrics, and logs to your specified GCP project. You can then use Google Cloud's operations suite (formerly Stackdriver) to visualize and analyze this data.
 
@@ -49,20 +50,14 @@ For advanced configuration options, manual setup instructions, troubleshooting, 
 After running the setup script, configure your GitHub Actions workflow with the provided values:
 
 ```yaml
-- uses: google-github-actions/auth@v2
-  with:
-    workload_identity_provider: ${{ vars.OTLP_GCP_WIF_PROVIDER }}
-    project_id: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-
-
 - uses: google-github-actions/run-gemini-cli@v1
   env:
-    OTLP_GCP_WIF_PROVIDER: ${{ vars.OTLP_GCP_WIF_PROVIDER }}
+    GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
     OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   with:
     # Enable telemetry in settings
-    settings_json: |
+    settings: |
       {
         "telemetry": {
           "enabled": true,
@@ -73,7 +68,7 @@ After running the setup script, configure your GitHub Actions workflow with the 
     # ... other inputs ...
 ```
 
-**Important**: To enable telemetry, you must include the `settings_json` configuration as shown above. This tells the Gemini CLI to:
+**Important**: To enable telemetry, you must include the `settings` configuration as shown above. This tells the Gemini CLI to:
 - Enable telemetry collection
 - Send data to the local OpenTelemetry collector (which forwards to GCP)
 - Disable sandbox mode (required for telemetry)
@@ -85,6 +80,14 @@ Once configured, you can view your telemetry data in the Google Cloud Console:
 - **Traces**: [Cloud Trace Console](https://console.cloud.google.com/traces)
 - **Metrics**: [Cloud Monitoring Console](https://console.cloud.google.com/monitoring)
 - **Logs**: [Cloud Logging Console](https://console.cloud.google.com/logs)
+
+## Collector Configuration
+
+The action automatically handles the setup of the OpenTelemetry (OTel) collector. 
+This includes generating the necessary Google Cloud configuration, setting the correct
+file permissions for credentials, and running the collector in a Docker container. The
+collector is configured to use only the `googlecloud` exporter, ensuring telemetry
+is sent directly to your Google Cloud project. 
 
 ## Troubleshooting
 
