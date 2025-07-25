@@ -344,6 +344,7 @@ print_header "🎉 Setup Complete!"
 echo ""
 print_success "Direct Workload Identity Federation has been configured for your repository!"
 echo ""
+echo "Configured principal set - ${PRINCIPAL_SET}"
 
 print_header "Permissions Granted"
 echo ""

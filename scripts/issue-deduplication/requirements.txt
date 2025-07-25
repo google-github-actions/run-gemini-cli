@@ -1,0 +1,7 @@
+google-genai
+numpy
+tqdm
+scikit-learn
+google-cloud-alloydb-connector[pg8000]
+sqlalchemy
+fastmcp==2.6.1
