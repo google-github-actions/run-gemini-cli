@@ -100,6 +100,7 @@ resource "google_cloud_run_v2_service" "token_exchange" {
   name     = "github-token-exchange"
   location = var.location
   ingress  = "INGRESS_TRAFFIC_ALL"
+  custom_audiences = [var.audience]
 
   template {
     service_account = google_service_account.run_service_account.email
