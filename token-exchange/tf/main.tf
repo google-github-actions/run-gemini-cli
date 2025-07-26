@@ -70,7 +70,12 @@ resource "google_secret_manager_secret" "github_app_private_key" {
 }
 
 resource "google_secret_manager_secret_version" "github_app_private_key" {
-  secret      = google_secret_manager_secret.github_app_private_key.id
+  secret = google_secret_manager_secret.github_app_private_key.id
+  lifecycle {
+    ignore_changes = [
+      secret_data,
+    ]
+  }
   // Secret will be added later.
 }
 
@@ -90,7 +95,7 @@ resource "google_cloud_run_v2_service" "token_exchange" {
     google_secret_manager_secret_iam_member.run_secret_accessor,
   ]
 
-  name = "github-token-exchange"
+  name     = "github-token-exchange"
   location = var.location
   ingress  = "INGRESS_TRAFFIC_ALL"
 
@@ -134,7 +139,7 @@ resource "google_cloud_run_service_iam_member" "deployer_binding" {
 // Workload pool for CI pipeline
 
 resource "google_iam_workload_identity_pool" "ci_pipeline" {
-  depends_on = [google_project_service.default]
+  depends_on                = [google_project_service.default]
   workload_identity_pool_id = "ci-pipeline"
 }
 
@@ -170,7 +175,7 @@ resource "google_service_account_iam_member" "ci_pipeline_service_account_bindin
 // Workload pool for token exchange
 
 resource "google_iam_workload_identity_pool" "token_exchange" {
-  depends_on = [google_project_service.default]
+  depends_on                = [google_project_service.default]
   workload_identity_pool_id = "token-exchange"
 }
 
