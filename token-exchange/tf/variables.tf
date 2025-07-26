@@ -28,12 +28,6 @@ variable "github_app_id" {
   type        = string
 }
 
-variable "github_app_private_key" {
-  description = "The GitHub App private key to use for the token exchange service."
-  type        = string
-  sensitive = true
-}
-
 variable "github_ci_owner" {
   description = "The GitHub owner to use for the CI pipeline to deploy the token exchange service."
   type = string
