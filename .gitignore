@@ -70,3 +70,4 @@ token-exchange/tf/terraform.tfstate
 token-exchange/tf/terraform.tfstate.backup
 token-exchange/tf/.terraform/providers/registry.terraform.io/hashicorp/google/6.45.0/darwin_arm64/LICENSE.txt
 token-exchange/tf/.terraform/providers/registry.terraform.io/hashicorp/google/6.45.0/darwin_arm64/terraform-provider-google_v6.45.0_x5
+token-exchange/tf/.terraform.tfstate.lock.info

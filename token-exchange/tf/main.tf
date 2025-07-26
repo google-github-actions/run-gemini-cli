@@ -150,9 +150,7 @@ resource "google_iam_workload_identity_pool_provider" "ci_pipeline_github_action
   description                        = "Workload identity pool provider for deploying the token exchange service from GitHub Actions."
   attribute_condition                = <<EOT
     assertion.repository_owner == "${var.github_ci_owner}" &&
-    assertion.repository == "${var.github_ci_repo}" &&
-    assertion.ref == "refs/heads/main" &&
-    assertion.ref_type == "branch"
+    assertion.repository == "${var.github_ci_repo}"
 EOT
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
