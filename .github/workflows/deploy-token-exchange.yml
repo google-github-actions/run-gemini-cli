@@ -3,10 +3,16 @@ name: Deploy token exchange
 on:
     workflow_dispatch:
       inputs:
+        project_number:
+          description: 'The GCP project number where the token exchange service will be deployed.'
+          required: true
+          type: 'string'
+          default: '287196211085'
         project_id:
           description: 'The GCP project ID where the token exchange service will be deployed.'
           required: true
           type: 'string'
+          default: 'jc-token-exchange-2'
 
 jobs:
     build-and-deploy:
@@ -22,7 +28,7 @@ jobs:
 
             - uses: google-github-actions/auth@v2
               with:
-                workload_identity_provider: projects/${{inputs.project_id}}/locations/global/workloadIdentityPools/ci-pipeline/providers/github-actions
+                workload_identity_provider: projects/${{inputs.project_number}}/locations/global/workloadIdentityPools/ci-pipeline/providers/github-actions
                 service_account: token-exchange-deployer@${{inputs.project_id}}.iam.gserviceaccount.com
 
             - id: deploy
