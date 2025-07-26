@@ -1,0 +1,15 @@
+name: Deploy token exchange
+
+on:
+    workflow_dispatch:
+      inputs:
+        project_id:
+          description: 'The GCP project ID where the token exchange service will be deployed.'
+          required: true
+          type: 'string'
+
+jobs:
+    checkout:
+        runs-on: ubuntu-latest
+        steps:
+            - run: 'echo "${{inputs.project_id}}"'
