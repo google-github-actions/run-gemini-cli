@@ -27,12 +27,12 @@ terraform apply -var="project_id=${PROJECT_ID?}" -var "github_app_id=${GITHUB_AP
 
 ## Create a GitHub app private key
 
-Create a new private key (i.e, a "client secret") in the GitHub app.
+Create a new private key in the GitHub app. This will create a file in your downloads folder.
 
 Push the private key to Secret Manager using the following:
 
 ```sh
-echo -n "${GITHUB_APP_PRIVATE_KEY?}" | gcloud --project ${PROJECT_ID?} secrets versions add github-app-private-key --data-file="-"
+gcloud --project ${PROJECT_ID?} secrets versions add github-app-private-key --data-file [private key .pem file]
 ```
 
 ## Deploy server

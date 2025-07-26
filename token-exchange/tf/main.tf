@@ -45,10 +45,11 @@ resource "google_service_account" "invoker_service_account" {
 }
 
 resource "google_service_account" "run_service_account" {
-  account_id   = "token-exchane-service"
+  account_id   = "token-exchange-service"
   display_name = "Token Exchange Service"
   description  = "Service account for the Cloud Run service, used to read the GitHub App private key from Secret Manager."
 }
+
 
 resource "google_service_account" "deployer_service_account" {
   account_id   = "token-exchange-deployer"
@@ -107,6 +108,7 @@ resource "google_cloud_run_v2_service" "token_exchange" {
       max_instance_count = 5
     }
     containers {
+      command = ["minty", "server", "run"]
       image = "us-docker.pkg.dev/cloudrun/container/hello"
       env {
         name  = "GITHUB_APP_ID"
@@ -134,7 +136,7 @@ resource "google_artifact_registry_repository" "token_exchange_images" {
 resource "google_project_iam_member" "deployer_artifact_writer" {
   project = var.project_id
   role    = "roles/artifactregistry.writer"
-  member    = "serviceAccount:${google_service_account.deployer_service_account.email}"
+  member  = "serviceAccount:${google_service_account.deployer_service_account.email}"
 }
 
 resource "google_cloud_run_service_iam_member" "invoker_binding" {
@@ -147,6 +149,13 @@ resource "google_cloud_run_service_iam_member" "deployer_run_deployer" {
   service = google_cloud_run_v2_service.token_exchange.name
   role    = "roles/run.developer"
   member  = "serviceAccount:${google_service_account.deployer_service_account.email}"
+}
+
+// Allow the deployer to actAs the Cloud Run runtime service account so it can deploy the service.
+resource "google_service_account_iam_member" "deployer_sa_user_binding" {
+  service_account_id = google_service_account.run_service_account.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.deployer_service_account.email}"
 }
 
 // Workload pool for CI pipeline
