@@ -28,16 +28,10 @@ variable "github_app_id" {
   type        = string
 }
 
-variable "github_ci_owner" {
-  description = "The GitHub owner to use for the CI pipeline to deploy the token exchange service."
-  type = string
-  default = "squee1945"
-}
-
 variable "github_ci_repo" {
-  description = "The GitHub repository name to use for the CI pipeline to deploy the token exchange service."
+  description = "The GitHub repository name to use for the CI pipeline to deploy the token exchange service (e.g., 'some-org/some-repo')."
   type = string
-  default = "run-gemini-cli"
+  default = "squee1945/run-gemini-cli"
 }
 
 variable "audience" {
