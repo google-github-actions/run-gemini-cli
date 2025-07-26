@@ -13,6 +13,11 @@ on:
           required: true
           type: 'string'
           default: 'jc-token-exchange-2'
+        location:
+          description: 'The GCP location where the token exchange service will be deployed.'
+          required: true
+          type: 'string'
+          default: 'us-central1'
 
 jobs:
     build-and-deploy:
@@ -31,10 +36,17 @@ jobs:
                 workload_identity_provider: projects/${{inputs.project_number}}/locations/global/workloadIdentityPools/ci-pipeline/providers/github-actions
                 service_account: token-exchange-deployer@${{inputs.project_id}}.iam.gserviceaccount.com
 
+            - uses: ko-build/setup-ko@v0.9
+              env:
+                KO_DOCKER_REPO: ${{inputs.location}}-docker.pkg.dev/${{inputs.project_id}}/token-exchange-images
+            - run: |
+                IMAGE_NAME=$(ko build)
+                echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+
             - id: deploy
               uses: 'google-github-actions/deploy-cloudrun@v2'
               with:
                 service: github-token-exchange
-                source: .
+                image: ${{env.IMAGE_NAME}}
 
             - run: 'echo "Service deployed to ${{ steps.deploy.outputs.url }}"'

@@ -19,6 +19,7 @@ provider "google" {
 
 resource "google_project_service" "default" {
   for_each = toset([
+    "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "logging.googleapis.com",
@@ -124,13 +125,25 @@ resource "google_cloud_run_v2_service" "token_exchange" {
   }
 }
 
+resource "google_artifact_registry_repository" "token_exchange_images" {
+  location      = var.location
+  repository_id = "token-exchange-images"
+  format        = "DOCKER"
+}
+
+resource "google_project_iam_member" "deployer_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member    = "serviceAccount:${google_service_account.deployer_service_account.email}"
+}
+
 resource "google_cloud_run_service_iam_member" "invoker_binding" {
   service = google_cloud_run_v2_service.token_exchange.name
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.invoker_service_account.email}"
 }
 
-resource "google_cloud_run_service_iam_member" "deployer_binding" {
+resource "google_cloud_run_service_iam_member" "deployer_run_deployer" {
   service = google_cloud_run_v2_service.token_exchange.name
   role    = "roles/run.developer"
   member  = "serviceAccount:${google_service_account.deployer_service_account.email}"
