@@ -100,7 +100,6 @@ resource "google_cloud_run_v2_service" "token_exchange" {
   name     = "github-token-exchange"
   location = var.location
   ingress  = "INGRESS_TRAFFIC_ALL"
-  custom_audiences = [var.audience]
 
   template {
     service_account = google_service_account.run_service_account.email
@@ -126,11 +125,11 @@ resource "google_cloud_run_v2_service" "token_exchange" {
       }
       env {
         name = "CONFIG_CACHE_MINUTES"
-        value = "0" # TODO
+        value = tostring(var.config_cache_minutes)
       }
       env {
         name  = "REPO_CONFIG_PATH"
-        value = ".github/minty.yaml"  # TODO
+        value = var.config_path
       }
       env {
         name = "ORG_CONFIG_PATH"
@@ -226,7 +225,7 @@ resource "google_iam_workload_identity_pool_provider" "token_exchange_github_act
   description                        = "Workload identity pool provider for token exchange for arbitary GitHub Actions workflows."
 
   attribute_condition = <<EOT
-    assertion.aud == "${var.audience}"
+    assertion.iss == "https://token.actions.githubusercontent.com"
   EOT
   attribute_mapping = {
     "google.subject"       = "assertion.sub"
@@ -237,7 +236,6 @@ resource "google_iam_workload_identity_pool_provider" "token_exchange_github_act
   }
   oidc {
     issuer_uri        = "https://token.actions.githubusercontent.com"
-    allowed_audiences = [var.audience]
   }
 }
 

@@ -34,8 +34,15 @@ variable "github_ci_repo" {
   default = "squee1945/run-gemini-cli"
 }
 
-variable "audience" {
-  description = "The OIDC audience for the token exchange service incoming idToken."
+variable "config_path" {
+  description = "The path in the repository to the config file to control the permissions for the token exchange."
   type        = string
-  default     = "GeminiCLI"
+  default     = ".gemini/gemini-cli-action-permissions.yaml"
 }
+
+variable "config_cache_minutes" {
+  description = "The number of minutes to cache the user's config file."
+  type        = number
+  default     = 0
+}
+
