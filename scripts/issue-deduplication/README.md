@@ -60,7 +60,10 @@ jobs:
       # 4. Start the Auth Proxy in the background
       # The proxy will listen on localhost (127.0.0.1) on port 5432.
       - name: 'Start AlloyDB Auth Proxy'
-        run: ./alloydb-auth-proxy projects/YOUR_PROJECT_ID/locations/YOUR_REGION/clusters/YOUR_CLUSTER_ID/instances/YOUR_INSTANCE_ID --public-ip -i &
+        run: ./alloydb-auth-proxy "YOUR_ALLOYDB_INSTANCE_CONNECTION_NAME" --public-ip -i --impersonate-service-account YOUR_SERVICE_ACCOUNT &
+
+      # The `YOUR_ALLOYDB_INSTANCE_CONNECTION_NAME` is the full connection string for your AlloyDB instance, 
+      # for example: projects/YOUR_PROJECT_ID/locations/YOUR_REGION/clusters/YOUR_CLUSTER_ID/instances/YOUR_INSTANCE_ID
 
 ```
 
@@ -101,7 +104,7 @@ The recommended way to run the server is by using the provided Dockerfile.
       mcp-server
     ```
 
-### 3.  Configure `gemini-cli`:**
+3.  **Configure `gemini-cli`:**
 
     To have `gemini-cli` use the running MCP server, you need to update your `settings.json` file. Add a new entry to the `mcpServers` object as shown below. This configuration allows `gemini-cli` to pass the required environment variables to the container securely.
 

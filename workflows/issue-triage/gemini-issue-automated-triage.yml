@@ -70,6 +70,8 @@ jobs:
           GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
           GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
         with:
           settings: |-
             {
@@ -110,4 +112,168 @@ jobs:
             - Do not add comments or modify the issue content
             - Triage only the current issue
             - Assign all applicable labels based on the issue content
+            - Reference all shell variables as "${VAR}" (with quotes and braces)
+
+  deduplicate-issues:
+    needs: triage-issue
+    if: >
+      github.event_name == 'issues' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '@gemini-cli /deduplicate') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
+    timeout-minutes: 5
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Generate GitHub App Token'
+        id: 'generate_token'
+        if: |-
+          ${{ vars.APP_ID }}
+        uses: 'actions/create-github-app-token@v1'
+        with:
+          app-id: '${{ vars.APP_ID }}'
+          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+          service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Configure Docker for Artifact Registry'
+        run: gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev
+
+      - name: 'Download AlloyDB Auth Proxy'
+        run: |
+          curl -o alloydb-auth-proxy https://storage.googleapis.com/alloydb-auth-proxy/v1.13.4/alloydb-auth-proxy.linux.amd64
+          chmod +x alloydb-auth-proxy
+
+      - name: 'Start AlloyDB Auth Proxy'
+        run: ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
+
+      - name: 'Run Gemini Issue Deduplication'
+        uses: 'google-github-actions/run-gemini-cli@main'
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          ISSUE_NUMBER: '${{ github.event.issue.number }}'
+          REPOSITORY: '${{ github.repository }}'
+          GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
+          OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
+          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          DB_PASS: '${{ secrets.ALLOYDB_DB_PASS }}'
+          INSTANCE_HOST: '127.0.0.1'
+          INSTANCE_PORT: '5432'
+        with:
+          settings: |-
+            {
+              "mcpServers": {
+                "issue_deduplication": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "--network=host",
+                    "-e",
+                    "GITHUB_TOKEN",
+                    "-e",
+                    "GEMINI_API_KEY",
+                    "-e",
+                    "DB_USER",
+                    "-e",
+                    "DB_PASS",
+                    "-e",
+                    "INSTANCE_HOST",
+                    "-e",
+                    "INSTANCE_PORT",
+                    "northamerica-northeast1-docker.pkg.dev/quacktastic-waffle/run-gemini-cli/issues-dedup-mcp-server:latest"
+                  ],
+                  "env": {
+                    "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+                    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+                    "DB_USER": "${DB_USER}",
+                    "DB_PASS": "${DB_PASS}",
+                    "INSTANCE_HOST": "${INSTANCE_HOST}",
+                    "INSTANCE_PORT": "${INSTANCE_PORT}"
+                  },
+                  "enabled": true
+                }
+              },
+              "coreTools": [
+                "run_shell_command(gh issue comment)",
+                "run_shell_command(gh issue view)"
+              ],
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              },
+              "sandbox": false
+            }
+          prompt: |-
+            ## Role
+
+            You are an issue de-duplication assistant. Your goal is to find
+            duplicate issues and notify the user by commenting on the current
+            issue, while avoiding duplicate comments.
+
+            ## Steps
+
+            1.  **Find Potential Duplicates:**
+                - The full repository name is available in the `${REPOSITORY}` environment variable (e.g., "owner/repo"). You will need to parse this to get the `repo_owner` and `repo_name`.
+                - The issue number is available in the `${ISSUE_NUMBER}` environment variable.
+                - Use the `duplicates` tool with the `repo_owner`, `repo_name`, and `issue_number` to find potential duplicates for the current issue. Do not use the `threshold` parameter.
+                - If no duplicates are found, you are done.
+
+            2.  **Refine Duplicates List (if necessary):**
+                - If the `duplicates` tool returns between 1 and 14 results, you must refine the list.
+                - For each potential duplicate issue, run `gh issue view <issue-number> --json title,body,comments` to fetch its content.
+                - Also fetch the content of the original issue: `gh issue view "${ISSUE_NUMBER}" --json title,body,comments`.
+                - Carefully analyze the content (title, body, comments) of the original issue and all potential duplicates.
+                - Based on your analysis, create a final list containing only the issues you are highly confident are actual duplicates.
+                - If your final list is empty, you are done.
+                - If the `duplicates` tool returned 15+ results, use the top 15 matches (based on descending similarity score value) to perform this step.
+
+            3.  **Format Final Duplicates List:**
+                Format the final list of duplicates into a markdown string.
+                The format should be:
+                "Found possible duplicate issues:\n\n- #${issue_number}: ${issue_title}"
+                Add an HTML comment to the end for identification: `<!-- gemini-cli-deduplication -->`
+
+            4.  **Check for Existing Comment:**
+                - Run `gh issue view "${ISSUE_NUMBER}" --json comments` to get all
+                  comments on the issue.
+                - Look for a comment made by a bot (the author's login often ends in `[bot]`) that contains `<!-- gemini-cli-deduplication -->`.
+                - If you find such a comment, store its `id` and `body`.
+
+            5.  **Decide Action:**
+                - **If an existing comment is found:**
+                    - Compare the new list of duplicate issues with the list from the existing comment's body.
+                    - If they are the same, do nothing.
+                    - If they are different, edit the existing comment. Use
+                      `gh issue comment "${ISSUE_NUMBER}" --edit-comment <comment-id> --body "..."`.
+                      The new body should be the new list of duplicates, but with the header "Found possible duplicate issues (updated):".
+                - **If no existing comment is found:**
+                    - Create a new comment with the list of duplicates.
+                    - Use `gh issue comment "${ISSUE_NUMBER}" --body "..."`.
+
+            ## Guidelines
+
+            - Only use the `duplicates` and `run_shell_command` tools.
+            - The `run_shell_command` tool can be used with `gh issue view` and `gh issue comment`.
+            - Do not download or read media files like images, videos, or links. The `--json` flag for `gh issue view` will prevent this.
+            - Do not modify the issue content, labels, or status.
+            - Only comment on the current issue.
             - Reference all shell variables as "${VAR}" (with quotes and braces)
