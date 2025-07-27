@@ -158,6 +158,12 @@ jobs:
 
       - name: 'Start AlloyDB Auth Proxy'
         run: ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
+      - name: 'Test AlloyDB Auth Proxy'
+        env:
+          DB_USER: 'postgres'
+          DB_PASS: '${{ secrets.ALLOYDB_DB_PASS }}'
+        run: |
+          PGPASSWORD=$DB_PASS psql "host=127.0.0.1 port=5432 user=$DB_USER dbname=postgres  sslmode=disable" --command="SELECT 1;"
 
       - name: 'Run Gemini Issue Deduplication'
         uses: './'
@@ -165,6 +171,8 @@ jobs:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
+          REPO_OWNER: '${{ github.repository_owner }}'
+          REPO_NAME: '${{ github.event.repository.name }}'
           GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
           GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
@@ -173,6 +181,7 @@ jobs:
           GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          DB_USER: 'postgres'
           DB_PASS: '${{ secrets.ALLOYDB_DB_PASS }}'
           INSTANCE_HOST: '127.0.0.1'
           INSTANCE_PORT: '5432'
@@ -192,6 +201,8 @@ jobs:
                     "-e",
                     "GEMINI_API_KEY",
                     "-e",
+                    "DB_USER",
+                    "-e",
                     "DB_PASS",
                     "-e",
                     "INSTANCE_HOST",
@@ -202,6 +213,7 @@ jobs:
                   "env": {
                     "GITHUB_TOKEN": "${GITHUB_TOKEN}",
                     "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+                    "DB_USER": "postgres",
                     "DB_PASS": "${DB_PASS}",
                     "INSTANCE_HOST": "${INSTANCE_HOST}",
                     "INSTANCE_PORT": "${INSTANCE_PORT}"
@@ -229,8 +241,7 @@ jobs:
             ## Steps
 
             1.  **Find Potential Duplicates:**
-                - The full repository name is available in the `${REPOSITORY}` environment variable (e.g., "owner/repo"). You will need to parse this to get the `repo_owner` and `repo_name`.
-                - The issue number is available in the `${ISSUE_NUMBER}` environment variable.
+                - The repo_owner/repo_name is ${{ github.repository }} and the issue number is ${{ github.event.issue.number }}.
                 - Use the `duplicates` tool with the `repo_owner`, `repo_name`, and `issue_number` to find potential duplicates for the current issue. Do not use the `threshold` parameter.
                 - If no duplicates are found, you are done.
 

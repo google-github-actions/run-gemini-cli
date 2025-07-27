@@ -163,6 +163,8 @@ jobs:
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
+          REPO_OWNER: '${{ github.repository_owner }}'
+          REPO_NAME: '${{ github.event.repository.name }}'
           GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
           GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
@@ -227,7 +229,7 @@ jobs:
 
             ## Steps
 
-            1.  **Extract Repository Information:** The full repository name is available in the `${REPOSITORY}` environment variable (e.g., "owner/repo"). You will need to parse this to get the `repo_owner` and `repo_name`.
+            1.  **Extract Repository Information:** The repo_owner/repo_name is ${{ github.repository }}.
             2.  **Refresh Embeddings:** Call the `refresh` tool with the correct `repo_owner` and `repo_name`. Do not use the `force` parameter.
             3.  **Log Output:** Print the JSON output from the `refresh` tool to the logs.
 
