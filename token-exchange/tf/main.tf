@@ -124,6 +124,26 @@ resource "google_cloud_run_v2_service" "token_exchange" {
           }
         }
       }
+      env {
+        name = "CONFIG_CACHE_MINUTES"
+        value = "0" # TODO
+      }
+      env {
+        name  = "REPO_CONFIG_PATH"
+        value = ".github/minty.yaml"  # TODO
+      }
+      env {
+        name = "ORG_CONFIG_PATH"
+        value = ".does-not-exist" # TODO
+      }
+      env {
+        name  = "ORG_CONFIG_REPO"
+        value =  ".does-not-exist" # TODO
+      }
+      env {
+        name = "ISSUER_ALLOWLIST"
+        value = "https://token.actions.githubusercontent.com"
+      }
     }
   }
 }
