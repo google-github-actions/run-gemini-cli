@@ -1,5 +1,8 @@
 name: Deploy token exchange
 
+# This workflow assumes that the Terraform infrastructure in
+# `token-exchange/tf/` has already been set up.
+
 on:
     workflow_dispatch:
       inputs:
@@ -7,17 +10,14 @@ on:
           description: 'The GCP project number where the token exchange service will be deployed.'
           required: true
           type: 'string'
-          default: '287196211085'
         project_id:
           description: 'The GCP project ID where the token exchange service will be deployed.'
           required: true
           type: 'string'
-          default: 'jc-token-exchange-2'
         location:
           description: 'The GCP location where the token exchange service will be deployed.'
           required: true
           type: 'string'
-          default: 'us-central1'
 
 jobs:
     build-and-deploy:
@@ -28,9 +28,8 @@ jobs:
         steps:
             - uses: actions/checkout@v2
               with:
-                # repository: abcxyz/github-token-minter
-                # ref: bff0776c3a11ddee36c5b9fc72299bd35994a075 # v2.3.2
-                repository: squee1945/github-token-minter
+                repository: abcxyz/github-token-minter
+                ref: bff0776c3a11ddee36c5b9fc72299bd35994a075 # v2.3.2
 
             - uses: google-github-actions/auth@v2
               with:

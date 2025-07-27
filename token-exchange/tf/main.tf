@@ -109,7 +109,7 @@ resource "google_cloud_run_v2_service" "token_exchange" {
     }
     containers {
       command = ["minty", "server", "run"]
-      image = "us-docker.pkg.dev/cloudrun/container/hello"
+      image   = "us-docker.pkg.dev/cloudrun/container/hello"
       env {
         name  = "GITHUB_APP_ID"
         value = var.github_app_id
@@ -124,7 +124,7 @@ resource "google_cloud_run_v2_service" "token_exchange" {
         }
       }
       env {
-        name = "CONFIG_CACHE_MINUTES"
+        name  = "CONFIG_CACHE_MINUTES"
         value = tostring(var.config_cache_minutes)
       }
       env {
@@ -132,15 +132,15 @@ resource "google_cloud_run_v2_service" "token_exchange" {
         value = var.config_path
       }
       env {
-        name = "ORG_CONFIG_PATH"
+        name  = "ORG_CONFIG_PATH"
         value = ".does-not-exist" # TODO
       }
       env {
         name  = "ORG_CONFIG_REPO"
-        value =  ".does-not-exist" # TODO
+        value = ".does-not-exist" # TODO
       }
       env {
-        name = "ISSUER_ALLOWLIST"
+        name  = "ISSUER_ALLOWLIST"
         value = "https://token.actions.githubusercontent.com"
       }
     }
@@ -235,7 +235,7 @@ resource "google_iam_workload_identity_pool_provider" "token_exchange_github_act
     "attribute.repository" = "assertion.repository"
   }
   oidc {
-    issuer_uri        = "https://token.actions.githubusercontent.com"
+    issuer_uri = "https://token.actions.githubusercontent.com"
   }
 }
 

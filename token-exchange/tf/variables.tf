@@ -30,8 +30,8 @@ variable "github_app_id" {
 
 variable "github_ci_repo" {
   description = "The GitHub repository name to use for the CI pipeline to deploy the token exchange service (e.g., 'some-org/some-repo')."
-  type = string
-  default = "squee1945/run-gemini-cli"
+  type        = string
+  default     = "google-github-actions/run-gemini-cli"
 }
 
 variable "config_path" {
@@ -43,6 +43,5 @@ variable "config_path" {
 variable "config_cache_minutes" {
   description = "The number of minutes to cache the user's config file."
   type        = number
-  default     = 0
+  default     = 5
 }
-
