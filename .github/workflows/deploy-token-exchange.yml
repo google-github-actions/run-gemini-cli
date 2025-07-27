@@ -28,8 +28,9 @@ jobs:
         steps:
             - uses: actions/checkout@v2
               with:
-                repository: abcxyz/github-token-minter
-                ref: bff0776c3a11ddee36c5b9fc72299bd35994a075 # v2.3.2
+                # repository: abcxyz/github-token-minter
+                # ref: bff0776c3a11ddee36c5b9fc72299bd35994a075 # v2.3.2
+                repository: squee1945/github-token-minter
 
             - uses: google-github-actions/auth@v2
               with:
