@@ -37,7 +37,7 @@ variable "github_ci_repo" {
 variable "config_path" {
   description = "The path in the repository to the config file to control the permissions for the token exchange."
   type        = string
-  default     = ".gemini/gemini-cli-action-permissions.yaml"
+  default     = ".gemini/run-gemini-cli-auth.yaml"
 }
 
 variable "config_cache_minutes" {
