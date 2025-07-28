@@ -8,6 +8,10 @@ This document describes a comprehensive system for triaging GitHub issues using 
   - [Workflows in Detail](#workflows-in-detail)
     - [Real-Time Issue Triage](#real-time-issue-triage)
     - [Scheduled Issue Triage](#scheduled-issue-triage)
+  - [Issue Deduplication](#issue-deduplication)
+    - [Overview](#overview)
+    - [How it Works](#how-it-works-1)
+    - [Setup](#setup)
 
 
 ## How it Works
@@ -76,3 +80,23 @@ This workflow is defined in `workflows/issue-triage/gemini-issue-automated-triag
 ### Scheduled Issue Triage
 
 This workflow is defined in `workflows/issue-triage/gemini-issue-scheduled-triage.yml` and runs on a schedule (e.g., every hour). It finds any issues that have no labels or have the `status/needs-triage` label and then uses the Gemini CLI to triage them. This workflow can also be manually triggered.
+
+## Issue Deduplication
+
+### Overview
+
+The issue triage system includes an advanced feature for detecting and reporting duplicate issues. This system uses a custom MCP server backed by an AlloyDB database to store issue embeddings and find similarities between them.
+
+### How it Works
+
+The deduplication process involves two key workflows:
+
+1.  **Real-time Duplicate Detection**: When a new issue is created, the `deduplicate-issues` job in the `gemini-issue-automated-triage.yml` workflow is triggered. This job uses the `duplicates` tool from the MCP server to find semantically similar issues. If any potential duplicates are found, the workflow will post a comment on the new issue listing the possible duplicates. This job can also be triggered manually by commenting `@gemini-cli /deduplicate` on an issue.
+
+2.  **Scheduled Embedding Refresh**: To keep the database of issue embeddings current, the `refresh-embeddings` job in the `gemini-issue-scheduled-triage.yml` workflow runs on a schedule. This job uses the `refresh` tool of the MCP server to process all open issues and update their corresponding embeddings in the AlloyDB database.
+
+### Setup
+
+Setting up the issue deduplication feature requires a Google Cloud project and an AlloyDB database.
+
+For detailed instructions on how to set up the necessary cloud resources and configure the workflows, please refer to the guide at [scripts/issue-deduplication/README.md](../../scripts/issue-deduplication/README.md). This guide provides step-by-step instructions for using the `setup_alloydb.sh` script and configuring the necessary secrets and variables in your GitHub repository.
