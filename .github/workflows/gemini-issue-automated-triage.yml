@@ -123,7 +123,7 @@ jobs:
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR'))
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: 'ubuntu-latest'
 
     steps:
@@ -158,6 +158,7 @@ jobs:
 
       - name: 'Start AlloyDB Auth Proxy'
         run: ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
+
       - name: 'Test AlloyDB Auth Proxy'
         env:
           DB_USER: 'postgres'

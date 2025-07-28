@@ -158,6 +158,13 @@ jobs:
       - name: 'Start AlloyDB Auth Proxy'
         run: ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
 
+      - name: 'Test AlloyDB Auth Proxy'
+        env:
+          DB_USER: 'postgres'
+          DB_PASS: '${{ secrets.ALLOYDB_DB_PASS }}'
+        run: |
+          PGPASSWORD=$DB_PASS psql "host=127.0.0.1 port=5432 user=$DB_USER dbname=postgres  sslmode=disable" --command="SELECT 1;"
+
       - name: 'Run Gemini Issue Deduplication Refresh'
         uses: './'
         env:
@@ -173,6 +180,7 @@ jobs:
           GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          DB_USER: 'postgres'
           DB_PASS: '${{ secrets.ALLOYDB_DB_PASS }}'
           INSTANCE_HOST: '127.0.0.1'
           INSTANCE_PORT: '5432'
@@ -180,7 +188,7 @@ jobs:
           settings: |-
             {
              "coreTools": [
-                "run_shell_command(echo)",
+                "run_shell_command(echo)"
               ],
               "mcpServers": {
                 "issue_deduplication": {
@@ -195,6 +203,8 @@ jobs:
                     "-e",
                     "GEMINI_API_KEY",
                     "-e",
+                    "DB_USER",
+                    "-e",
                     "DB_PASS",
                     "-e",
                     "INSTANCE_HOST",
@@ -205,6 +215,7 @@ jobs:
                   "env": {
                     "GITHUB_TOKEN": "${GITHUB_TOKEN}",
                     "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+                    "DB_USER": "postgres",
                     "DB_PASS": "${DB_PASS}",
                     "INSTANCE_HOST": "${INSTANCE_HOST}",
                     "INSTANCE_PORT": "${INSTANCE_PORT}"
