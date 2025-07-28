@@ -150,8 +150,7 @@ This tool updates the embeddings for all open issues in a repository. It fetches
 
 **Arguments:**
 
-- `repo_owner` (str): The owner of the repository (e.g., `google-gemini`).
-- `repo_name` (str): The name of the repository (e.g., `gemini-cli`).
+- `repo` (str): The repository in the format 'owner/name' (e.g., `google-gemini/gemini-cli`).
 - `force` (bool, optional): If `True`, forces a refresh of all issues, ignoring the last refresh time. Defaults to `False`.
 
 **Returns:**
@@ -164,8 +163,7 @@ This tool finds duplicate issues for a given issue.
 
 **Arguments:**
 
-- `repo_owner` (str): The owner of the repository (e.g., `google-gemini`).
-- `repo_name` (str): The name of the repository (e.g., `gemini-cli`).
+- `repo` (str): The repository in the format 'owner/name' (e.g., `google-gemini/gemini-cli`).
 - `issue_number` (int): The number of the issue to find duplicates for.
 - `threshold` (float, optional): The similarity threshold for finding duplicates. Defaults to `0.9`.
 

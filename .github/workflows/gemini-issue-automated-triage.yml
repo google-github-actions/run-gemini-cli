@@ -173,8 +173,6 @@ jobs:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
-          REPO_OWNER: '${{ github.repository_owner }}'
-          REPO_NAME: '${{ github.event.repository.name }}'
           GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
           GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
@@ -243,8 +241,8 @@ jobs:
             ## Steps
 
             1.  **Find Potential Duplicates:**
-                - The repo_owner/repo_name is ${{ github.repository }} and the issue number is ${{ github.event.issue.number }}.
-                - Use the `duplicates` tool with the `repo_owner`, `repo_name`, and `issue_number` to find potential duplicates for the current issue. Do not use the `threshold` parameter.
+                - The repository is ${{ github.repository }} and the issue number is ${{ github.event.issue.number }}.
+                - Use the `duplicates` tool with the `repo` and `issue_number` to find potential duplicates for the current issue. Do not use the `threshold` parameter.
                 - If no duplicates are found, you are done.
 
             2.  **Refine Duplicates List (if necessary):**

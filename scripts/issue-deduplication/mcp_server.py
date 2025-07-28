@@ -314,7 +314,7 @@ def generate_and_save_embeddings_sync(engine, issues, repo_name, embedding_dim=7
 # --- MCP Tool Definition ---
 
 @mcp.tool()
-def refresh(repo_owner: str, repo_name: str, force: bool = False) -> str:
+def refresh(repo: str, force: bool = False) -> str:
     """
     Updates the embeddings for all open issues in a repository.
 
@@ -323,14 +323,12 @@ def refresh(repo_owner: str, repo_name: str, force: bool = False) -> str:
     last refresh, and storing them in the database.
 
     Args:
-        repo_owner: The owner of the repository, eg. `google-gemini`.
-        repo_name: The name of the repository, eg. `gemini-cli`.
+        repo: The repository in the format 'owner/name', e.g., `google-gemini/gemini-cli`.
         force: If True, forces a refresh of all issues, ignoring the last refresh time.
 
     Returns:
         A JSON string indicating the number of issues processed.
     """
-    repo = f"{repo_owner}/{repo_name}"
     logger.info(f"Starting embedding refresh for repository: {repo}")
 
     issues = get_issues_with_comments_sync(repo=repo)
@@ -351,14 +349,13 @@ def refresh(repo_owner: str, repo_name: str, force: bool = False) -> str:
 
 @mcp.tool()
 def duplicates(
-    repo_owner: str, repo_name: str, issue_number: int, threshold: float = 0.9
+    repo: str, issue_number: int, threshold: float = 0.9
 ) -> str:
     """
     Finds duplicate issues for a given issue.
     
     Args:
-        repo_owner: The owner of the repository, eg. `google-gemini`.
-        repo_name: The name of the repository, eg. `gemini-cli`.
+        repo: The repository in the format 'owner/name', e.g., `google-gemini/gemini-cli`.
         issue_number: The number of the issue to find duplicates for.
         threshold: The similarity threshold for finding duplicates. Do not specify threshold unless explicitly specified by the user.
 
@@ -367,7 +364,6 @@ def duplicates(
         Each duplicate issue contains the issue number, title, and similarity score.
     
     """
-    repo = f"{repo_owner}/{repo_name}"
     distance_threshold = 1 - threshold
 
     # Fetch issue data
