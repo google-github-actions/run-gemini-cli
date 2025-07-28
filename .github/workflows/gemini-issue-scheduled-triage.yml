@@ -123,7 +123,8 @@ jobs:
             - Reference all shell variables as "${VAR}" (with quotes and braces)
 
   refresh-embeddings:
-    if: vars.ALLOYDB_INSTANCE_CONNECTION_NAME
+    if: |-
+      ${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}
     timeout-minutes: 20
     runs-on: 'ubuntu-latest'
     steps:
@@ -140,16 +141,17 @@ jobs:
           private-key: '${{ secrets.APP_PRIVATE_KEY }}'
 
       - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@140bb5113ffb6b65a7e9b937a81fa96cf5064462' # ratchet:google-github-actions/auth@v2
         with:
           workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
+        uses: 'google-github-actions/setup-gcloud@6189d56e4096ee891640bb02ac264be376592d6a' # ratchet:google-github-actions/setup-gcloud@v2
 
       - name: 'Configure Docker for Artifact Registry'
-        run: gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev
+        run: |-
+          gcloud auth configure-docker northamerica-northeast1-docker.pkg.dev
 
       - name: 'Download AlloyDB Auth Proxy'
         run: |
@@ -157,7 +159,8 @@ jobs:
           chmod +x alloydb-auth-proxy
 
       - name: 'Start AlloyDB Auth Proxy'
-        run: ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
+        run: |-
+          ./alloydb-auth-proxy "${{ vars.ALLOYDB_INSTANCE_CONNECTION_NAME }}" --public-ip -i --impersonate-service-account ${{ vars.SERVICE_ACCOUNT_EMAIL }} &
 
       - name: 'Test AlloyDB Auth Proxy'
         env:
