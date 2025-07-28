@@ -116,13 +116,14 @@ jobs:
 
   deduplicate-issues:
     if: >
-      github.event_name == 'issues' ||
+      vars.ALLOYDB_INSTANCE_CONNECTION_NAME &&
+      (github.event_name == 'issues' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '@gemini-cli /deduplicate') &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'COLLABORATOR'))
+        github.event.comment.author_association == 'COLLABORATOR')))
     timeout-minutes: 10
     runs-on: 'ubuntu-latest'
 

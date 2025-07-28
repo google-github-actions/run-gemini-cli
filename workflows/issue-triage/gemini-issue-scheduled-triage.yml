@@ -123,6 +123,7 @@ jobs:
             - Reference all shell variables as "${VAR}" (with quotes and braces)
 
   refresh-embeddings:
+    if: vars.ALLOYDB_INSTANCE_CONNECTION_NAME
     timeout-minutes: 20
     runs-on: 'ubuntu-latest'
     steps:
