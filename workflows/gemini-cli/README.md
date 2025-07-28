@@ -27,10 +27,10 @@ In this guide you will learn how to use the general Gemini CLI workflow via GitH
 ## General Gemini CLI Workflow Features
 
 - **Conversational Interface**: You can interact with the Gemini AI assistant directly in GitHub Issue and PR comments.
-- **Repository Interaction**: Can read files, view diffs, and inspect Issue details.
-- **Code Modification**: Capable of writing to files, committing changes, and pushing to the branch.
-- **Customizable Toolset**: Define exactly which shell commands and tools the Gemini AI is allowed to use.
-- **Flexible Prompting**: Tailor the Gemini AI's role, instructions, and guidelines to fit your project's needs.
+- **Repository Interaction**: The Gemini CLI can read files, view diffs in Pull Requests, and inspect Issue details.
+- **Code Modification**: The Gemini CLI is capable of writing to files, committing changes, and pushing to the branch.
+- **Customizable Toolset**: You can define exactly which shell commands and tools the Gemini AI is allowed to use.
+- **Flexible Prompting**: You can tailor the Gemini CLI's role, instructions, and guidelines to fit your project's needs.
 
 ## Setup
 
