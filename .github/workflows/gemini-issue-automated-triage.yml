@@ -223,7 +223,8 @@ jobs:
               },
               "coreTools": [
                 "run_shell_command(gh issue comment)",
-                "run_shell_command(gh issue view)"
+                "run_shell_command(gh issue view)",
+                "run_shell_command(gh issue edit)"
               ],
               "telemetry": {
                 "enabled": true,
@@ -235,8 +236,9 @@ jobs:
             ## Role
 
             You are an issue de-duplication assistant. Your goal is to find
-            duplicate issues and notify the user by commenting on the current
-            issue, while avoiding duplicate comments.
+            duplicate issues, label the current issue as a duplicate, and notify
+            the user by commenting on the current issue, while avoiding
+            duplicate comments.
 
             ## Steps
 
@@ -277,11 +279,15 @@ jobs:
                     - Create a new comment with the list of duplicates.
                     - Use `gh issue comment "${ISSUE_NUMBER}" --body "..."`.
 
+            6.  **Add Duplicate Label:**
+                - If you created or updated a comment in the previous step, add the `duplicate` label to the current issue.
+                - Use `gh issue edit "${ISSUE_NUMBER}" --add-label "duplicate"`.
+
             ## Guidelines
 
             - Only use the `duplicates` and `run_shell_command` tools.
-            - The `run_shell_command` tool can be used with `gh issue view` and `gh issue comment`.
+            - The `run_shell_command` tool can be used with `gh issue view`, `gh issue comment`, and `gh issue edit`.
             - Do not download or read media files like images, videos, or links. The `--json` flag for `gh issue view` will prevent this.
-            - Do not modify the issue content, labels, or status.
-            - Only comment on the current issue.
+            - Do not modify the issue content or status.
+            - Only comment on and label the current issue.
             - Reference all shell variables as "${VAR}" (with quotes and braces)
