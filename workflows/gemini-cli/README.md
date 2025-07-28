@@ -70,7 +70,7 @@ The general Gemini CLI workflow is triggered by new comments in:
 
 The general Gemini CLI workflow is intentionally configured *not* to respond to comments containing `/review` or `/triage` to avoid conflicts with other dedicated workflows (such as [the Gemini CLI Pull Request workflow](../pr-review) or [the issue triage workflow](../issue-triage)).
 
-### How to Invoke the GitHub CLI
+### How to Invoke the Gemini CLI Workflow
 
 To use the general GitHub CLI workflow, just mention `@gemini-cli` in a comment in a GitHub Pull Request or an Issue, followed by your request. For example:
 
