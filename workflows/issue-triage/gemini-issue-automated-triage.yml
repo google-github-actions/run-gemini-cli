@@ -115,7 +115,6 @@ jobs:
             - Reference all shell variables as "${VAR}" (with quotes and braces)
 
   deduplicate-issues:
-    needs: triage-issue
     if: >
       vars.ALLOYDB_INSTANCE_CONNECTION_NAME &&
       (github.event_name == 'issues' ||
@@ -223,6 +222,7 @@ jobs:
                 }
               },
               "coreTools": [
+                "run_shell_command(echo)",
                 "run_shell_command(gh issue comment)",
                 "run_shell_command(gh issue view)",
                 "run_shell_command(gh issue edit)"
@@ -247,6 +247,7 @@ jobs:
                 - The repository is ${{ github.repository }} and the issue number is ${{ github.event.issue.number }}.
                 - Use the `duplicates` tool with the `repo` and `issue_number` to find potential duplicates for the current issue. Do not use the `threshold` parameter.
                 - If no duplicates are found, you are done.
+                - Print the JSON output from the `duplicates` tool to the logs.
 
             2.  **Refine Duplicates List (if necessary):**
                 - If the `duplicates` tool returns between 1 and 14 results, you must refine the list.
@@ -255,6 +256,7 @@ jobs:
                 - Carefully analyze the content (title, body, comments) of the original issue and all potential duplicates.
                 - Based on your analysis, create a final list containing only the issues you are highly confident are actual duplicates.
                 - If your final list is empty, you are done.
+                - Print to the logs if you omitted any potential duplicates based on your analysis.
                 - If the `duplicates` tool returned 15+ results, use the top 15 matches (based on descending similarity score value) to perform this step.
 
             3.  **Format Final Duplicates List:**
