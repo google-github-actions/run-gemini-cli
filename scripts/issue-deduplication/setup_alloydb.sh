@@ -198,7 +198,8 @@ echo ""
 
 # Verify gcloud authentication
 print_info "Verifying gcloud authentication..."
-if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q '.'; then
+active_account=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+if [[ -z "${active_account}" ]]; then
     print_error "No active gcloud authentication found. Please run 'gcloud auth login'."
     exit 1
 fi
@@ -346,7 +347,8 @@ fi
 # Add the service account as an IAM database user if specified
 if [[ -n "${SA_EMAIL}" ]]; then
     print_header "Step 4.1: Granting Service Account IAM Database Access"
-    if ! gcloud alloydb users list --filter=name:"${SA_EMAIL}" --cluster="${CLUSTER}" --region="${REGION}" --project="${PROJECT_ID}" --format="value(name)" | grep -q '.'; then
+    iam_user=$(gcloud alloydb users list --filter=name:"${SA_EMAIL}" --cluster="${CLUSTER}" --region="${REGION}" --project="${PROJECT_ID}" --format="value(name)")
+    if [[ -z "${iam_user}" ]]; then
         print_info "Granting IAM database access to service account '${SA_EMAIL}'..."
         gcloud alloydb users create "${SA_EMAIL}" \
             --cluster="${CLUSTER}" \
