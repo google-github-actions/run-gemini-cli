@@ -54,9 +54,10 @@ environment variables, and secrets.
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
 
--   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ Specific prompt or instructions to guide Gemini and its responses.
+-   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
 
--   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON configuration string for the Gemini CLI. This configuration is written to `.gemini/settings.json`.
+-   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
+    For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
 
 
 <!-- END_AUTOGEN_INPUTS -->
@@ -65,7 +66,7 @@ environment variables, and secrets.
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
--   `summary`: A summarized output from the Gemini CLI execution.
+-   `summary`: The summarized output from the Gemini CLI execution.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
