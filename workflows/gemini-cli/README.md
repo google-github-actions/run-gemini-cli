@@ -1,6 +1,8 @@
-# Gemini CLI on GitHub
+# General Gemini CLI Workflow on GitHub
 
-This document explains how to use the Gemini CLI on GitHub, a general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
+In this guide you will learn how to use the general Gemini CLI workflow via GitHub Actions. This workflow serves as a general-purpose and conversational AI assistant that can be invoked directly in GitHub Pull Request and Issue comments to perform a wide range of tasks. When you invoke the general Gemini CLI workflow via `@gemini-cli`, the AI assistant uses a customizable set of tools to understand the context, execute the user's request, and respond within the same thread.
+
+**Note:** Unlike specialized Gemini CLI workflows for [pull request reviews](../pr-review) or [issue triage](../issue-triage), the general CLI is designed to handle a broad variety of requests, from answering questions about the code to performing complex code modifications, as demonstrated further in this document.
 
 - [Gemini CLI on GitHub](#gemini-cli-on-github)
   - [Overview](#overview)
@@ -22,55 +24,55 @@ This document explains how to use the Gemini CLI on GitHub, a general-purpose, c
     - [Requesting a Code Change](#requesting-a-code-change)
     - [Summarizing an Issue](#summarizing-an-issue)
 
-## Overview
+## General Gemini CLI Workflow Features
 
-The Gemini CLI workflow provides a powerful, conversational AI assistant that can be triggered directly from comments in GitHub issues and pull requests. Unlike specialized workflows for reviews or triage, the general CLI is designed to handle a broad variety of requests, from answering questions about the code to performing complex code modifications.
-
-When invoked with `@gemini-cli`, the assistant uses a customizable set of tools to understand the context, execute the user's request, and respond within the same thread.
-
-## Features
-
-- **Conversational Interface**: Interact with an AI assistant directly in issue and PR comments.
-- **Repository Interaction**: Can read files, view diffs, and inspect issue details.
-- **Code Modification**: Capable of writing to files, committing changes, and pushing to the branch.
-- **Customizable Toolset**: Define exactly which shell commands and tools the AI is allowed to use.
-- **Flexible Prompting**: Tailor the AI's role, instructions, and guidelines to fit your project's needs.
+- **Conversational Interface**: You can interact with the Gemini AI assistant directly in GitHub Issue and PR comments.
+- **Repository Interaction**: The Gemini CLI can read files, view diffs in Pull Requests, and inspect Issue details.
+- **Code Modification**: The Gemini CLI is capable of writing to files, committing changes, and pushing to the branch.
+- **Customizable Toolset**: You can define exactly which shell commands and tools the Gemini AI is allowed to use.
+- **Flexible Prompting**: You can tailor the Gemini CLI's role, instructions, and guidelines to fit your project's needs.
 
 ## Setup
 
-### Prerequisites
+### 1. Prerequisites
 
-1.  **Gemini API Key**: Required for AI functionality.
-    -   Set `GEMINI_API_KEY` secret in your repository.
-2.  **GitHub App Token (Optional)**: Required for authentication if using custom github app.
+Before using this Gemini CLI GitHub Action, make sure to:
+
+1.  **Get a Gemini API Key**: Obtain your Gemini API key from [Google AI Studio].
+2.  **Add the Gemini API Key as a GitHub Secret**: Store your API key as a secret in your
+    repository with the name `GEMINI_API_KEY`. (For more information, see the
+    [official GitHub documentation on creating and using encrypted secrets][secrets].)
+3.  **[OPTIONAL] GitHub App Token**: Required for [authentication](../../docs/github-app.md) if you are using a custom GitHub App.
     -   Set `APP_ID` and `APP_PRIVATE_KEY` secrets in your repository.
-3.  **Telemetry (Optional)**: For observability.
-    -   Set `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable.
+4.  **[OPTIONAL] Telemetry**: For [observability](../../docs/observability.md).
+    -   Set the `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable.
 
-### Workflow File
+### 2. Workflow File
 
-Create the necessary directories and download the example workflow file into your repository's `.github/workflows` directory.
+Copy the following example workflow file, `gemini-cli.yml`, into your existing project repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
 curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/gemini-cli.yml
 ```
-Alternatively, you can manually copy the contents of the workflow file from this repository into the corresponding file in your own repository.
+
+Alternatively, manually copy the contents of the example `gemini-cli.yml` file into your `gemini-cli.yml` in your repository.
 
 ## Usage
 
 ### Supported Triggers
 
-The Gemini CLI workflow is triggered by new comments in:
-- Pull Request reviews
-- Pull Request review comments
-- Issues
+The general Gemini CLI workflow is triggered by new comments in:
 
-The workflow is intentionally configured *not* to respond to comments containing `/review` or `/triage` to avoid conflicts with other dedicated workflows.
+- GitHub Pull Request reviews
+- GitHub Pull Request review comments
+- GitHub Issues
 
-### How to Invoke
+The general Gemini CLI workflow is intentionally configured *not* to respond to comments containing `/review` or `/triage` to avoid conflicts with other dedicated workflows (such as [the Gemini CLI Pull Request workflow](../pr-review) or [the issue triage workflow](../issue-triage)).
 
-To use the CLI, mention `@gemini-cli` in a comment, followed by your request:
+### How to Invoke the Gemini CLI Workflow
+
+To use the general GitHub CLI workflow, just mention `@gemini-cli` in a comment in a GitHub Pull Request or an Issue, followed by your request. For example:
 
 ```
 @gemini-cli Please explain what the `main.go` file does.
@@ -83,13 +85,14 @@ To use the CLI, mention `@gemini-cli` in a comment, followed by your request:
 ### Required Permissions
 
 Only users with the following roles can trigger the workflow:
+
 - Repository Owner (`OWNER`)
 - Repository Member (`MEMBER`)
 - Repository Collaborator (`COLLABORATOR`)
 
 ## Interaction Flow
 
-The workflow follows a clear, multi-step process to handle requests.
+The workflow follows a clear, multi-step process to handle requests:
 
 ```mermaid
 flowchart TD
@@ -115,27 +118,32 @@ flowchart TD
     E -- No --> G
 ```
 
-1.  **Acknowledge**: The action first posts a brief comment to let the user know the request has been received.
-2.  **Execute**: It runs the Gemini model, providing it with the user's request, repository context, and a set of tools.
-3.  **Commit (if needed)**: If the AI uses tools to modify files, it will automatically commit and push the changes to the branch.
-4.  **Respond**: The AI posts a final, comprehensive response as a comment on the issue or pull request.
+1.  **Acknowledge**: The Gemini CLI GitHub Action first posts a brief comment to let the user know the request has been received.
+2.  **Execute**: The workflow runs the Gemini AI model, providing it with the user's request, repository context, and a set of tools.
+3.  **Commit (if needed)**: If the Gemini AI model (via the Gemini CLI) uses tools to modify files, it will automatically commit and push the changes to the branch.
+4.  **Respond**: The Gemini AI posts a final, comprehensive response as a comment on the issue or pull request.
 
 ## Configuration
 
-The `gemini-cli.yml` workflow is highly customizable.
+The `gemini-cli.yml` workflow file is highly customizable.
 
 ### Workflow Customization
 
 You can modify the workflow file to:
+
 - Adjust the `timeout-minutes` for long-running tasks.
 - Change the trigger conditions or required user permissions.
 
 ### Tool Customization
 
-The most powerful feature is the ability to define the tools the AI can use. In the `settings_json` input, you can edit the `coreTools` array to grant or revoke access to specific shell commands.
+One of the most powerful features of the Gemini CLI GitHub Action workflow is the ability to define the tools in the `gemini-cli.yml` workflow file that the Gemini AI can use.
+
+For example, in `gemini-cli.yml` in the `settings_json` input, you can edit the `coreTools` array to grant or revoke access to specific shell commands:
 
 **Example: Adding the `ls` command**
+
 ```yaml
+...
 with:
   settings: |
     {
@@ -147,28 +155,37 @@ with:
       ],
       # ... other settings
     }
+...
 ```
 
 ### Prompt Customization
 
-The system prompt, located in the `prompt` input, defines the AI's role and instructions. You can edit this prompt to:
+The Gemini CLI system prompt, located in the `prompt` input, defines the Gemini AI's role and instructions. You can edit this prompt to, for example:
+
 - Change its persona or primary function.
 - Add project-specific guidelines or context.
 - Instruct it to format its output in a specific way.
 
 ## Examples
 
+More general Gemini CLI workflow examples:
+
 ### Asking a Question
+
 ```
 @gemini-cli What is the purpose of the `telemetry.js` script?
 ```
 
 ### Requesting a Code Change
+
 ```
 @gemini-cli In `package.json`, please add a new script called "test:ci" that runs `npm test`.
 ```
 
 ### Summarizing an Issue
+
 ```
 @gemini-cli Can you summarize the main points of this issue thread for me?
 ```
+
+[Google AI Studio]: https://aistudio.google.com/apikey
