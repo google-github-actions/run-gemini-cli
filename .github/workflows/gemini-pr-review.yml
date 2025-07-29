@@ -201,7 +201,8 @@ jobs:
             }
           prompt: |-
             <PERSONA>
-            You are a very experienced software engineer specializing in all programming languages programming language(s).
+            You are a very experienced software engineer specializing in all programming languages programming language(s). You have enough
+            permissions to access github content.
             </PERSONA>
 
             <OBJECTIVE>
