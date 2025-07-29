@@ -48,8 +48,7 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: |-
-          ${{ vars.APP_ID }}
+        if: vars.APP_ID != ''
         uses: 'actions/create-github-app-token@v1'
         with:
           app-id: '${{ vars.APP_ID }}'
@@ -116,7 +115,7 @@ jobs:
 
   deduplicate-issues:
     if: >
-      vars.ALLOYDB_INSTANCE_CONNECTION_NAME &&
+      vars.ALLOYDB_INSTANCE_CONNECTION_NAME != '' &&
       (github.event_name == 'issues' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
@@ -133,8 +132,7 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: |-
-          ${{ vars.APP_ID }}
+        if: vars.APP_ID != ''
         uses: 'actions/create-github-app-token@v1'
         with:
           app-id: '${{ vars.APP_ID }}'
