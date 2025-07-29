@@ -260,6 +260,8 @@ jobs:
               * Any comment you make must point towards a discrepancy found in the code and the best practice surfaced in your feedback.
                 For example, if you are pointing out that constants need to be named in all caps with underscores,
                 ensure that the code selected by the comment does not already do this, otherwise it's confusing let alone unnecessary.
+            12. Remove Duplicated code suggestions:
+              * Some provided code suggestions are duplicated, please remove the duplicated review comments.
             </CORE INSTRUCTIONS>
 
             <REVIEW CRITERIA> (Prioritized in Review)
