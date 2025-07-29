@@ -48,7 +48,8 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: vars.APP_ID != ''
+        if: |-
+          ${{ vars.APP_ID != '' }}
         uses: 'actions/create-github-app-token@v1'
         with:
           app-id: '${{ vars.APP_ID }}'
@@ -132,7 +133,8 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: vars.APP_ID != ''
+        if: |-
+          ${{ vars.APP_ID  != '' }}
         uses: 'actions/create-github-app-token@v1'
         with:
           app-id: '${{ vars.APP_ID }}'

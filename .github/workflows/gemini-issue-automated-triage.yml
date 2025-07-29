@@ -48,7 +48,8 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: vars.APP_ID != ''
+        if: |-
+          ${{ vars.APP_ID != '' }}
         uses: 'actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e' # ratchet:actions/create-github-app-token@v2
         with:
           app-id: '${{ vars.APP_ID }}'
@@ -132,7 +133,8 @@ jobs:
 
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
-        if: vars.APP_ID != ''
+        if: |-
+          ${{ vars.APP_ID  != '' }}
         uses: 'actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e' # ratchet:actions/create-github-app-token@v2
         with:
           app-id: '${{ vars.APP_ID }}'
@@ -147,7 +149,7 @@ jobs:
           service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
 
       - name: 'Login to GAR'
-        uses: 'docker/login-action@v3'
+        uses: 'docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772' # ratchet:docker/login-action@v3
         with:
           registry: 'northamerica-northeast1-docker.pkg.dev'
           username: 'oauth2accesstoken'
