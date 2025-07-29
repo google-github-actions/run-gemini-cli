@@ -118,7 +118,7 @@ Below are specific examples of workflows:
 
 This action can be used to triage GitHub Issues automatically or on a schedule.
 For a detailed guide on how to set up the issue triage system, go to the
-issue triage workflow [GitHub Issue Triage workflow documentation](./workflows/issue-triage).
+[GitHub Issue Triage workflow documentation](./workflows/issue-triage).
 
 ### Pull Request Review
 
@@ -128,7 +128,7 @@ permissions can trigger a review by commenting `@gemini-cli /review` in a pull
 request.
 
 For a detailed guide on how to set up the pull request review system, go to the
-PR review workflow [GitHub PR Review workflow documentation](./workflows/pr-review).
+[GitHub PR Review workflow documentation](./workflows/pr-review).
 
 ### Generic Gemini CLI
 
