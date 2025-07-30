@@ -33,6 +33,8 @@ For optimal security and control, we strongly recommend creating a custom GitHub
     > **Note:** Always adhere to the principle of least privilege. If your custom workflows require fewer permissions, adjust these settings accordingly.
 5.  Click **Create GitHub App**.
 
+A manifest is also available at `custom_app_manifest.yml`. For details on registering a GitHub App from a manifest, see the [GitHub documentation](https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest).
+
 ### Step 2: Generate a Private Key and Get the App ID
 
 1.  After your app is created, you will be returned to its settings page. Click **Generate a private key**.

@@ -1,0 +1,23 @@
+# GitHub App Manifest
+# This manifest provides the initial configuration for your GitHub App.
+# You will paste this into the "Create GitHub App" page on GitHub.
+
+# General App Information
+name: '<NAME>-gemini-cli' # Required: A unique name for your application. Max 39 characters.
+description: 'A custom GitHub App to run Gemini CLI.' # Optional: A brief description of your app's purpose.
+homepage_url: 'https://example.com' # Required: The URL to your app's homepage or landing page.
+
+# Permissions
+# Define the access your app needs to GitHub resources.
+# Permissions are granular and should follow the principle of least privilege.
+# Refer to the GitHub documentation for a complete list of permissions:
+# https://docs.github.com/en/rest/overview/permissions-required-for-github-apps
+permissions:
+  contents: 'write' # Example: Allows your app to read and write to repository contents (files, commits, branches).
+  issues: 'write' # Example: Allows your app to read and create/update issues.
+  pull_requests: 'write' # Example: Allows your app to read and create/update pull requests.
+
+restrict_installation_to_owner: false # Optional: If true, only the app owner can install the app on their repositories/organizations. Defaults to false.
+
+hook_attributes:
+  - active: false
