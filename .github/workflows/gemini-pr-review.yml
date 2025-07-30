@@ -141,6 +141,13 @@ jobs:
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
+          CHANGED_FILES_PATCH = "$(gh pr diff "${PR_NUMBER}" --patch)"
+          {
+            echo "changed_files_patch<<EOF"
+            echo "${CHANGED_FILES}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
       - name: 'Run Gemini PR Review'
         uses: './'
         id: 'gemini_pr_review'
@@ -351,7 +358,7 @@ jobs:
             formatting above:
             
             The get the files changed in this pull request, run:
-            echo "${CHANGED_FILES}" to get the list of changed files
+            echo "${CHANGED_FILES_PATCH}" to get the list of changed files PATCH
 
             </CONTEXT>
 
