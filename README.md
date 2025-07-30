@@ -73,25 +73,6 @@ environment variables, and secrets.
 
 <!-- END_AUTOGEN_OUTPUTS -->
 
-### Environment Variables
-
-Set the following environment variables in your repository or workflow:
-
-| Name                      | Description                                                                                 | Type     | Required | When Required                |
-|---------------------------|---------------------------------------------------------------------------------------------|----------|----------|------------------------------|
-| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports `npm` versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override the CLI version |
-| GCP_WIF_PROVIDER          | Full resource name of the Workload Identity Provider.                                       | Variable | No       | When using observability               |
-| OTLP_GOOGLE_CLOUD_PROJECT | Google Cloud project for telemetry.                                                         | Variable | No       | When using observability               |
-| GOOGLE_CLOUD_PROJECT      | Google Cloud project for Vertex AI authentication.                                          | Variable | No       | When using Vertex AI authentication    |
-| GOOGLE_CLOUD_LOCATION     | Geographic location of the Google Cloud project for Vertex AI authentication.               | Variable | No       | When using Vertex AI authentication    |
-| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                                                              | Variable | No       | When using Vertex AI authentication    |
-| APP_ID                    | GitHub App ID for custom authentication.                                                    | Variable | No       | When using a custom GitHub App         |
-
-
-To add an environment variable: 1) Go to your repository's **Settings > Secrets and
-variables > Actions > New variable**; 2) Enter the variable name and value; and 3) Save.
-For organization-wide or environment-specific variables, refer to the
-[GitHub documentation on variables][variables].
 
 ### Secrets
 
@@ -157,6 +138,8 @@ authenticate in two ways:
 For a detailed guide on how to set up authentication, including creating a
 custom app and the required permissions, go to the
 [**Authentication documentation**](./docs/github-app.md).
+
+< -- TODO: Remove this line, reminder --- >
 
 ## Observability with OpenTelemetry
 
