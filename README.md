@@ -1,5 +1,7 @@
 # run-gemini-cli
 
+### TEST PR to test invoking run-gemini-cli
+
 `run-gemini-cli` is a GitHub Action that integrates [Gemini] AI into your development
 workflow via the [Gemini CLI]. You can use it to perform GitHub pull request reviews, triage
 issues, perform code analysis and modification, and more using [Gemini] conversationally
