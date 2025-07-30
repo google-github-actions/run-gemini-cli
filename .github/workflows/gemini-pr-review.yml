@@ -177,7 +177,7 @@ jobs:
           GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
         with:
-          settings: |-
+          settings_json: |-
             {
               "maxSessionTurns": 20,
               "mcpServers": {
@@ -217,7 +217,7 @@ jobs:
             }
           prompt: |-
             <PERSONA>
-            You are a very experienced software engineer specializing in all programming languages programming language(s). You have enough
+            You are a very experienced software engineer specializing in all programming languages. You have enough
             permissions to access github content.
             </PERSONA>
 
