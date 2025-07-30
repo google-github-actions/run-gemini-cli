@@ -28,7 +28,7 @@ This guide covers the different ways to authenticate the Gemini CLI action in yo
 
 ## Choosing an Authentication Method
 
-There are two primary methods for authenticating this action. Choose the one that best fits your use case.
+The Gemini CLI Action requires authentication. Choose the one that best fits your use case.
 
 | Method                           | Use Case                                                                              |
 | -------------------------------- | ------------------------------------------------------------------------------------- |
@@ -60,7 +60,7 @@ This is the simplest method and is suitable for projects that do not require Goo
 
 ## Method 2: Authenticating with Workload Identity Federation
 
-**Workload Identity Federation** is Google Cloud's preferred, keyless authentication method for GitHub Actions. It provides:
+**[Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation)** is Google Cloud's preferred, keyless authentication method for GitHub Actions. It provides:
 
 - **Enhanced security**: No long-lived credentials or keys to manage.
 - **Simplified setup**: A single script configures the necessary resources.
@@ -78,16 +78,6 @@ GitHub Actions → OIDC Token → Workload Identity Pool → Direct GCP Resource
 
 The `setup_workload_identity.sh` script automates the entire setup process for both Vertex AI and Gemini Code Assist.
 
-#### Quick Start
-
-```shell
-# Basic setup for your repository
-./scripts/setup_workload_identity.sh --repo OWNER/REPO
-
-# Example
-./scripts/setup_workload_identity.sh --repo google/my-repo
-```
-
 #### Prerequisites
 
 **Required Tools:**
@@ -104,6 +94,16 @@ Your user account needs these permissions in the target GCP project to run the s
 - `iam.workloadIdentityPools.create`
 - `iam.workloadIdentityPools.update`
 - `serviceusage.services.enable`
+
+#### Quick Start
+
+```shell
+# Basic setup for your repository
+./scripts/setup_workload_identity.sh --repo OWNER/REPO
+
+# Example
+./scripts/setup_workload_identity.sh --repo google/my-repo
+```
 
 #### Usage
 
