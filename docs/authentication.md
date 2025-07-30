@@ -1,135 +1,41 @@
 # Authentication
 
-This guide covers the different ways to authenticate the Gemini CLI action in your GitHub Actions workflows. You can authenticate using a Gemini API key, or by using Google Cloud's Workload Identity Federation to connect to Vertex AI or Gemini Code Assist.
+This guide covers the different ways to authenticate the Gemini CLI action in your GitHub Actions workflows.
 
-- [Direct Workload Identity Federation Setup for GitHub Actions](#direct-workload-identity-federation-setup-for-github-actions)
-  - [Overview](#overview)
-    - [How it Works](#how-it-works)
-    - [Automatic Permissions](#automatic-permissions)
-  - [Quick Start](#quick-start)
-  - [Prerequisites](#prerequisites)
-    - [Required Tools](#required-tools)
-    - [Required IAM Permissions](#required-iam-permissions)
-  - [Usage](#usage)
-    - [Command Line Options](#command-line-options)
-    - [Examples](#examples)
-    - [What the Script Does](#what-the-script-does)
-  - [GitHub Configuration](#github-configuration)
-  - [Use Case: Authenticating with a Gemini API Key](#use-case-authenticating-with-a-gemini-api-key)
-    - [Prerequisites](#prerequisites-1)
-    - [Setup](#setup-1)
+- [Authentication](#authentication)
+  - [Choosing an Authentication Method](#choosing-an-authentication-method)
+  - [Method 1: Authenticating with a Gemini API Key](#method-1-authenticating-with-a-gemini-api-key)
+    - [Prerequisites](#prerequisites)
+    - [Setup](#setup)
     - [Workflow Configuration Example](#workflow-configuration-example)
-  - [Use Case: Authenticating with Vertex AI](#use-case-authenticating-with-vertex-ai)
-    - [Prerequisites](#prerequisites-2)
-    - [Setup](#setup-2)
-    - [Workflow Configuration Example](#workflow-configuration-example-1)
-  - [Use Case: Authenticating with Gemini Code Assist](#use-case-authenticating-with-gemini-code-assist)
-    - [Prerequisites](#prerequisites-3)
-    - [Setup](#setup-3)
-    - [Workflow Configuration Example](#workflow-configuration-example-2)
+  - [Method 2: Authenticating with Workload Identity Federation](#method-2-authenticating-with-workload-identity-federation)
+    - [How it Works](#how-it-works)
+    - [Setup Script: `setup_workload_identity.sh`](#setup-script-setup_workload_identitysh)
+      - [Quick Start](#quick-start)
+      - [Prerequisites](#prerequisites-1)
+      - [Usage](#usage)
+      - [What the Script Does](#what-the-script-does)
+      - [Automatic Permissions](#automatic-permissions)
+    - [Connecting to Vertex AI](#connecting-to-vertex-ai)
+      - [Prerequisites](#prerequisites-2)
+      - [GitHub Configuration](#github-configuration)
+      - [Workflow Configuration Example](#workflow-configuration-example-1)
+    - [Connecting to Gemini Code Assist](#connecting-to-gemini-code-assist)
+      - [Prerequisites](#prerequisites-3)
+      - [GitHub Configuration](#github-configuration-1)
+      - [Workflow Configuration Example](#workflow-configuration-example-2)
   - [Additional Resources](#additional-resources)
 
-## Overview
+## Choosing an Authentication Method
 
-**Direct Workload Identity Federation** is Google Cloud's preferred method for GitHub Actions authentication. It provides:
+There are two primary methods for authenticating this action. Choose the one that best fits your use case.
 
-- **No intermediate service accounts** - Direct authentication to GCP resources
-- **Enhanced security** - No long-lived credentials or keys
-- **Simplified setup** - Fewer components to manage
-- **Built-in observability** - Automatic logging, monitoring, and tracing permissions
+| Method                           | Use Case                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------- |
+| **Gemini API Key**               | The simplest method. Ideal for projects that do not require Google Cloud integration. |
+| **Workload Identity Federation** | The most secure method for authenticating to Google Cloud services.                   |
 
-### How it Works
-
-```
-GitHub Actions → OIDC Token → Workload Identity Pool → Direct GCP Resource Access
-```
-
-### Automatic Permissions
-
-The script automatically grants these essential permissions:
-
-- **`roles/logging.logWriter`** - Write logs to Cloud Logging
-- **`roles/monitoring.metricWriter`** - Write metrics to Cloud Monitoring
-- **`roles/cloudtrace.agent`** - Send traces to Cloud Trace
-- **`roles/aiplatform.user `** - Make inference calls to Vertex AI
-- **`roles/cloudaicompanion.user`** - Make inference calls using Code Assist
-
-## Quick Start
-
-```bash
-# Basic setup for any repository
-./scripts/setup_workload_identity.sh --repo OWNER/REPO
-
-# Example
-./scripts/setup_workload_identity.sh --repo google/my-project
-```
-
-## Prerequisites
-
-### Required Tools
-
-- **Google Cloud Project** with billing enabled
-- **gcloud CLI** installed and authenticated (`gcloud auth login`)
-- **Bash shell** (any version)
-
-### Required IAM Permissions
-
-Your user account needs these permissions in the target GCP project:
-
-- `resourcemanager.projects.setIamPolicy`
-- `iam.workloadIdentityPools.create`
-- `iam.workloadIdentityPools.update`
-- `serviceusage.services.enable`
-
-## Usage
-
-### Command Line Options
-
-| Option                             | Description                                    | Example                    |
-| ---------------------------------- | ---------------------------------------------- | -------------------------- |
-| `--repo OWNER/REPO`                | **Required**: GitHub repository                | `--repo google/my-repo`    |
-| `--project GOOGLE_CLOUD_PROJECT`   | GCP project ID (auto-detected if not provided) | `--project my-gcp-project` |
-| `--location GOOGLE_CLOUD_LOCATION` | GCP project Location (defaults to 'global')    | `--location us-east1`      |
-| `--pool-name NAME`                 | Custom pool name (default: `github`)           | `--pool-name my-pool`      |
-| `--help`                           | Show help message                              |                            |
-
-### Examples
-
-```bash
-# Basic setup with auto-detected project
-./scripts/setup_workload_identity.sh --repo google/my-repo
-
-# With specific project
-./scripts/setup_workload_identity.sh --repo google/my-repo --project my-gcp-project
-
-# With specific project location
-./scripts/setup_workload_identity.sh --repo google/my-repo --location us-east1
-
-# Custom pool name
-./scripts/setup_workload_identity.sh --repo google/my-repo --pool-name my-custom-pool
-```
-
-### What the Script Does
-
-1. **Creates Workload Identity Pool**: Shared resource (named `github` by default)
-2. **Creates Workload Identity Provider**: Unique per repository
-3. **Grants permissions**: Automatic observability and inference permissions
-4. **Outputs configuration**: GitHub secrets and workflow example
-
-## GitHub Configuration
-
-After running the script, add these **4 environment variables** to your repository or workflow configuration:
-
-Go to: `https://github.com/OWNER/REPO/settings/variables/actions`
-
-| Environment Variable Name   | Description                              |
-| --------------------------- | ---------------------------------------- |
-| `GCP_WIF_PROVIDER`          | Workload Identity Provider resource name |
-| `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID             |
-| `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID             |
-| `GOOGLE_CLOUD_LOCATION`     | Your Google Cloud project Location       |
-
-## Authenticating with a Gemini API Key
+## Method 1: Authenticating with a Gemini API Key
 
 This is the simplest method and is suitable for projects that do not require Google Cloud integration.
 
@@ -146,94 +52,158 @@ This is the simplest method and is suitable for projects that do not require Goo
 
 ```yaml
 - uses: google-github-actions/run-gemini-cli@main
+  with:
+    prompt: "Explain this code"
   env:
     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  with:
-    prompt: "Explain this code"
 ```
 
-## Authenticating with Vertex AI
+## Method 2: Authenticating with Workload Identity Federation
 
-This method is for authenticating directly with the Vertex AI API using your GCP project's identity.
+**Workload Identity Federation** is Google Cloud's preferred, keyless authentication method for GitHub Actions. It provides:
 
-### Prerequisites
+- **Enhanced security**: No long-lived credentials or keys to manage.
+- **Simplified setup**: A single script configures the necessary resources.
+- **Built-in observability**: Automatic permissions for logging, monitoring, and tracing.
+
+### How it Works
+
+The process uses GitHub's OIDC tokens to directly and securely access Google Cloud resources.
+
+```
+GitHub Actions → OIDC Token → Workload Identity Pool → Direct GCP Resource Access
+```
+
+### Setup Script: `setup_workload_identity.sh`
+
+The `setup_workload_identity.sh` script automates the entire setup process for both Vertex AI and Gemini Code Assist.
+
+#### Quick Start
+
+```shell
+# Basic setup for your repository
+./scripts/setup_workload_identity.sh --repo OWNER/REPO
+
+# Example
+./scripts/setup_workload_identity.sh --repo google/my-repo
+```
+
+#### Prerequisites
+
+**Required Tools:**
+
+- A Google Cloud Project with billing enabled.
+- The [Google Cloud CLI (`gcloud`)](https://cloud.google.com/sdk/docs/install) installed and authenticated (`gcloud auth login`).
+- A Bash shell.
+
+**Required IAM Permissions:**
+
+Your user account needs these permissions in the target GCP project to run the script:
+
+- `resourcemanager.projects.setIamPolicy`
+- `iam.workloadIdentityPools.create`
+- `iam.workloadIdentityPools.update`
+- `serviceusage.services.enable`
+
+#### Usage
+
+**Command Line Options:**
+
+| Option                             | Description                                    | Example                    |
+| ---------------------------------- | ---------------------------------------------- | -------------------------- |
+| `--repo OWNER/REPO`                | **Required**: GitHub repository                | `--repo google/my-repo`    |
+| `--project GOOGLE_CLOUD_PROJECT`   | GCP project ID (auto-detected if not provided) | `--project my-gcp-project` |
+| `--location GOOGLE_CLOUD_LOCATION` | GCP project Location (defaults to 'global')    | `--location us-east1`      |
+| `--pool-name NAME`                 | Custom pool name (default: `github`)           | `--pool-name my-pool`      |
+| `--help`                           | Show help message                              |                            |
+
+#### What the Script Does
+
+1.  **Creates Workload Identity Pool**: A shared resource (named `github` by default).
+2.  **Creates Workload Identity Provider**: Unique per repository, linked to the pool.
+3.  **Grants Permissions**: Assigns IAM roles for observability and AI services.
+4.  **Outputs Configuration**: Prints the GitHub Actions variables needed for your workflow.
+
+#### Automatic Permissions
+
+The script automatically grants these essential IAM roles:
+
+- **`roles/logging.logWriter`**: To write logs to Cloud Logging.
+- **`roles/monitoring.metricWriter`**: To write metrics to Cloud Monitoring.
+- **`roles/cloudtrace.agent`**: To send traces to Cloud Trace.
+- **`roles/aiplatform.user`**: To make inference calls to Vertex AI.
+- **`roles/cloudaicompanion.user`**: To make inference calls using Gemini Code Assist.
+
+### Connecting to Vertex AI
+
+This is the standard method for authenticating directly with the Vertex AI API using your GCP project's identity.
+
+#### Prerequisites
 
 - A Google Cloud project with the **Vertex AI API** enabled.
-- The [Google Cloud CLI (`gcloud`)](https://cloud.google.com/sdk/docs/install) installed and authenticated.
 
-### Setup
+#### GitHub Configuration
 
-1.  **Run the Setup Script**: Use the `setup_workload_identity.sh` script to configure direct Workload Identity Federation.
+After running the `setup_workload_identity.sh` script, add the following variables to your repository's **Settings > Secrets and variables > Actions**:
 
-    ```bash
-    ./scripts/setup_workload_identity.sh --repo <OWNER/REPO>
-    ```
+| Variable Name               | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| `GCP_WIF_PROVIDER`          | The resource name of the Workload Identity Provider. |
+| `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                        |
+| `GOOGLE_CLOUD_LOCATION`     | Your Google Cloud project Location.                  |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to authenticate using Vertex AI.       |
+| `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID for observability.      |
 
-2.  **Configure GitHub Repository**: The script will output the necessary variables. Add the following to your repository's **Settings > Secrets and variables > Actions**:
-
-    | Variable Name               | Description                                               |
-    | --------------------------- | --------------------------------------------------------- |
-    | `GCP_WIF_PROVIDER`          | The full resource name of the Workload Identity Provider. |
-    | `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                             |
-    | `GOOGLE_CLOUD_LOCATION`     | Your Google Cloud project Location.                       |
-    | `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID for OTLP.                    |
-
-### Workflow Configuration Example
+#### Workflow Configuration Example
 
 ```yaml
 - uses: google-github-actions/run-gemini-cli@main
+  with:
+    prompt: "Explain this code"
   env:
     GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
     GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
     GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
-    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-  with:
-    # Your Gemini CLI commands here
-    prompt: "Explain this code"
+    GOOGLE_GENAI_USE_VERTEXAI: 'true'
 ```
 
-## Authenticating with Gemini Code Assist
+### Connecting to Gemini Code Assist
 
-If you have a **Gemini Code Assist** subscription, you can configure the action to use it for authentication. This method also uses Workload Identity Federation but is configured specifically for the Gemini Code Assist service.
+If you have a **Gemini Code Assist** subscription, you can configure the action to use it for authentication.
 
-### Prerequisites
+#### Prerequisites
 
 - A Google Cloud project with an active Gemini Code Assist subscription.
-- The [Google Cloud CLI (`gcloud`)](https://cloud.google.com/sdk/docs/install) installed and authenticated.
 
-### Setup
+#### GitHub Configuration
 
-1.  **Run the Setup Script**: Use the same `setup_workload_identity.sh` script. It will create the necessary pool, provider, and a service account with the required permissions for Gemini Code Assist.
+After running the `setup_workload_identity.sh` script, add the following variables to your repository's **Settings > Secrets and variables > Actions**:
 
-    ```bash
-    ./scripts/setup_workload_identity.sh --repo <OWNER/REPO>
-    ```
+| Variable Name               | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `GCP_WIF_PROVIDER`          | The resource name of the Workload Identity Provider.    |
+| `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                           |
+| `SERVICE_ACCOUNT_EMAIL`     | The email of the service account for Code Assist.       |
+| `GOOGLE_GENAI_USE_GCA`      | Set to `true` to authenticate using Gemini Code Assist. |
+| `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID for observability.         |
 
-2.  **Configure GitHub Repository**: The script will output the necessary variables. Add the following to your repository's **Settings > Secrets and variables > Actions**:
-
-    | Variable Name           | Description                                               |
-    | ----------------------- | --------------------------------------------------------- |
-    | `GCP_WIF_PROVIDER`      | The full resource name of the Workload Identity Provider. |
-    | `GOOGLE_CLOUD_PROJECT`  | Your Google Cloud project ID.                             |
-    | `GOOGLE_GENAI_USE_GCA`  | Set to `true` to use GCP for authentication.              |
-    | `SERVICE_ACCOUNT_EMAIL` | The email of the service account created by the script.   |
-
-### Workflow Configuration Example
+#### Workflow Configuration Example
 
 ```yaml
 - uses: google-github-actions/run-gemini-cli@main
+  with:
+    prompt: "Explain this code"
   env:
     GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
-    SERVICE_ACCOUNT_EMAIL: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
     GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-    GOOGLE_GENAI_USE_GCA: ${{ vars.GOOGLE_GENAI_USE_GCA }}
-  with:
-    # Your Gemini CLI commands here
-    prompt: "Explain this code"
+    SERVICE_ACCOUNT_EMAIL: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+    GOOGLE_GENAI_USE_GCA: 'true'
 ```
 
 ## Additional Resources
 
-- [Google Cloud Direct Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity- federation)
+- [Google Cloud Direct Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation)
 - [google-github-actions/auth Documentation](https://github.com/google-github-actions/auth)
 - [GitHub OIDC Documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
