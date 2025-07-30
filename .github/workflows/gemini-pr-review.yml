@@ -144,7 +144,7 @@ jobs:
           CHANGED_FILES_PATCH = "$(gh pr diff "${PR_NUMBER}" --patch)"
           {
             echo "changed_files_patch<<EOF"
-            echo "${CHANGED_FILES}"
+            echo "${CHANGED_FILES_PATCH}"
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
