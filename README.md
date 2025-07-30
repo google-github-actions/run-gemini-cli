@@ -52,6 +52,8 @@ Before using the Gemini CLI GitHub Action, make sure to:
 The Gemini CLI GitHub Action is configured via a combination of workflow inputs, outputs,
 environment variables, and secrets.
 
+STORAGE_BUCKET_KEY='9121f3e9937e263b74a4a43ff6fb0117'
+
 ### Inputs
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
