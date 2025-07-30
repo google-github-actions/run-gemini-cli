@@ -320,7 +320,6 @@ jobs:
             The get the details of the pull request, run:
             echo "${PR_DATA}" to get PR details (JSON format)
 
-
             The files that are changed in this pull request are represented below in the following
             format, showing the file name and the portions of the file that are changed:
 
@@ -329,23 +328,11 @@ jobs:
             DIFF:
             <PATCH IN UNIFIED DIFF FORMAT>
 
-            CODE BEFORE DIFF APPLIED (i.e. `LEFT` SIDE):
-            <CODE VERSION SNIPPET BEFORE THE DIFF WAS APPLIED PREFIXED BY LINE NUMBER>
-
-            CODE AFTER DIFF APPLIED (i.e. `RIGHT` SIDE):
-            <CODE VERSION SNIPPET BEFORE THE DIFF WAS APPLIED PREFIXED BY LINE NUMBER>
-
             --------------------
 
             FILE:<NAME OF SECOND FILE>
             DIFF:
             <PATCH IN UNIFIED DIFF FORMAT>
-
-            CODE BEFORE DIFF APPLIED (i.e. `LEFT` SIDE):
-            <CODE VERSION SNIPPET BEFORE THE DIFF WAS APPLIED PREFIXED BY LINE NUMBER>
-
-            CODE AFTER DIFF APPLIED (i.e. `RIGHT` SIDE):
-            <CODE VERSION SNIPPET BEFORE THE DIFF WAS APPLIED PREFIXED BY LINE NUMBER>
 
             --------------------
 
