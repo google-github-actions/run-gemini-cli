@@ -174,15 +174,17 @@ jobs:
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
                     "ghcr.io/github/github-mcp-server"
                   ],
+                  "includeTools": [
+                    "mcp__github__create_pending_pull_request_review",
+                    "mcp__github__add_comment_to_pending_review",
+                    "mcp__github__submit_pending_pull_request_review"
+                  ],
                   "env": {
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
                   }
                 }
               },
               "coreTools": [
-                "mcp__github__create_pending_pull_request_review",
-                "mcp__github__add_comment_to_pending_review",
-                "mcp__github__submit_pending_pull_request_review",
                 "run_shell_command(echo)",
                 "run_shell_command(gh pr view)",
                 "run_shell_command(gh pr diff)",
