@@ -36,7 +36,8 @@ permissions:
 
 jobs:
   create-pr:
-    if: |
+    if: |-
+      github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@gemini-cli /fix')) ||
