@@ -12,7 +12,7 @@ on:
       - 'created'
 
 concurrency:
-  group: '${{ github.workflow }}-${{ github.actor }}'
+  group: '${{ github.workflow }}-${{ github.event.issue.number }}'
   cancel-in-progress: |-
     ${{ github.event.sender.type == 'User' && ( github.event.issue.author_association == 'OWNER' || github.event.issue.author_association == 'MEMBER' || github.event.issue.author_association == 'COLLABORATOR') }}
 
@@ -95,7 +95,7 @@ jobs:
           )
         )
       )
-    timeout-minutes: 15
+    timeout-minutes: 10
     runs-on: 'ubuntu-latest'
 
     steps:
@@ -201,8 +201,8 @@ jobs:
 
       - name: 'Set up git user for commits'
         run: |
-          git config --global user.name 'gemini-cli'
-          git config --global user.email 'gemini-cli@users.noreply.github.com'
+          git config --global user.name 'gemini-cli[bot]'
+          git config --global user.email 'gemini-cli[bot]@users.noreply.github.com'
 
       - name: 'Checkout PR branch'
         if: |-
@@ -286,8 +286,30 @@ jobs:
         with:
           settings: |-
             {
+              "maxSessionTurns": 50,
+              "coreTools": [
+                "run_shell_command(echo)",
+                "run_shell_command(gh pr view)",
+                "run_shell_command(gh pr diff)",
+                "run_shell_command(gh pr list)",
+                "run_shell_command(gh issue view)",
+                "run_shell_command(gh issue comment)",
+                "run_shell_command(gh issue list)",
+                "run_shell_command(gh pr comment)",
+                "run_shell_command(cat)",
+                "run_shell_command(head)",
+                "run_shell_command(tail)",
+                "run_shell_command(grep)",
+                "run_shell_command(git config)",
+                "run_shell_command(git status)",
+                "run_shell_command(git add)",
+                "run_shell_command(git commit)",
+                "run_shell_command(git push)",
+                "run_shell_command(git diff)",
+                "write_file"
+              ],
               "telemetry": {
-                "enabled": false,
+                "enabled": true,
                 "target": "gcp"
               },
               "sandbox": false
