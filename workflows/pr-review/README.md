@@ -41,6 +41,7 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 - **Positive Highlights**: Acknowledges good practices and well-written code
 - **Custom Instructions**: Support for specific review focus areas
 - **Structured Output**: Consistent markdown format for easy reading
+- **Failure Notifications**: Posts a comment on the PR if the review process fails.
 
 ## Setup
 
