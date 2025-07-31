@@ -129,9 +129,6 @@ runs:
         GOOGLE_GENAI_USE_GCA: '${{ env.GOOGLE_GENAI_USE_GCA }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
-      shell: 'bash'
-      run: |
-        gemini --yolo --prompt "${PROMPT}"
 
 branding:
   icon: 'terminal'
