@@ -73,6 +73,8 @@ Alternatively, you can manually copy the contents of the workflow files from thi
 
 This workflow is defined in `workflows/issue-triage/gemini-issue-automated-triage.yml` and is triggered when an issue is opened or reopened. It uses the Gemini CLI to analyze the issue and apply relevant labels.
 
+If the triage process encounters an error, the workflow will post a comment on the issue, including a link to the action logs for debugging.
+
 ### Scheduled Issue Triage
 
 This workflow is defined in `workflows/issue-triage/gemini-issue-scheduled-triage.yml` and runs on a schedule (e.g., every hour). It finds any issues that have no labels or have the `status/needs-triage` label and then uses the Gemini CLI to triage them. This workflow can also be manually triggered.
