@@ -61,7 +61,7 @@ jobs:
           github.event.review.author_association == 'COLLABORATOR'
         )
       )
-    timeout-minutes: 15
+    timeout-minutes: 5
     runs-on: 'ubuntu-latest'
 
     steps:

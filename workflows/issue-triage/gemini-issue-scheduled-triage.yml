@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   triage-issues:
-    timeout-minutes: 10
+    timeout-minutes: 5
     runs-on: 'ubuntu-latest'
 
     steps:
