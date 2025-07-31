@@ -164,11 +164,29 @@ jobs:
           settings: |-
             {
               "maxSessionTurns": 20,
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                  }
+                }
+              },
               "coreTools": [
+                "mcp__github__create_pending_pull_request_review",
+                "mcp__github__add_comment_to_pending_review",
+                "mcp__github__submit_pending_pull_request_review",
                 "run_shell_command(echo)",
                 "run_shell_command(gh pr view)",
                 "run_shell_command(gh pr diff)",
-                "run_shell_command(gh pr comment)",
                 "run_shell_command(cat)",
                 "run_shell_command(head)",
                 "run_shell_command(tail)",
@@ -218,8 +236,10 @@ jobs:
             Once you have the information, provide a comprehensive code review by:
             1. Writing your review to a file: write_file("review.md", "<your
                detailed review feedback here>")
-            2. Posting the review: gh pr comment "${PR_NUMBER}" --body-file
-               review.md --repo "${REPOSITORY}"
+            2. Posting the review:
+                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
+                2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments.
+                2.3 Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review.
 
             Review Areas:
             - **Security**: Authentication, authorization, input validation,
