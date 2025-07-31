@@ -65,3 +65,6 @@ Thumbs.db
 
 # GitHub App credentials
 gha-creds-*.json
+
+# Ignore local secrets file for act
+.secrets
