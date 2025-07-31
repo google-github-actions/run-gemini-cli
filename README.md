@@ -75,15 +75,15 @@ environment variables, and secrets.
 
 Set the following environment variables in your repository or workflow:
 
-| Name                      | Description                                                                                 | Type     | Required | When Required                |
-|---------------------------|---------------------------------------------------------------------------------------------|----------|----------|------------------------------|
-| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports `npm` versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override the CLI version |
-| GCP_WIF_PROVIDER          | Full resource name of the Workload Identity Provider.                                       | Variable | No       | When using observability               |
-| OTLP_GOOGLE_CLOUD_PROJECT | Google Cloud project for telemetry.                                                         | Variable | No       | When using observability               |
-| GOOGLE_CLOUD_PROJECT      | Google Cloud project for Vertex AI authentication.                                          | Variable | No       | When using Vertex AI authentication    |
-| GOOGLE_CLOUD_LOCATION     | Geographic location of the Google Cloud project for Vertex AI authentication.               | Variable | No       | When using Vertex AI authentication    |
-| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                                                              | Variable | No       | When using Vertex AI authentication    |
-| APP_ID                    | GitHub App ID for custom authentication.                                                    | Variable | No       | When using a custom GitHub App         |
+| Name                      | Description                                                                                                                                               | Type     | Required | When Required                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
+| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports `npm` versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override the CLI version  |
+| GCP_WIF_PROVIDER          | Full resource name of the Workload Identity Provider.                                                                                                     | Variable | No       | When using observability            |
+| OTLP_GOOGLE_CLOUD_PROJECT | Google Cloud project for telemetry.                                                                                                                       | Variable | No       | When using observability            |
+| GOOGLE_CLOUD_PROJECT      | Google Cloud project for Vertex AI authentication.                                                                                                        | Variable | No       | When using Vertex AI authentication |
+| GOOGLE_CLOUD_LOCATION     | Geographic location of the Google Cloud project for Vertex AI authentication.                                                                             | Variable | No       | When using Vertex AI authentication |
+| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                                                                                                                            | Variable | No       | When using Vertex AI authentication |
+| APP_ID                    | GitHub App ID for custom authentication.                                                                                                                  | Variable | No       | When using a custom GitHub App      |
 
 
 To add an environment variable: 1) Go to your repository's **Settings > Secrets and
@@ -95,10 +95,10 @@ For organization-wide or environment-specific variables, refer to the
 
 The following secrets are required for security:
 
-| Name              | Description                                   | Required | When Required                                             |
-|-------------------|-----------------------------------------------|----------|-----------------------------------------------------------|
-| GEMINI_API_KEY    | Your Gemini API key from Google AI Studio.    | No       | If you are using the Gemini API key from Google AI Studio |
-| APP_PRIVATE_KEY   | Private key for your GitHub App (PEM format). | No       | If you are using a custom GitHub App                      |
+| Name            | Description                                   | Required | When Required                                             |
+| --------------- | --------------------------------------------- | -------- | --------------------------------------------------------- |
+| GEMINI_API_KEY  | Your Gemini API key from Google AI Studio.    | No       | If you are using the Gemini API key from Google AI Studio |
+| APP_PRIVATE_KEY | Private key for your GitHub App (PEM format). | No       | If you are using a custom GitHub App                      |
 
 To add a secret, go to your repository's **Settings > Secrets and variables >
 Actions > New repository secret**. For more information, refer to the
@@ -136,11 +136,6 @@ This type of action can be used to invoke a general-purpose, conversational Gemi
 AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the [Gemini CLI], go to the Generic
 [Gemini CLI workflow documentation](./workflows/gemini-cli).
-
-You can configure the [`maxSessionTurns`](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#available-settings-in-settingsjson)
-when running the Gemini CLI in the workflow's YAML configuration file if you want to restrict
-the maximum number of session turns for each of the `yolo` Gemini CLI runs. In the 'Run Gemini' step ,
-you can configure the `maxSessionTurns` in the settings.
 
 ## Authentication
 

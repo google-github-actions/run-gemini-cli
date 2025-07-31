@@ -184,6 +184,7 @@ jobs:
         with:
           settings: |
             {
+              "maxSessionTurns": 50,
               "coreTools": [
                 "run_shell_command(echo)",
                 "run_shell_command(gh pr view)",

@@ -84,6 +84,7 @@ jobs:
         with:
           settings: |-
             {
+              "maxSessionTurns": 25,
               "coreTools": [
                 "run_shell_command(echo)",
                 "run_shell_command(gh label list)",

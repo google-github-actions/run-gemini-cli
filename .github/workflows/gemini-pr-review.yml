@@ -163,6 +163,7 @@ jobs:
         with:
           settings: |-
             {
+              "maxSessionTurns": 20,
               "coreTools": [
                 "run_shell_command(echo)",
                 "run_shell_command(gh pr view)",
