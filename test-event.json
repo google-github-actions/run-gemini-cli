@@ -1,0 +1,11 @@
+{
+  "comment": {
+    "body": "@gemini-cli /fix"
+  },
+  "issue": {
+    "number": 2
+  },
+  "repository": {
+    "full_name": "leehagoodjames/run-gemini-cli"
+  }
+}
