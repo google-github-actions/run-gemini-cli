@@ -217,12 +217,15 @@ jobs:
               }
             }
           prompt: |-
-            Please review Pull Request "${PR_NUMBER}" under Repository "${REPOSITORY}".
+            Please Review Pull Request "${PR_NUMBER}" under Repository "${REPOSITORY}".
+            <REVIEW PROCESS AND TOOLING>
             1. Generating review for the pull request based on follwing PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
             2. You can either use gh api command or mcp tools to upload review to pull request. For using mcp tools,
                 2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
                 2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review, please use ```suggestion <Code Suggestion> \n``` to wrap provided code suggestions inside each comment's body. Provide commitable code suggestions if possible.
                 2.3 Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review. 
+                If mcp tools are not available, use gh api. 
+            </REVIEW PROCESS AND TOOLING>
             <PERSONA>
             You are a very experienced software engineer specializing in all programming languages. You have enough
             permissions to access github content using gh command.
@@ -299,7 +302,6 @@ jobs:
             * Security: Identify potential vulnerabilities (e.g., insecure storage, injection attacks,
               insufficient access controls).
             </REVIEW CRITERIA>
-
             <CUSTOMIZATION_INSTRUCTIONS>
             * Note: this section on applies if the user has provided a style guide that would be shown in the CONTEXT section.
             * Style Guide Adherence: If a style guide is provided, strictly adhere to it. If not, analyze
