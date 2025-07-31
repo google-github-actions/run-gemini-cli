@@ -235,13 +235,28 @@ jobs:
             Once you have the information, provide a comprehensive code review by:
             1. Writing your review to a file: write_file("review.md", "<your
                detailed review feedback here>")
+
             2. Posting the review:
                 2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
+
                 2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. An example is:
                   {{COMMENT_TEXT}}
                   ```suggestion
                   {{CODE_SUGGESTION}}
                   ```
+                Prepend a priority emoji to each comment:
+                - 🟢 for low priority
+                - 🟡 for medium priority
+                - 🟠 for high priority
+                - 🔴 for critical priority
+                - 🔵 if priority is unclear
+
+                Example:
+                ```
+                🟠
+                This is a high priority issue.
+                ```
+
                 2.3 Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review.
 
             Review Areas:
@@ -269,46 +284,6 @@ jobs:
             - Mention overall patterns or architectural decisions
             - Highlight positive aspects of the implementation
             - Note any recurring themes across files
-
-            ## 🎯 Specific Feedback
-            (Only include sections below that have actual issues)
-
-            ### 🔴 Critical
-
-            (Only include this section if there are critical issues)
-
-            Issues that must be addressed before merging (security
-            vulnerabilities, breaking changes, major bugs):
-            - **File: `filename:line`** - Description of critical issue with
-              specific recommendation
-
-            ### 🟡 High
-
-            (Only include this section if there are high priority issues)
-
-            Important issues that should be addressed (performance problems,
-            design flaws, significant bugs):
-            - **File: `filename:line`** - Description of high priority issue
-              with suggested fix
-
-            ### 🟢 Medium
-
-            (Only include this section if there are medium priority issues)
-
-            Improvements that would enhance code quality (style issues, minor
-            optimizations, better practices):
-            - **File: `filename:line`** - Description of medium priority improvement
-
-            ### 🔵 Low
-
-            (Only include this section if there are suggestions)
-
-            Nice-to-have improvements and suggestions (documentation, naming,
-            minor refactoring):
-            - **File: `filename:line`** - Description of suggestion or
-              enhancement **Note**: If no specific issues are found in any
-              category, simply state "No specific issues identified in this
-              review."
 
             ## ✅ Highlights
 
