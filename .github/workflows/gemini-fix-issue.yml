@@ -1,4 +1,4 @@
-name: '🧙 Gemini Pull Request Creator'
+name: '🧙 Gemini Issue Fixer'
 
 on:
   issue_comment:
@@ -59,7 +59,7 @@ jobs:
         uses: './'
         id: gemini_pr_create
         env:
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: '${{ github.repository }}'
           GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
           OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
@@ -140,12 +140,7 @@ jobs:
             4. Run: mcp__github__create_branch with the name `gemini-fix-${{ github.event.issue.number }}-${{ steps.timestamp.outputs.value }}`.
             5. Analyze the code, using mcp__github__search_code and mcp__github__get_file_contents
             6. To comment on the issue with your plan or progress, use the `run_shell_command(gh)` tool (e.g., `gh issue comment ...`).
-            7. Run: echo "${ADDITIONAL_INSTRUCTIONS}" to see any specific review
-               instructions from the user
-            8. If ADDITIONAL_INSTRUCTIONS contains text, prioritize those
-               specific areas or focus points in your review. Common instruction
-               examples: "focus on security", "check performance", "review error
-               handling", "check for breaking changes"
+
             ## Guidelines
             - Reference all shell variables as "${VAR}" (with quotes and braces)
             - Be specific and actionable in feedback; suggest improvements or
@@ -219,7 +214,7 @@ jobs:
           ${{ failure() && steps.gemini_pr_create.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
-          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
               owner: '${{ github.repository }}'.split('/')[0],
