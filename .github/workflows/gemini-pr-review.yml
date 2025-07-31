@@ -291,6 +291,7 @@ jobs:
                 ensure that the code selected by the comment does not already do this, otherwise it's confusing let alone unnecessary.
             12. Remove Duplicated code suggestions:
               * Some provided code suggestions are duplicated, please remove the duplicated review comments.
+            13. Don't Approve The Pull Request
             </CORE INSTRUCTIONS>
 
             <REVIEW CRITERIA> (Prioritized in Review)
