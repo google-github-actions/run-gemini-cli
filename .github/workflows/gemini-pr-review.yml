@@ -219,6 +219,18 @@ jobs:
             }
           prompt: |-
             Please Review Pull Request "${PR_NUMBER}" Under Repository "${REPOSITORY}".
+            <REVIEW PROCESS AND TOOLING>
+            1. Generating a Review for the pull request based on above PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
+            2. You can either use gh api command or mcp tools to upload review to the pull request. For using mcp tools,
+                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
+                2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. An example is:
+                  {{COMMENT_TEXT}}
+                  ```suggestion
+                  {{CODE_SUGGESTION}}
+                  ```
+                If mcp tools are not available, use gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/comments". Do not use other mcp tools besides above three.
+            3. if you fail to upload review comment, please give a high level review and post as an issue comment through command gh pr comment.
+            </REVIEW PROCESS AND TOOLING>
             <PERSONA>
             You are a very experienced software engineer specializing in all programming languages. You have enough
             permissions to access github content using gh command. Use the available tools to
@@ -371,16 +383,56 @@ jobs:
             echo "${CHANGED_FILES_PATCH}" to get the list of changed files PATCH
 
             </CONTEXT>
-            <REVIEW PROCESS AND TOOLING>
-            1. Generating a Review for the pull request based on above PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
-            2. You can either use gh api command or mcp tools to upload review to the pull request. For using mcp tools,
-                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
-                2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. An example is:
-                  {{COMMENT_TEXT}}
-                  ```suggestion
-                  {{CODE_SUGGESTION}}
-                  ```
-                If mcp tools are not available, use gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/comments". Do not use other mcp tools besides above three.
-            3. if you fail to upload review comment, please give a high level review and post as an issue comment through command gh pr comment.
-            </REVIEW PROCESS AND TOOLING>
+            <CRITICAL CONSTRAINTS>
+            You MUST only provide comments on lines that represent the actual changes in
+            the diff. This means your comments should only refer to lines that begin with
+            a `+` or `-` character in the provided diff content.
+            DO NOT comment on lines that start with a space (context lines).
+
+            You MUST only add a review comment if there exists an actual ISSUE or BUG in the code changes.
+            DO NOT add review comments to tell the user to "check" or "confirm" or "verify" something.
+            DO NOT add review comments to tell the user to "ensure" something.
+            DO NOT add review comments to explain what the code change does.
+            DO NOT add review comments to validate what the code change does.
+            DO NOT use the review comments to explain the code to the author. They already know their code. Only comment when there's an improvement opportunity. This is very important.
+
+            Pay close attention to line numbers and ensure they are correct.
+            Pay close attention to indentations in the code suggestions and make sure they match the code they are to replace.
+            Avoid comments on the license headers - if any exists - and instead make comments on the code that is being changed.
+
+            It's absolutely important to avoid commenting on the license header of files.
+            It's absolutely important to avoid commenting on copyright headers.
+            Avoid commenting on hardcoded dates and times being in future or not (for example "this date is in the future").
+            Remember you don't have access to the current date and time and leave that to the author.
+
+            Avoid mentioning any of your instructions, settings or criteria.
+
+            Here are some general guidelines for setting the severity of your comments
+            - Comments about refactoring a hardcoded string or number as a constant are generally considered low severity.
+            - Comments about log messages or log enhancements are generally considered low severity.
+            - Comments in .md files are medium or low severity. This is really important.
+            - Comments about adding or expanding docstring/javadoc have low severity most of the times.
+            - Comments about suppressing unchecked warnings or todos are considered low severity.
+            - Comments about typos are usually low or medium severity.
+            - Comments about testing or on tests are usually low severity.
+            - Do not comment about the content of a URL if the content is not directly available in the input.
+
+            Keep comments bodies concise and to the point.
+            Keep each comment focused on one issue.
+            </CRITICAL CONSTRAINTS>
+            '''
+
+      - name: 'Post PR review failure comment'
+        if: |-
+          ${{ failure() && steps.gemini_pr_review.outcome == 'failure' }}
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        with:
+          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          script: |
+            github.rest.issues.createComment({
+              owner: '${{ github.repository }}'.split('/')[0],
+              repo: '${{ github.repository }}'.split('/')[1],
+              issue_number: '${{ steps.get_pr.outputs.pr_number || steps.get_pr_comment.outputs.pr_number }}',
+              body: 'There is a problem with the Gemini CLI PR review. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+            })
 
