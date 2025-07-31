@@ -219,7 +219,8 @@ jobs:
           prompt: |-
             Please review Pull Request "${PR_NUMBER}" under Repository "${REPOSITORY}".
             1. Generating review for the pull request based on follwing PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
-            2.  2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
+            2. You can either use gh api command or mcp tools to upload review to pull request. For using mcp tools,
+                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
                 2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review, please use ```suggestion <Code Suggestion> \n``` to wrap provided code suggestions inside each comment's body. Provide commitable code suggestions if possible.
                 2.3 Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review. 
             <PERSONA>
