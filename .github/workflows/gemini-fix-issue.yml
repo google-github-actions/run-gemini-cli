@@ -17,7 +17,7 @@ on:
         type: 'number'
 
 concurrency:
-  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -60,16 +60,16 @@ jobs:
         id: gemini_pr_create
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: '${{ github.repository }}'
-          GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
-          OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
-          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
-          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
-          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
-          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          REPOSITORY: ${{ github.repository }}
+          GEMINI_CLI_VERSION: ${{ vars.GEMINI_CLI_VERSION }}
+          OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
+          GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+          GOOGLE_GENAI_USE_VERTEXAI: ${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}
+          GOOGLE_GENAI_USE_GCA: ${{ vars.GOOGLE_GENAI_USE_GCA }}
+          SERVICE_ACCOUNT_EMAIL: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
         with:
           settings: |-
             {
@@ -90,8 +90,8 @@ jobs:
                 }
               },
               "coreTools": [
-                "run_shell_command(gh)",
-                "run_shell_command(npm)",
+                "run_shell_command(gh issue comment)",
+                "run_shell_command(npm run)",
                 "mcp__github__create_pending_pull_request_review",
                 "mcp__github__add_comment_to_pending_review",
                 "mcp__github__submit_pending_pull_request_review",
@@ -217,8 +217,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.rest.issues.createComment({
-              owner: '${{ github.repository }}'.split('/')[0],
-              repo: '${{ github.repository }}'.split('/')[1],
-              issue_number: '${{ github.event.issue.number || github.event.pull_request.number }}',
+              owner: ${{ github.repository .split('/')[0],
+              repo: ${{ github.repository }}.split('/')[1],
+              issue_number: ${{ github.event.issue.number || github.event.pull_request.number }},
               body: 'There is a problem with the Gemini CLI PR create. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
             })
