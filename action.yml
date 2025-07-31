@@ -131,7 +131,7 @@ runs:
         PROMPT: '${{ inputs.prompt }}'
       shell: 'bash'
       run: |
-        echo "${PROMPT}" | gemini --yolo --prompt ""
+        gemini --yolo --prompt "${PROMPT}"
 
 branding:
   icon: 'terminal'
