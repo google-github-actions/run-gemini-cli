@@ -419,6 +419,38 @@ jobs:
             Keep comments bodies concise and to the point.
             Keep each comment focused on one issue.
             </CRITICAL CONSTRAINTS>
+            <OUTPUT>
+            Output
+
+            Structure your review using this exact format with markdown:
+            '''
+            ## 📋 Review Summary
+
+            Provide a brief 2-3 sentence overview of the PR and overall
+            assessment.
+
+            ## 🔍 General Feedback
+            - List general observations about code quality
+            - Mention overall patterns or architectural decisions
+            - Highlight positive aspects of the implementation
+            - Note any recurring themes across files
+
+            ## ✅ Highlights
+
+            (Only include this section if there are positive aspects to
+            highlight)
+
+            - Mention specific good practices or implementations
+            - Acknowledge well-written code sections
+            - Note improvements from previous versions
+
+            ## ❓ Questions
+
+            (Only include this section if there are questions)
+
+            - List any questions you have about the implementation
+            - Clarifications needed from the author
+            </OUTPUT>
             '''
 
       - name: 'Post PR review failure comment'
