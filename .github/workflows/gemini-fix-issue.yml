@@ -51,6 +51,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Generate Timestamp
         id: timestamp
         run: echo "value=$(date -u +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
@@ -105,10 +110,10 @@ jobs:
                 "mcp__github__update_issue",
                 "mcp__github__create_branch",
                 "mcp__github__search_code",
-                "mcp__github__get_file_contents",
+                "mcp__github__get_file_contents"
               ],
               "telemetry": {
-                "enabled": true,
+                "enabled": false,
                 "target": "gcp"
               },
               "sandbox": false
@@ -156,6 +161,7 @@ jobs:
             4. Creating a TODO list that iterates from the current state to the intended state of the code. Post your TODO list to the GitHub Issue with: gh issue comment <ISSUE_COMMENT> --body "<COMMENT_TEXT>"
                 4.1 As you iterate on the TODOs, repeat the TODO list with the status of each TODO, and update the list as needed as understanding evolves. Update your last comment with: gh issue comment --edit-last <ISSUE_COMMENT> --body "<COMMENT_TEXT>"
             5. Once all TODOs are completed, create the PR using the mcp__github__create_pull_request tool.
+            6. Update you comment by retrieving your comment with mcp__github__get_issue_comments, and issuing an update. You should only have one commment on the issue for each invocation. 
             An example end-to-end of breaking down the intial problem and creating the first commment is shown below:
             <user>
               @gemini-cli /fix
