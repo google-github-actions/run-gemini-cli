@@ -374,7 +374,12 @@ jobs:
             <REVIEW PROCESS AND TOOLING>
             1. Generating a Review for the pull request based on above PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
             2. You can either use gh api command or mcp tools to upload review to the pull request. For using mcp tools,
-                Use the mcp__github__create_and_submit_pull_request_review to submit the Pull Request Review. please use ```suggestion <Code Suggestion> \n``` to wrap provided code suggestions inside each comment's body. Provide commitable code suggestions if possible.
+                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
+                2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. An example is:
+                  {{COMMENT_TEXT}}
+                  ```suggestion
+                  {{CODE_SUGGESTION}}
+                  ```
                 If mcp tools are not available, use gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/comments". Do not use other mcp tools besides above three.
             3. if you fail to upload review comment, please give a high level review and post as an issue comment through command gh pr comment.
             </REVIEW PROCESS AND TOOLING>
