@@ -28,6 +28,33 @@ inputs:
       A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
       For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
     required: false
+  gemini_api_key:
+    description: 'The API key for the Gemini API.'
+    required: false
+  gcp_project_id:
+    description: 'The Google Cloud project ID.'
+    required: false
+  gcp_location:
+    description: 'The Google Cloud location.'
+    required: false
+  gcp_workload_identity_provider:
+    description: 'The Google Cloud Workload Identity Provider.'
+    required: false
+  gcp_service_account:
+    description: 'The Google Cloud service account email.'
+    required: false
+  use_vertex_ai:
+    description: 'A flag to indicate if Vertex AI should be used.'
+    required: false
+    default: 'false'
+  use_gemini_code_assist:
+    description: 'A flag to indicate if Gemini Code Assist should be used.'
+    required: false
+    default: 'false'
+  gemini_cli_version:
+    description: 'The version of the Gemini CLI to install.'
+    required: false
+    default: 'latest'
 
 outputs:
   summary:
@@ -49,21 +76,21 @@ runs:
 
     - name: 'Authenticate to Google Cloud'
       if: |-
-        ${{ env.GCP_WIF_PROVIDER != '' }}
+        ${{ inputs.gcp_workload_identity_provider != '' }}
       id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
-        project_id: '${{ env.GOOGLE_CLOUD_PROJECT }}'
-        workload_identity_provider: '${{ env.GCP_WIF_PROVIDER }}'
-        service_account: '${{ env.SERVICE_ACCOUNT_EMAIL }}'
+        project_id: '${{ inputs.gcp_project_id }}'
+        workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
+        service_account: '${{ inputs.gcp_service_account }}'
         token_format: 'access_token'
         access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
 
     - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
-        ${{ env.GCP_WIF_PROVIDER != '' }}
+        ${{ inputs.gcp_workload_identity_provider != '' }}
       env:
-        OTLP_GOOGLE_CLOUD_PROJECT: '${{ env.OTLP_GOOGLE_CLOUD_PROJECT }}'
+        OTLP_GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
       shell: 'bash'
       run: |-
@@ -82,7 +109,7 @@ runs:
     - name: 'Install Gemini CLI'
       id: 'install'
       env:
-        GEMINI_CLI_VERSION: '${{ env.GEMINI_CLI_VERSION }}'
+        GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -121,12 +148,12 @@ runs:
         echo "${GEMINI_RESPONSE}"
       shell: 'bash'
       env:
-        GEMINI_API_KEY: '${{ env.GEMINI_API_KEY }}'
+        GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
-        GOOGLE_CLOUD_PROJECT: '${{ env.GOOGLE_CLOUD_PROJECT }}'
-        GOOGLE_CLOUD_LOCATION: '${{ env.GOOGLE_CLOUD_LOCATION }}'
-        GOOGLE_GENAI_USE_VERTEXAI: '${{ env.GOOGLE_GENAI_USE_VERTEXAI }}'
-        GOOGLE_GENAI_USE_GCA: '${{ env.GOOGLE_GENAI_USE_GCA }}'
+        GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
+        GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
+        GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
+        GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
 

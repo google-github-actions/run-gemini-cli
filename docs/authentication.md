@@ -11,8 +11,8 @@ This guide covers the different ways to authenticate the Gemini CLI action in yo
   - [Method 2: Authenticating with Workload Identity Federation](#method-2-authenticating-with-workload-identity-federation)
     - [How it Works](#how-it-works)
     - [Setup Script: `setup_workload_identity.sh`](#setup-script-setup_workload_identitysh)
-      - [Quick Start](#quick-start)
       - [Prerequisites](#prerequisites-1)
+      - [Quick Start](#quick-start)
       - [Usage](#usage)
       - [What the Script Does](#what-the-script-does)
       - [Automatic Permissions](#automatic-permissions)
@@ -54,8 +54,7 @@ This is the simplest method and is suitable for projects that do not require Goo
 - uses: google-github-actions/run-gemini-cli@main
   with:
     prompt: "Explain this code"
-  env:
-    GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
 ```
 
 ## Method 2: Authenticating with Workload Identity Federation
@@ -151,8 +150,7 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 | `GCP_WIF_PROVIDER`          | The resource name of the Workload Identity Provider. |
 | `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                        |
 | `GOOGLE_CLOUD_LOCATION`     | Your Google Cloud project Location.                  |
-| `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to authenticate using Vertex AI.       |
-| `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID for observability.      |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to use Vertex AI.                      |
 
 #### Workflow Configuration Example
 
@@ -160,12 +158,10 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 - uses: google-github-actions/run-gemini-cli@main
   with:
     prompt: "Explain this code"
-  env:
-    GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
-    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-    GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-    GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION }}
-    GOOGLE_GENAI_USE_VERTEXAI: 'true'
+    gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+    gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+    gcp_location: ${{ vars.GOOGLE_CLOUD_LOCATION }}
+    use_vertex_ai: 'true'
 ```
 
 ### Connecting to Gemini Code Assist
@@ -180,13 +176,12 @@ If you have a **Gemini Code Assist** subscription, you can configure the action 
 
 After running the `setup_workload_identity.sh` script, add the following variables to your repository's **Settings > Secrets and variables > Actions**:
 
-| Variable Name               | Description                                             |
-| --------------------------- | ------------------------------------------------------- |
-| `GCP_WIF_PROVIDER`          | The resource name of the Workload Identity Provider.    |
-| `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                           |
-| `SERVICE_ACCOUNT_EMAIL`     | The email of the service account for Code Assist.       |
-| `GOOGLE_GENAI_USE_GCA`      | Set to `true` to authenticate using Gemini Code Assist. |
-| `OTLP_GOOGLE_CLOUD_PROJECT` | Your Google Cloud project ID for observability.         |
+| Variable Name           | Description                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `GCP_WIF_PROVIDER`      | The resource name of the Workload Identity Provider.    |
+| `GOOGLE_CLOUD_PROJECT`  | Your Google Cloud project ID.                           |
+| `SERVICE_ACCOUNT_EMAIL` | The email of the service account for Code Assist.       |
+| `GOOGLE_GENAI_USE_GCA`  | Set to `true` to authenticate using Gemini Code Assist. |
 
 #### Workflow Configuration Example
 
@@ -194,12 +189,10 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 - uses: google-github-actions/run-gemini-cli@main
   with:
     prompt: "Explain this code"
-  env:
-    GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
-    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-    GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-    SERVICE_ACCOUNT_EMAIL: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
-    GOOGLE_GENAI_USE_GCA: 'true'
+    gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+    gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+    gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+    use_gemini_code_assist: 'true'
 ```
 
 ## Additional Resources

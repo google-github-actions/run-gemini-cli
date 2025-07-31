@@ -34,29 +34,14 @@ In this guide you will learn how to use the general Gemini CLI workflow via GitH
 
 ## Setup
 
-### 1. Prerequisites
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-Before using this Gemini CLI GitHub Action, make sure to:
-
-1.  **Get a Gemini API Key**: Obtain your Gemini API key from [Google AI Studio].
-2.  **Add the Gemini API Key as a GitHub Secret**: Store your API key as a secret in your
-    repository with the name `GEMINI_API_KEY`. (For more information, see the
-    [official GitHub documentation on creating and using encrypted secrets][secrets].)
-3.  **[OPTIONAL] GitHub App Token**: Required for [authentication](../../docs/github-app.md) if you are using a custom GitHub App.
-    -   Set `APP_ID` and `APP_PRIVATE_KEY` secrets in your repository.
-4.  **[OPTIONAL] Telemetry**: For [observability](../../docs/observability.md).
-    -   Set the `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable.
-
-### 2. Workflow File
-
-Copy the following example workflow file, `gemini-cli.yml`, into your existing project repository's `.github/workflows` directory:
+To use this workflow, copy the `gemini-cli.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
 curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/gemini-cli.yml
 ```
-
-Alternatively, manually copy the contents of the example `gemini-cli.yml` file into your `gemini-cli.yml` in your repository.
 
 ## Usage
 
