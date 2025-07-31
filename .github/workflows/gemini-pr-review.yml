@@ -219,12 +219,6 @@ jobs:
             }
           prompt: |-
             Please Review Pull Request "${PR_NUMBER}" under Repository "${REPOSITORY}".
-            <REVIEW PROCESS AND TOOLING>
-            1. Generating review for the pull request based on follwing PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
-            2. You can either use gh api command or mcp tools to upload review to pull request. For using mcp tools,
-                Use the mcp__github__create_and_submit_pull_request_review to submit the Pending Pull Request Review. please use ```suggestion <Code Suggestion> \n``` to wrap provided code suggestions inside each comment's body. Provide commitable code suggestions if possible.
-                If mcp tools are not available, use gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/comments". Do not use other mcp tools besides above three.
-            </REVIEW PROCESS AND TOOLING>
             <PERSONA>
             You are a very experienced software engineer specializing in all programming languages. You have enough
             permissions to access github content using gh command.
@@ -376,5 +370,11 @@ jobs:
             echo "${CHANGED_FILES_PATCH}" to get the list of changed files PATCH
 
             </CONTEXT>
+            <REVIEW PROCESS AND TOOLING>
+            1. Generating review for the pull request based on above PERSONA, OBJECTIVE, INSTRUCTIONS, AND CONTEXT.
+            2. You can either use gh api command or mcp tools to upload review to pull request. For using mcp tools,
+                Use the mcp__github__create_and_submit_pull_request_review to submit the Pending Pull Request Review. please use ```suggestion <Code Suggestion> \n``` to wrap provided code suggestions inside each comment's body. Provide commitable code suggestions if possible.
+                If mcp tools are not available, use gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}/comments". Do not use other mcp tools besides above three.
+            3. if you fail to upload review comment, please give a high level review and post as an issue comment through command gh pr comment.
+            </REVIEW PROCESS AND TOOLING>
 
-            '''
