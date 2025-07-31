@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '0 * * * *' # Runs every hour
   workflow_dispatch:
-    inputs:
-      issue_number:
-        description: 'issue number to triage'
-        required: true
-        type: 'number'
 
 concurrency:
   group: '${{ github.workflow }}'
@@ -127,17 +122,3 @@ jobs:
             - Do not add comments
             - Triage each issue independently
             - Reference all shell variables as "${VAR}" (with quotes and braces)
-
-      - name: 'Post Issue Triage Failure Comment'
-        if: |-
-          ${{ failure() && steps.gemini_issue_triage.outcome == 'failure' }}
-        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
-        with:
-          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
-          script: |
-            github.rest.issues.createComment({
-              owner: '${{ github.repository }}'.split('/')[0],
-              repo: '${{ github.repository }}'.split('/')[1],
-              issue_number: '${{ github.event.issue.number || github.event.inputs.issue_number }}',
-              body: 'There is a problem with the Gemini CLI issue triaging. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
-            })
