@@ -3,7 +3,7 @@
     "body": "@gemini-cli /fix"
   },
   "issue": {
-    "number": 2
+    "number": 10
   },
   "repository": {
     "full_name": "leehagoodjames/run-gemini-cli"

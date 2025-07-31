@@ -1,4 +1,4 @@
-name: '🧙 Gemini Issue Fixer'
+name: '🧙 Gemini Fixer'
 
 on:
   issue_comment:
@@ -35,14 +35,15 @@ permissions:
   repository-projects: read
 
 jobs:
-  create-pr:
+  fix:
     if: |-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@gemini-cli /fix')) ||
       (github.event_name == 'issues' && contains(github.event.issue.body, '@gemini-cli /fix'))
-    timeout-minutes: 15
+    # Intentionally a long timeout, since this task can use a lot of thinking. Adjust as needed.
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
