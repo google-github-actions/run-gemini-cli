@@ -27,7 +27,6 @@ permissions:
   actions: read
   checks: read
   repository-projects: read
-  statuses: read
 
 jobs:
   create-pr:
