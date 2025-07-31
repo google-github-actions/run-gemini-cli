@@ -1,0 +1,234 @@
+name: '🧙 Gemini Pull Request Creator'
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+  statuses: write
+  actions: read
+  checks: read
+  repository-projects: read
+  statuses: read
+
+jobs:
+  create-pr:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@gemini-cli /fix')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@gemini-cli /fix'))
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate Timestamp
+        id: timestamp
+        run: echo "value=$(date -u +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+      - name: Run Gemini PR Create
+        uses: './'
+        id: gemini_pr_create
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          REPOSITORY: '${{ github.repository }}'
+          GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
+          OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
+          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+        with:
+          settings: |-
+            {
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                  }
+                }
+              },
+              "coreTools": [
+                "run_shell_command(gh)",
+                "run_shell_command(npm)",
+                "mcp__github__create_pending_pull_request_review",
+                "mcp__github__add_comment_to_pending_review",
+                "mcp__github__submit_pending_pull_request_review",
+                "mcp__github__create_pull_request",
+                "mcp__github__get_pull_request",
+                "mcp__github__get_pull_request_comments",
+                "mcp__github__get_pull_request_diff",
+                "mcp__github__get_pull_request_files",
+                "mcp__github__get_issue",
+                "mcp__github__get_issue_comments",
+                "mcp__github__update_issue",
+                "mcp__github__create_branch",
+                "mcp__github__search_code",
+                "mcp__github__get_file_contents",
+              ],
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              },
+              "sandbox": false
+            }
+          prompt: |-
+            ## Role
+
+            You are an expert coder. You have access to tools to gather
+            issue information and perform the fix. You have been assigned to
+            address a problem descirbed in a GitHub issue. Use the
+            available tools to gather information; do not ask for information
+            to be provided.
+
+            ## Context
+            
+            Here is the information from the GitHub event that triggered this action. Use this directly instead of fetching it again.
+            
+            - **Event Type:** ${{ github.event_name }}
+            - **Triggering User:** ${{ github.triggering_actor }}
+            - **Issue/PR Number:** ${{ github.event.issue.number || github.event.pull_request.number }}
+            - **Issue Title:** ${{ github.event.issue.title }}
+            - **Issue/Comment Body:**
+              ```
+              ${{ github.event.issue.body || github.event.comment.body || github.event.review.body }}
+              ```
+
+            ## Steps
+
+            Start by running these commands to gather the required data:
+            1. Analyze the iddue details provided in the `## Context` section above.
+            2. If more context is needed from the conversation, run `mcp__github__get_issue_comments`. 
+            3. Run: mcp__github__update_issue to add the "gemini-cli-fix" label.
+            4. Run: mcp__github__create_branch with the name `gemini-fix-${{ github.event.issue.number }}-${{ steps.timestamp.outputs.value }}`.
+            5. Analyze the code, using mcp__github__search_code and mcp__github__get_file_contents
+            6. To comment on the issue with your plan or progress, use the `run_shell_command(gh)` tool (e.g., `gh issue comment ...`).
+            7. Run: echo "${ADDITIONAL_INSTRUCTIONS}" to see any specific review
+               instructions from the user
+            8. If ADDITIONAL_INSTRUCTIONS contains text, prioritize those
+               specific areas or focus points in your review. Common instruction
+               examples: "focus on security", "check performance", "review error
+               handling", "check for breaking changes"
+
+            ## Guidelines
+
+            - Reference all shell variables as "${VAR}" (with quotes and braces)
+            - Be specific and actionable in feedback; suggest improvements or
+              alternatives.
+            - Be respectful and constructive; seeking to accomplish the original intent. 
+            - Use clear, concise language and avoid jargon when possible.
+
+            ## Initial response, breaking down the problem, and making the fix
+
+            Once you have the information about the problem that needs to be fixed and understand the current state of the code, create a plan to fix the problem by:
+            1. Stating the problem that you were asked to solve in your own words. 
+                Looking into creating a new page that computes paying down a Mortgage - that matches the feel of the rest of the website
+            2. Stating the current state of code.
+            3. Read the GEMINI.md file and understand if there are any project-specific instructions to evalaute a solution, such as commands to build, test, run linters, etc. 
+            4. Creating a TODO list that iterates from the current state to the intended state of the code. Post your TODO list to the GitHub Issue with: gh issue comment <ISSUE_COMMENT> --body "<COMMENT_TEXT>"
+                4.1 As you iterate on the TODOs, repeat the TODO list with the status of each TODO, and update the list as needed as understanding evolves. Update your last comment with: gh issue comment --edit-last <ISSUE_COMMENT> --body "<COMMENT_TEXT>"
+            5. Once all TODOs are completed, create the PR using the mcp__github__create_pull_request tool.
+
+            An example end-to-end of breaking down the intial problem and creating the first commment is shown below:
+            <user>
+              @gemini-cli /fix
+              <issue_body>
+                Create a new page that shows how to pay down a mortgge. It should follow best practices and look like the other pages.
+              <issue_body>
+            </user>
+            <model>
+              <stating_the_problem>
+                The user wants to there to be a new page that computes paying down a Mortgage. The new page should match the style of the other pages.
+              </stating_the_problem>
+              <understanding_the_current_state>
+                mcp__github__search_code
+                {{RESULTS}}
+                mcp__github__get_file_contents
+                {{FILE 1}}
+                mcp__github__get_file_contents
+                {{FILE 2}}
+                mcp__github__get_file_contents
+                {{FILE 3}}
+                <thinking>
+                  There is already two pages that are similar to the users request, `Credit PayDown Calculator` and `Student Loan Pay Down Calculator`. These pages both run the computation on the frontend, subtracting payments on a monthly cadence and adding interest accordingly. They use React, Typescript, and Tailwind CSS. Each page gets its own file. I will expand on this pattern by creating a new file for the Mortgage Paydown Calculator page. 
+                </thinking>
+              <understanding_the_current_state>
+              <understanding_how_to_eval_fix>
+                mcp__github__search_code
+                {{RESULTS}}
+                mcp__github__get_file_contents
+                {{FILE 1}}
+                mcp__github__get_file_contents
+                {{FILE 2}}
+                mcp__github__get_file_contents
+                {{FILE 3}}
+                <thinking>
+                  The GEMINI.md page mentions that the project uses npm to build and test locally. I will use `npm run build` and `npm run test` to ensure that my solution meets this criteria.
+                </thinking>
+              <understanding_how_to_eval_fix>
+              <stating_the_current_state>
+                There are already two pages that are to the desired `Mortgage Paydown Calculator` page, a `Credit PayDown Calculator` page and a `Student Loan Pay Down Calculator` page. These pages both run the computation on the frontend, do not rely on any APIs, and compute the loan paydown schedule using the standard method of subtracting payments on a monthly cadence while simultaneously adding the appropriate amout of interest. They use React, Typescript, and Tailwind CSS. Each page is organized into its own file, so I will follow this pattern by creating a new file for the Mortgage Paydown Calculator page. 
+              </stating_the_current_state>
+              <answer>
+                Problem: The user wants to there to be a new page that computes paying down a Mortgage. The new page should match the style of the other pages.
+                Current State: There are already two pages that are to the desired `Mortgage Paydown Calculator` page, a `Credit PayDown Calculator` page and a `Student Loan Pay Down Calculator` page. These pages both run the computation on the frontend, do not rely on any APIs, and compute the loan paydown schedule using the standard method of subtracting payments on a monthly cadence while simultaneously adding the appropriate amout of interest. They use React, Typescript, and Tailwind CSS. Each page is organized into its own file, so I will follow this pattern by creating a new file for the Mortgage Paydown Calculator page. 
+                Approach: 
+                  - []: Create a page for the `Mortgage Paydown Calculator`
+                  - []: Ensure the project builds, using `npm run build`
+                  - []: Create tests for the `Mortgage Paydown Calculator`
+                  - []: Ensure the project builds, using `npm run build`
+                  - []: Ensure the tests pass, using `npm run tests`
+                  - []: Create a pull request 
+              </answer>
+            </model>
+            '''
+
+      - name: 'Post PR create failure comment'
+        if: |-
+          ${{ failure() && steps.gemini_pr_create.outcome == 'failure' }}
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        with:
+          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          script: |
+            github.rest.issues.createComment({
+              owner: '${{ github.repository }}'.split('/')[0],
+              repo: '${{ github.repository }}'.split('/')[1],
+              issue_number: '${{ github.event.issue.number || github.event.pull_request.number }}',
+              body: 'There is a problem with the Gemini CLI PR create. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+            })
