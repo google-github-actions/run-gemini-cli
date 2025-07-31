@@ -142,7 +142,7 @@ jobs:
             Start by running these commands to gather the required data:
             1. Analyze the iddue details provided in the `## Context` section above.
             2. If more context is needed from the conversation, run `mcp__github__get_issue_comments`. 
-            3. Run: mcp__github__update_issue to add the "gemini-cli-fix" label.
+            3. Run: mcp__github__update_issue to add the "gemini-fix" label. Do not use mcp__github__update_issue for updating anything else about the issue.
             4. Run: mcp__github__create_branch with the name `gemini-fix-${{ github.event.issue.number }}-${{ steps.timestamp.outputs.value }}`.
             5. Analyze the code, using mcp__github__search_code and mcp__github__get_file_contents
             6. To comment on the issue with your plan or progress, use the `run_shell_command(gh)` tool (e.g., `gh issue comment ...`).
