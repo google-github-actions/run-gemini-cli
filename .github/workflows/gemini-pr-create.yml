@@ -9,6 +9,12 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue to fix'
+        required: true
+        type: 'number'
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
