@@ -31,7 +31,7 @@ For detailed setup instructions, see the [Workload Identity Federation documenta
 
 ### Quick Setup
 
-Run the following command from the root of this repository:
+Assuming you already have [gcloud](https://cloud.google.com/sdk/docs/install-sdk) installed, run the following command from the root of this repository:
 
 ```bash
 ./scripts/setup_workload_identity.sh --repo <OWNER/REPO>
