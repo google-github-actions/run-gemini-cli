@@ -34,10 +34,11 @@ For detailed setup instructions, see the [Workload Identity Federation documenta
 Assuming you already have [gcloud](https://cloud.google.com/sdk/docs/install-sdk) installed, run the following command from the root of this repository:
 
 ```bash
-./scripts/setup_workload_identity.sh --repo <OWNER/REPO>
+./scripts/setup_workload_identity.sh --repo <OWNER/REPO> --project <PROJECT_ID>
 ```
 
 -   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
+-   `<PROJECT_ID>`: Your GCP project_id.
 
 After the script completes, it will output a link to where you can edit your repository variables. Click the link and add the variables output by the script into your GitHub "Repository variables". Finally, add your it will output the values for the inputs listed above. 
 
