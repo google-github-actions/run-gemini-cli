@@ -208,21 +208,6 @@ jobs:
             gather information; do not ask for information to be provided. Then use tools to upload the review to the pull request.
 
   
-            ## Steps
-            Start by running these commands to gather the required data:
-            1. Run: echo "${PR_DATA}" to get PR details (JSON format)
-            2. Run: echo "${CHANGED_FILES}" to get the list of changed files
-            3. Run: echo "${PR_NUMBER}" to get the PR number
-            4. Run: echo "${ADDITIONAL_INSTRUCTIONS}" to see any specific review
-               instructions from the user
-            5. Run: gh pr diff "${PR_NUMBER}" to see the full diff
-            6. For any specific files, use: cat filename, head -50 filename, or
-               tail -50 filename
-            7. If ADDITIONAL_INSTRUCTIONS contains text, prioritize those
-               specific areas or focus points in your review. Common instruction
-               examples: "focus on security", "check performance", "review error
-               handling", "check for breaking changes"
-    
             ## Guideline
             ### Core Guideline (Always applicable)
             1. Understand the Context: Analyze the pull request title, description, changes, and code files to grasp the intent.
@@ -337,7 +322,46 @@ jobs:
 
             Keep comments bodies concise and to the point.
             Keep each comment focused on one issue.
+            
+            ## Context
+            Pull Request Number is :"${PR_NUMBER}" 
+            <Owner>/<RepoName> is:  "${REPOSITORY}"
+            The get the details of the pull request, run:
+            echo "${PR_DATA}" to get PR details (JSON format)
 
+            The files that are changed in this pull request are represented below in the following
+            format, showing the file name and the portions of the file that are changed:
+
+            <PATCHES>
+            FILE:<NAME OF FIRST FILE>
+            DIFF:
+            <PATCH IN UNIFIED DIFF FORMAT>
+
+            --------------------
+
+            FILE:<NAME OF SECOND FILE>
+            DIFF:
+            <PATCH IN UNIFIED DIFF FORMAT>
+
+            --------------------
+
+            (and so on for all files changed)
+            </PATCHES>
+
+            Note that if you want to make a comment on the LEFT side of the UI / before the diff code version
+            to note those line numbers and the corresponding code. Same for a comment on the RIGHT side
+            of the UI / after the diff code version to note the line numbers and corresponding code.
+            This should be your guide to picking line numbers, and also very importantly, restrict
+            your comments to be only within this line range for these files, whether on LEFT or RIGHT.
+            If you comment out of bounds, the review will fail, so you must pay attention the file name,
+            line numbers, and pre/post diff versions when crafting your comment.
+
+            Here are the patches that were implemented in the pull request, per the
+            formatting above:
+            
+            The get the files changed in this pull request, run:
+            "$(gh pr diff "${PR_NUMBER}" --patch)" cmd to get the list of changed files PATCH
+            
             ## Review
   
             Pull Request Number: echo "${PR_NUMBER}" 
