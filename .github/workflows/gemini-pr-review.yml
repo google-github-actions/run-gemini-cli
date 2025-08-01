@@ -254,7 +254,7 @@ jobs:
                   {{PRIORITY}} {{COMMENT_TEXT}}
                   </COMMENT>
 
-                  Inline Comment Syntax: (Preffered):
+                  Inline Comment Syntax: (Preferred):
                   <COMMENT>
                   {{PRIORITY}} {{COMMENT_TEXT}}
                   ```suggestion
