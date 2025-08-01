@@ -82,9 +82,9 @@ runs:
       with:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
-        # service_account: '${{ inputs.gcp_service_account }}'
-        # token_format: 'access_token'
-        # access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+        service_account: '${{ inputs.gcp_service_account }}'
+        token_format: 'access_token'
+        access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
 
     - name: 'Run Telemetry Collector for Google Cloud'
       if: |-
