@@ -139,7 +139,7 @@ if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
     print_error "GCP project is required. Use --project PROJECT_ID"
     echo ""
     echo "💡 To find your project name:"
-    echo "   1. Go to your GCP console"
+    echo "   1. Go to your Google Cloud console"
     echo "   2. The URL shows: https://pantheon.corp.google.com/welcome?project=PROJECT_ID"
     echo ""
     echo "Use --help for usage information."
