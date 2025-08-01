@@ -78,7 +78,7 @@ runs:
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}
       id: 'auth'
-      uses: 'google-github-actions/auth@v2'
+      uses: 'google-github-actions/auth@140bb5113ffb6b65a7e9b937a81fa96cf5064462' # ratchet:google-github-actions/auth@v2
       with:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
