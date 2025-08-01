@@ -49,7 +49,9 @@ The two workflows work together to ensure that all new and existing issues are t
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-To implement this issue triage system, copy the workflow files into your repository's `.github/workflows` directory:
+To implement this issue triage system, you can use either of the following steps:
+- Run the `/setup-github` command from Gemini-CLI to set up workflows for your repository.
+- Copy the workflow files into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows

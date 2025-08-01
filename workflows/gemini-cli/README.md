@@ -36,7 +36,9 @@ In this guide you will learn how to use the general Gemini CLI workflow via GitH
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-To use this workflow, copy the `gemini-cli.yml` file into your repository's `.github/workflows` directory:
+To use this workflow, you can utilize either of the following steps:
+1. Run the `/setup-github` command from Gemini-CLI to set up workflows for your repository.
+1. Copy the `gemini-cli.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows

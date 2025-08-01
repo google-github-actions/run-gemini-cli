@@ -47,7 +47,9 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-To use this workflow, copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
+To use this workflow, you can use either of the following steps:
+1. Run the `/setup-github` command from Gemini-CLI to set up workflows for your repository.
+1. Copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
