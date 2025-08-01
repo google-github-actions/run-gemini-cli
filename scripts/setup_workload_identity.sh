@@ -140,7 +140,7 @@ if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
     echo ""
     echo "💡 To find your project name:"
     echo "   1. Go to your Google Cloud console"
-    echo "   2. The URL shows: https://pantheon.corp.google.com/welcome?project=PROJECT_ID"
+    echo "   2. The URL displays: https://pantheon.corp.google.com/welcome?project=PROJECT_ID"
     echo ""
     echo "Use --help for usage information."
     exit 1
