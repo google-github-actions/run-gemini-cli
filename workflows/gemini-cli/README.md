@@ -83,30 +83,41 @@ The workflow follows a clear, multi-step process to handle requests:
 flowchart TD
     subgraph "User Interaction"
         A[User posts comment with '@gemini-cli <request>']
+        F{Approve plan?}
     end
 
     subgraph "Gemini CLI Workflow"
         B[Acknowledge Request]
         C[Checkout Code]
-        D[Run Gemini with Tools]
-        E{Request involves code changes?}
-        F[Commit and Push Changes]
-        G[Post Final Response]
+        D[Run Gemini]
+        E{Is a plan required?}
+        G[Post Plan for Approval]
+        H[Execute Request]
+        I{Request involves code changes?}
+        J[Commit and Push Changes]
+        K[Post Final Response]
     end
 
     A --> B
     B --> C
     C --> D
     D --> E
-    E -- Yes --> F
-    F --> G
-    E -- No --> G
+    E -- Yes --> G
+    G --> F
+    F -- Yes --> H
+    F -- No --> K
+    E -- No --> H
+    H --> I
+    I -- Yes --> J
+    J --> K
+    I -- No --> K
 ```
 
-1.  **Acknowledge**: The Gemini CLI GitHub Action first posts a brief comment to let the user know the request has been received.
-2.  **Execute**: The workflow runs the Gemini AI model, providing it with the user's request, repository context, and a set of tools.
-3.  **Commit (if needed)**: If the Gemini AI model (via the Gemini CLI) uses tools to modify files, it will automatically commit and push the changes to the branch.
-4.  **Respond**: The Gemini AI posts a final, comprehensive response as a comment on the issue or pull request.
+1.  **Acknowledge**: The action first posts a brief comment to let the user know the request has been received.
+2.  **Plan (if needed)**: For requests that may involve code changes or complex actions, the AI will first create a step-by-step plan. It will post this plan as a comment and wait for the user to approve it by replying with `@gemini-cli plan#123 approved`. This ensures the user has full control before any changes are made.
+3.  **Execute**: Once the plan is approved (or if no plan was needed), it runs the Gemini model, providing it with the user's request, repository context, and a set of tools.
+4.  **Commit (if needed)**: If the AI uses tools to modify files, it will automatically commit and push the changes to the branch.
+5.  **Respond**: The AI posts a final, comprehensive response as a comment on the issue or pull request.
 
 ## Configuration
 
