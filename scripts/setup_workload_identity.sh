@@ -277,7 +277,32 @@ if ! gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
         --issuer-uri="https://token.actions.githubusercontent.com"
     print_success "Workload Identity Provider created"
 else
-    print_success "Workload Identity Provider already exists"
+    print_info "Workload Identity Provider '${PROVIDER_NAME}' exists. Verifying state..."
+    # Fetch the current state of the existing provider.
+    PROVIDER_STATE=$(gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --location="${GOOGLE_CLOUD_LOCATION}" \
+        --workload-identity-pool="${POOL_NAME}" \
+        --format="value(state)")
+
+    if [[ "${PROVIDER_STATE}" == "ACTIVE" ]]; then
+        # Provider exists and is in the correct state.
+        print_success "Workload Identity Provider already exists and is ACTIVE."
+    else
+        if [[ "${PROVIDER_STATE}" == "DELETED" ]]; then
+        # Provider exists but is DELETED. Undelete the provider. 
+        print_warning "Workload Identity Provider already exists but is in a DELETED state. Running 'undelete'."
+        gcloud iam workload-identity-pools providers undelete "${PROVIDER_NAME}" \
+            --project="${GOOGLE_CLOUD_PROJECT}" \
+            --location="${GOOGLE_CLOUD_LOCATION}" \
+            --workload-identity-pool="${POOL_NAME}"
+        else
+        # Provider exists but is in an unexpected state.
+        print_error "Provider '${PROVIDER_NAME}' is in an unexpected state: '${PROVIDER_STATE}'. Expected states are: {'ACTIVE', 'DELETED'}. Exiting"
+        exit 1
+
+        fi
+    fi
 fi
 
 # Step 3: Grant required permissions to the Workload Identity Pool
