@@ -327,8 +327,8 @@ jobs:
             Keep each comment focused on one issue.
             
             ## Context
-            Pull Request Number is :"${PR_NUMBER}" 
-            Repository is:  "${REPOSITORY}"
+            Pull Request Number is: echo "${PR_NUMBER}" 
+            Repository is:  echo "${REPOSITORY}"
             The get the details of the pull request, run:
             echo "${PR_DATA}" to get PR details (JSON format)
 
@@ -421,8 +421,8 @@ jobs:
                 - Note any recurring themes across files
             
             ## Input_data:
-              PR_Number: "{PR_NUMBER}"
-              Repository: "{OWNER}/{REPO_NAME}"
+              PR_Number: echo "${PR_NUMBER}"
+              Repository: echo "${REPOSITORY}"
 
       - name: 'Post PR review failure comment'
         if: |-
