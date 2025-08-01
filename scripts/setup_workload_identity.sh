@@ -66,9 +66,9 @@ USAGE:
 
 REQUIRED:
     -r, --repo OWNER/REPO       GitHub repository (e.g., google/my-repo)
+    -p, --project PROJECT_ID    Google Cloud project ID (auto-detected if not provided)
 
 OPTIONS:
-    -p, --project PROJECT_ID    Google Cloud project ID (auto-detected if not provided)
     --pool-name NAME           Custom workload identity pool name (default: auto-generated)
     -h, --help                 Show this help
 
@@ -131,6 +131,16 @@ if [[ -z "${GITHUB_REPO}" ]]; then
     echo "   1. Go to your GitHub repository"
     echo "   2. The URL shows: https://github.com/OWNER/REPOSITORY"
     echo "   3. Use: OWNER/REPOSITORY (e.g., google/golang)"
+    echo ""
+    echo "Use --help for usage information."
+    exit 1
+fi
+if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
+    print_error "GCP project is required. Use --project PROJECT_ID"
+    echo ""
+    echo "💡 To find your project name:"
+    echo "   1. Go to your GCP console"
+    echo "   2. The URL shows: https://pantheon.corp.google.com/welcome?project=PROJECT_ID"
     echo ""
     echo "Use --help for usage information."
     exit 1
