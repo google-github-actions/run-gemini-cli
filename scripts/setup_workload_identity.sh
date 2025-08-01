@@ -226,7 +226,30 @@ if ! gcloud iam workload-identity-pools describe "${POOL_NAME}" \
         --display-name="GitHub Actions Pool"
     print_success "Workload Identity Pool created"
 else
-    print_success "Workload Identity Pool already exists"
+    print_info "Workload Identity Pool '${POOL_NAME}' exists. Verifying state..."
+    # Fetch the current state of the existing pool.
+    POOL_STATE=$(gcloud iam workload-identity-pools describe "${POOL_NAME}" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --location="${GOOGLE_CLOUD_LOCATION}" \
+        --format="value(state)")
+
+    if [[ "${POOL_STATE}" == "ACTIVE" ]]; then
+        # Pool exists and is in the correct state.
+        print_success "Workload Identity Pool already exists and is ACTIVE."
+    else
+        if [[ "${POOL_STATE}" == "DELETED" ]]; then
+        # Pool exists but is DELETED. Undelete the pool. 
+        print_warning "Workload Identity Pool already exists but is in a DELETED state. Running 'undelete'."
+        gcloud iam workload-identity-pools undelete "${POOL_NAME}" \
+            --project="${GOOGLE_CLOUD_PROJECT}" \
+            --location="${GOOGLE_CLOUD_LOCATION}"
+        else
+        # Pool exists but is in an unexpected state.
+        print_error "Pool '${POOL_NAME}' is in an unexpected state: '${POOL_STATE}'. Expected states are: {'ACTIVE', 'DELETED'}. Exiting"
+        exit 1
+
+        fi
+    fi
 fi
 
 # Get the pool ID
