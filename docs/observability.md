@@ -38,7 +38,7 @@ Assuming you already have [gcloud](https://cloud.google.com/sdk/docs/install-sdk
 ```
 
 -   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
--   `<PROJECT_ID>`: Your GCP project_id.
+-   `<PROJECT_ID>`: Your Google Cloud `project_id`.
 
 After the script completes, it will output a link to where you can edit your repository variables. Click the link and add the variables output by the script into your GitHub "Repository variables". Finally, add your it will output the values for the inputs listed above. 
 
