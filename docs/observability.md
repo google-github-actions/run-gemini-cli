@@ -39,7 +39,9 @@ Assuming you already have [gcloud](https://cloud.google.com/sdk/docs/install-sdk
 
 -   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
 
-After the script completes, it will output the values for the inputs listed above. You must add these to your GitHub repository's variables (and GEMINI_API_KEY as a secret) to complete the setup.
+After the script completes, it will output a link to where you can edit your repository variables. Click the link and add the variables output by the script into your GitHub "Repository variables". Finally, add your it will output the values for the inputs listed above. 
+
+Also add your `GEMINI_API_KEY` as a secret, which is discussed [here](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#getting-started), to complete the setup.
 
 ## Advanced Setup
 
