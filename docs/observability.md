@@ -25,6 +25,8 @@ When enabled, the action will automatically start an OpenTelemetry collector tha
 
 ## Setup: Obtaining Input Values
 
+> Note that setting up this GitHub Action requires a Google Cloud account as well as Google Cloud CLI (install gcloud [here](https://cloud.google.com/sdk/docs/install))
+
 The recommended way to configure your Google Cloud project and get the values for the inputs above is to use the provided setup script. This script automates the creation of all necessary resources using **Direct Workload Identity Federation**, ensuring a secure, keyless authentication mechanism without intermediate service accounts.
 
 For detailed setup instructions, see the [Workload Identity Federation documentation](./workload-identity.md).
