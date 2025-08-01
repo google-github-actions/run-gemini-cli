@@ -12,6 +12,7 @@ on:
           - 'major'
           - 'minor'
           - 'patch'
+          - 'prerelease'
 
 jobs:
   draft-release:
