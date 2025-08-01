@@ -235,7 +235,7 @@ WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${POOL_NAME}" \
     --location="${GOOGLE_CLOUD_LOCATION}" \
     --format="value(name)")
 
-# Step 2: Create Workload Identity Provider
+# Step 3: Create Workload Identity Provider
 print_header "Step 2: Creating Workload Identity Provider"
 ATTRIBUTE_CONDITION="assertion.repository_owner == '${REPO_OWNER}'"
 
@@ -257,7 +257,7 @@ else
     print_success "Workload Identity Provider already exists"
 fi
 
-# Step 3: Grant required permissions to the Workload Identity Pool
+# Step 4: Grant required permissions to the Workload Identity Pool
 print_header "Step 3: Granting required permissions to Workload Identity Pool"
 PRINCIPAL_SET="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
@@ -316,8 +316,37 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
 
 # Allow the service account to generate an access tokens
 print_info "Granting 'Service Account Token Creator' role to Service Account..."
+
 gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/iam.serviceAccountTokenCreator" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Grant logging permissions to the service account
+print_info "Granting 'Logging Writer' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/logging.logWriter" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Grant monitoring permissions to the service account
+print_info "Granting 'Monitoring Editor' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/monitoring.editor" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Grant tracing permissions to the service account
+print_info "Granting 'Cloud Trace Agent' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/cloudtrace.agent" \
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None
+
+# Grant Vertex AI permissions to the service account
+print_info "Granting 'Vertex AI User' role to Service Account..."
+gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+    --role="roles/aiplatform.user" \
     --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
     --condition=None
 
