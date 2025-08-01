@@ -209,7 +209,7 @@ jobs:
           ${{  steps.get_context.outputs.is_pr == 'true' }}
         uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
         with:
-          token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           repository: '${{ github.repository }}'
           ref: 'refs/pull/${{ steps.get_context.outputs.issue_number }}/head'
           fetch-depth: 0
@@ -219,7 +219,7 @@ jobs:
           ${{  steps.get_context.outputs.is_pr == 'false' }}
         uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
         with:
-          token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           repository: '${{ github.repository }}'
           fetch-depth: 0
 
