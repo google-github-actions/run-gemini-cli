@@ -98,8 +98,6 @@ runs:
         mkdir -p .gemini/
         sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
-        echo "PRINTING ENV VARS"
-        printenv
         chmod 444 "$GOOGLE_APPLICATION_CREDENTIALS"
         docker run -d --name gemini-telemetry-collector --network host \
           -v "${GITHUB_WORKSPACE}:/github/workspace" \
