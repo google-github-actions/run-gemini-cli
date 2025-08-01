@@ -201,7 +201,6 @@ jobs:
               }
             }
           prompt: |-
-            Please Review Pull Request "${PR_NUMBER}" Under Repository "${REPOSITORY}".
             
             ## Role
             You are a very experienced software engineer specializing in all programming languages. You have enough
@@ -366,6 +365,10 @@ jobs:
             Keep each comment focused on one issue.
 
             ## Review
+  
+            Pull Request Number: echo "${PR_NUMBER}" 
+            Repository: echo "${REPOSITORY}"
+            
             Once you have the information, provide a comprehensive code review by:
             1. Creating a pending review: Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
             2. Adding review comments:
