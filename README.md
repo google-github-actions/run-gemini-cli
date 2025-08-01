@@ -21,9 +21,8 @@ Cloud product, please contact [Google Cloud support].**
     - [Issue Triage](#issue-triage)
     - [Pull Request Review](#pull-request-review)
     - [Generic Gemini CLI](#generic-gemini-cli)
-  - [Authentication](#authentication)
+  - [GitHub Authentication](#github-authentication)
   - [Observability with OpenTelemetry](#observability-with-opentelemetry)
-    - [OpenTelemetry in Google Cloud](#opentelemetry-in-google-cloud)
   - [Customization](#customization)
   - [Contributing](#contributing)
 
@@ -47,8 +46,7 @@ Before using the Gemini CLI GitHub Action, make sure to:
 
 ## Configuration
 
-The Gemini CLI GitHub Action is configured via a combination of workflow inputs, outputs,
-environment variables, and secrets.
+The Gemini CLI GitHub Action is configured via workflow inputs and secrets.
 
 ### Inputs
 
@@ -58,6 +56,22 @@ environment variables, and secrets.
 
 -   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
     For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
+
+-   <a name="gemini_api_key"></a><a href="#user-content-gemini_api_key"><code>gemini_api_key</code></a>: _(Optional)_ The API key for the Gemini API.
+
+-   <a name="gcp_project_id"></a><a href="#user-content-gcp_project_id"><code>gcp_project_id</code></a>: _(Optional)_ The Google Cloud project ID.
+
+-   <a name="gcp_location"></a><a href="#user-content-gcp_location"><code>gcp_location</code></a>: _(Optional)_ The Google Cloud location.
+
+-   <a name="gcp_workload_identity_provider"></a><a href="#user-content-gcp_workload_identity_provider"><code>gcp_workload_identity_provider</code></a>: _(Optional)_ The Google Cloud Workload Identity Provider.
+
+-   <a name="gcp_service_account"></a><a href="#user-content-gcp_service_account"><code>gcp_service_account</code></a>: _(Optional)_ The Google Cloud service account email.
+
+-   <a name="use_vertex_ai"></a><a href="#user-content-use_vertex_ai"><code>use_vertex_ai</code></a>: _(Optional, default: `false`)_ A flag to indicate if Vertex AI should be used.
+
+-   <a name="use_gemini_code_assist"></a><a href="#user-content-use_gemini_code_assist"><code>use_gemini_code_assist</code></a>: _(Optional, default: `false`)_ A flag to indicate if Gemini Code Assist should be used.
+
+-   <a name="gemini_cli_version"></a><a href="#user-content-gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install.
 
 
 <!-- END_AUTOGEN_INPUTS -->
@@ -73,35 +87,48 @@ environment variables, and secrets.
 
 ### Environment Variables
 
-Set the following environment variables in your repository or workflow:
+You can set the following environment variables in your repository:
 
-| Name                      | Description                                                                                                                                               | Type     | Required | When Required                       |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- | ----------------------------------- |
-| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. Supports `npm` versions (e.g., `0.1.0`, `latest`), a branch name (e.g., `main`), or a commit hash. | Variable | No       | To pin or override the CLI version  |
-| GCP_WIF_PROVIDER          | Full resource name of the Workload Identity Provider.                                                                                                     | Variable | No       | When using observability            |
-| OTLP_GOOGLE_CLOUD_PROJECT | Google Cloud project for telemetry.                                                                                                                       | Variable | No       | When using observability            |
-| GOOGLE_CLOUD_PROJECT      | Google Cloud project for Vertex AI authentication.                                                                                                        | Variable | No       | When using Vertex AI authentication |
-| GOOGLE_CLOUD_LOCATION     | Geographic location of the Google Cloud project for Vertex AI authentication.                                                                             | Variable | No       | When using Vertex AI authentication |
-| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                                                                                                                            | Variable | No       | When using Vertex AI authentication |
-| APP_ID                    | GitHub App ID for custom authentication.                                                                                                                  | Variable | No       | When using a custom GitHub App      |
+| Name     | Description                              | Type     | Required | When Required             |
+| -------- | ---------------------------------------- | -------- | -------- | ------------------------- |
+| `APP_ID` | GitHub App ID for custom authentication. | Variable | No       | Using a custom GitHub App |
+
+The following environment variables are automatically passed into the action's inputs if set in your repository or workflow.
+You may also set them directly as workflow inputs if preferred.
+
+| Name                        | Description                                            | Type     | Required | When Required            |
+| --------------------------- | ------------------------------------------------------ | -------- | -------- | ------------------------ |
+| `GEMINI_CLI_VERSION`        | Controls which version of the Gemini CLI is installed. | Variable | No       | Pinning the CLI version  |
+| `GCP_WIF_PROVIDER`          | Full resource name of the Workload Identity Provider.  | Variable | No       | Using Google Cloud       |
+| `GOOGLE_CLOUD_PROJECT`      | Google Cloud project for inference and observability.  | Variable | No       | Using Google Cloud       |
+| `SERVICE_ACCOUNT_EMAIL`     | Google Cloud service account email address.            | Variable | No       | Using Google Cloud       |
+| `GOOGLE_CLOUD_LOCATION`     | Region of the Google Cloud project.                    | Variable | No       | Using Google Cloud       |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Set to 'true' to use Vertex AI                         | Variable | No       | Using Vertex AI          |
+| `GOOGLE_GENAI_USE_GCA`      | Set to 'true' to use Gemini Code Assist                | Variable | No       | Using Gemini Code Assist |
 
 
-To add an environment variable: 1) Go to your repository's **Settings > Secrets and
-variables > Actions > New variable**; 2) Enter the variable name and value; and 3) Save.
-For organization-wide or environment-specific variables, refer to the
-[GitHub documentation on variables][variables].
+To add an environment variable: 
+1) Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
+2) Enter the variable name and value.
+3) Save.
+
+For organization-wide or environment-specific variables, refer to the [GitHub documentation on variables][variables].
 
 ### Secrets
 
-The following secrets are required for security:
+You can set the following secrets in your repository:
 
-| Name            | Description                                   | Required | When Required                                             |
-| --------------- | --------------------------------------------- | -------- | --------------------------------------------------------- |
-| GEMINI_API_KEY  | Your Gemini API key from Google AI Studio.    | No       | If you are using the Gemini API key from Google AI Studio |
-| APP_PRIVATE_KEY | Private key for your GitHub App (PEM format). | No       | If you are using a custom GitHub App                      |
+| Name              | Description                                   | Required | When Required                 |
+| ----------------- | --------------------------------------------- | -------- | ----------------------------- |
+| `GEMINI_API_KEY`  | Your Gemini API key from Google AI Studio.    | No       | You don't have a GCP project. |
+| `APP_PRIVATE_KEY` | Private key for your GitHub App (PEM format). | No       | Using a custom GitHub.        |
 
-To add a secret, go to your repository's **Settings > Secrets and variables >
-Actions > New repository secret**. For more information, refer to the
+To add a secret:
+1) Go to your repository's **Settings > Secrets and variables >Actions > New repository secret**. 
+2) Enter the secret name and value.
+3) Save.
+
+For more information, refer to the
 [official GitHub documentation on creating and using encrypted secrets][secrets].
 
 ## Workflows
@@ -110,7 +137,7 @@ Workflows include Issue Triage, Pull Request Review. and Generic Gemini CLI. To 
 this GitHub Action, you need to create a workflow file in your repository (e.g.,
 `.github/workflows/gemini.yml`). The best way to get started is to copy one of the pre-built workflows from the
 [`/workflows`](./workflows) directory into your project's `.github/workflows`
-folder and customize it.
+folder and [customize](/workflows/README.md#customizing-workflows) it.
 
 Below are specific examples of workflows:
 
@@ -137,7 +164,7 @@ AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the [Gemini CLI], go to the Generic
 [Gemini CLI workflow documentation](./workflows/gemini-cli).
 
-## Authentication
+## GitHub Authentication
 
 This action requires a GitHub token to interact with the GitHub API. You can
 authenticate in two ways:
@@ -160,12 +187,6 @@ for debugging and optimization.
 
 For detailed instructions on how to set up and configure observability, go to
 the [Observability documentation](./docs/observability.md).
-
-### OpenTelemetry in Google Cloud
-
-To use observability features with Google Cloud, you'll need to set up Workload
-Identity Federation. For detailed setup instructions, check out the
-[Workload Identity Federation documentation](./docs/workload-identity.md).
 
 ## Customization
 

@@ -151,16 +151,15 @@ jobs:
           CHANGED_FILES: '${{ steps.get_pr.outputs.changed_files || steps.get_pr_comment.outputs.changed_files }}'
           ADDITIONAL_INSTRUCTIONS: '${{ steps.get_pr.outputs.additional_instructions || steps.get_pr_comment.outputs.additional_instructions }}'
           REPOSITORY: '${{ github.repository }}'
-          GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
-          OTLP_GOOGLE_CLOUD_PROJECT: '${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}'
-          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
-          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
-          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
-          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
         with:
+          gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
+          gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+          gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+          use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           settings: |-
             {
               "maxSessionTurns": 20,
@@ -175,23 +174,24 @@ jobs:
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
                     "ghcr.io/github/github-mcp-server"
                   ],
+                  "includeTools": [
+                    "create_pending_pull_request_review",
+                    "add_comment_to_pending_review",
+                    "submit_pending_pull_request_review"
+                  ],
                   "env": {
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
                   }
                 }
               },
               "coreTools": [
-                "mcp__github__create_pending_pull_request_review",
-                "mcp__github__add_comment_to_pending_review",
-                "mcp__github__submit_pending_pull_request_review",
                 "run_shell_command(echo)",
                 "run_shell_command(gh pr view)",
                 "run_shell_command(gh pr diff)",
                 "run_shell_command(cat)",
                 "run_shell_command(head)",
                 "run_shell_command(tail)",
-                "run_shell_command(grep)",
-                "write_file"
+                "run_shell_command(grep)"
               ],
               "telemetry": {
                 "enabled": true,
@@ -233,14 +233,6 @@ jobs:
 
             ## Review
 
-            Once you have the information, provide a comprehensive code review by:
-            1. Writing your review to a file: write_file("review.md", "<your
-               detailed review feedback here>")
-            2. Posting the review:
-                2.1 Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
-                2.2 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments.
-                2.3 Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review.
-
             Review Areas:
             - **Security**: Authentication, authorization, input validation,
               data sanitization
@@ -252,77 +244,60 @@ jobs:
               conventions
             - **Functionality**: Logic correctness, requirements fulfillment
 
-            ## Output
+            Once you have the information, provide a comprehensive code review by:
+            1. Creating a pending review: Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
 
-            Structure your review using this exact format with markdown:
-            '''
-            ## 📋 Review Summary
+            2. Adding review comments:
+                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a piority. They syntax is:
+                  Normal Comment Syntax:
+                  <COMMENT>
+                  {{PRIORITY}} {{COMMENT_TEXT}}
+                  </COMMENT>
 
-            Provide a brief 2-3 sentence overview of the PR and overall
-            assessment.
+                  Inline Comment Syntax: (Preferred):
+                  <COMMENT>
+                  {{PRIORITY}} {{COMMENT_TEXT}}
+                  ```suggestion
+                  {{CODE_SUGGESTION}}
+                  ```
+                  </COMMENT>
 
-            ## 🔍 General Feedback
-            - List general observations about code quality
-            - Mention overall patterns or architectural decisions
-            - Highlight positive aspects of the implementation
-            - Note any recurring themes across files
+                  Prepend a priority emoji to each comment:
+                  - 🟢 for low priority
+                  - 🟡 for medium priority
+                  - 🟠 for high priority
+                  - 🔴 for critical priority
+                  - 🔵 if priority is unclear
 
-            ## 🎯 Specific Feedback
-            (Only include sections below that have actual issues)
+                  Including all of this, an example inline comment would be:
+                  <COMMENT>
+                  🟢 Use camelCase for function names
+                  ```suggestion
+                  myFooBarFunction
+                  ```
+                  </COMMENT>
 
-            ### 🔴 Critical
+                  A critical priority example would be:
+                  <COMMENT>
+                  🔴 Remove storage key from GitHub
+                  ```suggestion
+                  ```
 
-            (Only include this section if there are critical issues)
+            3. Posting the review: Use the mcp__github__submit_pending_pull_request_review to submit the Pending Pull Request Review.
 
-            Issues that must be addressed before merging (security
-            vulnerabilities, breaking changes, major bugs):
-            - **File: `filename:line`** - Description of critical issue with
-              specific recommendation
+              3.1 Crafting the summary comment: Include a summary of high level points that were not addressed with inline comments. Be concise. Do not repeat details mentioned inline.
 
-            ### 🟡 High
+                Structure your summary comment using this exact format with markdown:
+                ## 📋 Review Summary
 
-            (Only include this section if there are high priority issues)
+                Provide a brief 2-3 sentence overview of the PR and overall
+                assessment.
 
-            Important issues that should be addressed (performance problems,
-            design flaws, significant bugs):
-            - **File: `filename:line`** - Description of high priority issue
-              with suggested fix
-
-            ### 🟢 Medium
-
-            (Only include this section if there are medium priority issues)
-
-            Improvements that would enhance code quality (style issues, minor
-            optimizations, better practices):
-            - **File: `filename:line`** - Description of medium priority improvement
-
-            ### 🔵 Low
-
-            (Only include this section if there are suggestions)
-
-            Nice-to-have improvements and suggestions (documentation, naming,
-            minor refactoring):
-            - **File: `filename:line`** - Description of suggestion or
-              enhancement **Note**: If no specific issues are found in any
-              category, simply state "No specific issues identified in this
-              review."
-
-            ## ✅ Highlights
-
-            (Only include this section if there are positive aspects to
-            highlight)
-
-            - Mention specific good practices or implementations
-            - Acknowledge well-written code sections
-            - Note improvements from previous versions
-
-            ## ❓ Questions
-
-            (Only include this section if there are questions)
-
-            - List any questions you have about the implementation
-            - Clarifications needed from the author
-            '''
+                ## 🔍 General Feedback
+                - List general observations about code quality
+                - Mention overall patterns or architectural decisions
+                - Highlight positive aspects of the implementation
+                - Note any recurring themes across files
 
       - name: 'Post PR review failure comment'
         if: |-

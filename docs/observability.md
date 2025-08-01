@@ -5,7 +5,7 @@ This action can be configured to send telemetry data (traces, metrics, and logs)
 The action uses its own built-in telemetry system that ensures consistent and reliable telemetry collection across all workflows.
 
 - [Observability with OpenTelemetry](#observability-with-opentelemetry)
-  - [Required Environment Variables](#required-environment-variables)
+  - [Required Inputs](#required-inputs)
   - [Setup: Obtaining Input Values](#setup-obtaining-input-values)
     - [Quick Setup](#quick-setup)
   - [Advanced Setup](#advanced-setup)
@@ -15,9 +15,9 @@ The action uses its own built-in telemetry system that ensures consistent and re
   - [Troubleshooting](#troubleshooting)
 
 
-## Required Environment Variables
+## Required Inputs
 
-For a complete list of required environment variables, their descriptions, and how to configure them, see [docs](../README.md#environment-variables).
+For a complete list of required inputs, their descriptions, and how to configure them, see [docs](../README.md#inputs).
 
 When enabled, the action will automatically start an OpenTelemetry collector that forwards traces, metrics, and logs to your specified GCP project. You can then use Google Cloud's operations suite (formerly Stackdriver) to visualize and analyze this data.
 
@@ -39,7 +39,7 @@ Run the following command from the root of this repository:
 
 -   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
 
-After the script completes, it will output the values for the environment variables listed above. You must add these to your GitHub repository's variables (and GEMINI_API_KEY as a secret) to complete the setup.
+After the script completes, it will output the values for the inputs listed above. You must add these to your GitHub repository's variables (and GEMINI_API_KEY as a secret) to complete the setup.
 
 ## Advanced Setup
 
@@ -51,19 +51,17 @@ After running the setup script, configure your GitHub Actions workflow with the 
 
 ```yaml
 - uses: google-github-actions/run-gemini-cli@v1
-  env:
-    GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
-    OTLP_GOOGLE_CLOUD_PROJECT: ${{ vars.OTLP_GOOGLE_CLOUD_PROJECT }}
-    GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   with:
+    gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+    gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+    gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
     # Enable telemetry in settings
     settings: |
       {
         "telemetry": {
           "enabled": true,
           "target": "gcp"
-        },
-        "sandbox": false
+        }
       }
     # ... other inputs ...
 ```

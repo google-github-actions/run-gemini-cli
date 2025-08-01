@@ -45,24 +45,14 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 
 ## Setup
 
-### Prerequisites
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-1. **GitHub App Token**: Required for authentication
-   - Set `APP_ID` and `APP_PRIVATE_KEY` secrets in your repository
-2. **Gemini API Key**: Required for AI functionality
-   - Set `GEMINI_API_KEY` secret in your repository
-3. **Telemetry (Optional)**: For observability
-   - Set `GCP_WIF_PROVIDER` secret and `OTLP_GOOGLE_CLOUD_PROJECT` variable
-
-### Workflow File
-
-Create the necessary directories and download the example workflow file into your repository's `.github/workflows` directory.
+To use this workflow, copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
 curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/pr-review/gemini-pr-review.yml
 ```
-Alternatively, you can manually copy the contents of the workflow file from this repository into the corresponding file in your own repository.
 
 ## Usage
 

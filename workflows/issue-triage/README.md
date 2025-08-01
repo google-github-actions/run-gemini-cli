@@ -47,9 +47,9 @@ The two workflows work together to ensure that all new and existing issues are t
 
 ## Implementation
 
-To implement this issue triage system in your repository, you will need to do the following:
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
 
-1.  **Create the Workflow Files**: Create the necessary directories and download the example workflow files into `.github/workflows` directory in your repository.
+To implement this issue triage system, copy the workflow files into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
@@ -57,15 +57,7 @@ curl -o .github/workflows/gemini-issue-automated-triage.yml https://raw.githubus
 curl -o .github/workflows/gemini-issue-scheduled-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/gemini-issue-scheduled-triage.yml
 ```
 
-Alternatively, you can manually copy the contents of the workflow files from this repository into the corresponding files in your own repository.
-
-2.  **Configure Secrets**: The workflows require secrets for authentication. You will need to create the following secrets in your repository's settings:
-
-    *   `APP_ID`: The ID of your GitHub App.
-    *   `APP_PRIVATE_KEY`: The private key of your GitHub App.
-    *   `GEMINI_API_KEY`: Your API key for the Gemini API.
-
-3.  **Customize (Optional)**: You can customize the prompts and settings in the workflow files to suit your specific needs. For example, you can change the triage logic, the labels that are applied, or the schedule of the scheduled triage.
+You can customize the prompts and settings in the workflow files to suit your specific needs. For example, you can change the triage logic, the labels that are applied, or the schedule of the scheduled triage.
 
 ## Workflows in Detail
 
