@@ -40,7 +40,7 @@ Assuming you already have [gcloud](https://cloud.google.com/sdk/docs/install-sdk
 -   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
 -   `<PROJECT_ID>`: Your Google Cloud `project_id`.
 
-After the `setup_workload_identity.sh` script finishes running, it will output a link to where you can edit your repository variables. Click on that link and then add the variables output from the script into your GitHub "Repository variables". Finally, add your it will output the values for the inputs listed above. 
+After the `setup_workload_identity.sh` script finishes running, it will output a link to where you can edit your repository variables. Click on that link and then add the variables output from the script into your GitHub "Repository variables".
 
 Additionally, to complete the setup add your `GEMINI_API_KEY` as a secret - this is discussed in more detail in the `run-gemini-cli` [README](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#getting-started).
 
