@@ -3,8 +3,8 @@
 This directory contains a collection of example workflows that demonstrate how to use the [Google Gemini CLI GitHub Action](https://github.com/google-github-actions/run-gemini-cli). These workflows are designed to be reusable and customizable for your own projects.
 
 - [Gemini CLI Workflows](#gemini-cli-workflows)
-    - [Environment Variables](#environment-variables)
   - [Available Workflows](#available-workflows)
+  - [Setup](#setup)
   - [Customizing Workflows](#customizing-workflows)
     - [How to Configure Gemini CLI](#how-to-configure-gemini-cli)
       - [Key Settings](#key-settings)
@@ -12,36 +12,22 @@ This directory contains a collection of example workflows that demonstrate how t
       - [Custom Context and Guidance (`GEMINI.md`)](#custom-context-and-guidance-geminimd)
     - [GitHub Actions Workflow Settings](#github-actions-workflow-settings)
       - [Setting Timeouts](#setting-timeouts)
+      - [Required Permissions](#required-permissions)
   - [Contributing](#contributing)
-
-### Environment Variables
-
-Set the following environment variables in your repository:
-
-| Name                      | Description                                            | Type     | Required | When Required                      |
-| ------------------------- | ------------------------------------------------------ | -------- | -------- | ---------------------------------- |
-| GEMINI_CLI_VERSION        | Controls which version of the Gemini CLI is installed. | Variable | No       | To pin or override the CLI version |
-| GCP_WIF_PROVIDER          | Full resource name of the Workload Identity Provider.  | Variable | No       | When using Google CLoud            |
-| GOOGLE_CLOUD_PROJECT      | Google Cloud project for inference and observability.  | Variable | No       | When using Google Cloud            |
-| SERVICE_ACCOUNT_EMAIL     | Google Cloud project for inference and observability.  | Variable | No       | When using Google Cloud            |
-| GOOGLE_CLOUD_LOCATION     | Region of the Google Cloud project.                    | Variable | No       | When using Google Cloud            |
-| GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                         | Variable | No       | When using Vertex AI               |
-| GOOGLE_GENAI_USE_GCA      | Set to 'true' to use Gemini Code Assist                | Variable | No       | When using Gemini Code Assist      |
-
-| APP_ID                    | GitHub App ID for custom authentication.               | Variable | No       | When using a custom GitHub App     |
-
-SERVICE_ACCOUNT_EMAIL
-
-To add an environment variable: 1) Go to your repository's **Settings > Secrets and
-variables > Actions > New variable**; 2) Enter the variable name and value; and 3) Save.
-For organization-wide or environment-specific variables, refer to the
-[GitHub documentation on variables][variables].
 
 ## Available Workflows
 
 *   **[Issue Triage](./issue-triage)**: Automatically triage GitHub issues using Gemini. This workflow can be configured to run on a schedule or be triggered by issue events.
 *   **[Pull Request Review](./pr-review)**: Automatically review pull requests using Gemini. This workflow can be triggered by pull request events and provides a comprehensive review of the changes.
-*   **[Gemini CLI](./gemini-cli)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
+*   **[Gemini CLI Assistant](./gemini-cli)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
+
+## Setup
+
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Authentication documentation](../docs/authentication.md).
+
+To use a workflow, you can utilize either of the following steps:
+- Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
+- Copy the workflow files into your repository's `.github/workflows` directory.
 
 ## Customizing Workflows
 
@@ -59,11 +45,11 @@ This setting controls the maximum number of conversational turns (messages excha
 
 **Default values by workflow:**
 
-| Workflow                                     | Default `maxSessionTurns` |
-| -------------------------------------------- | ------------------------- |
-| [Issue Triage](./workflows/issue-triage)     | 25                        |
-| [Pull Request Review](./workflows/pr-review) | 20                        |
-| [Generic Gemini CLI](./workflows/gemini-cli) | 50                        |
+| Workflow                               | Default `maxSessionTurns` |
+| -------------------------------------- | ------------------------- |
+| [Issue Triage](./issue-triage)         | 25                        |
+| [Pull Request Review](./pr-review)     | 20                        |
+| [Gemini CLI Assistant](./gemini-cli)   | 50                        |
 
 **How to override:**
 
@@ -86,6 +72,14 @@ To provide Gemini CLI with custom instructions—such as coding conventions, arc
 #### Setting Timeouts
 
 You can control how long Gemini CLI runs by using either the `timeout-minutes` field in your workflow YAML, or by specifying a timeout in the `settings` input.
+
+#### Required Permissions
+
+Only users with the following roles can trigger the workflow:
+
+- Repository Owner (`OWNER`)
+- Repository Member (`MEMBER`)
+- Repository Collaborator (`COLLABORATOR`)
 
 ## Contributing
 

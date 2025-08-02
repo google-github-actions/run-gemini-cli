@@ -6,19 +6,16 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
   - [Overview](#overview)
   - [Features](#features)
   - [Setup](#setup)
-    - [Prerequisites](#prerequisites)
-    - [Workflow File](#workflow-file)
   - [Usage](#usage)
     - [Supported Triggers](#supported-triggers)
+  - [Interaction Flow](#interaction-flow)
     - [Automatic Reviews](#automatic-reviews)
     - [Manual Reviews](#manual-reviews)
     - [Custom Review Instructions](#custom-review-instructions)
     - [Manual Workflow Dispatch](#manual-workflow-dispatch)
   - [Review Output Format](#review-output-format)
-    - [📋 Review Summary](#-review-summary)
-    - [🔍 General Feedback](#-general-feedback)
-    - [🎯 Specific Feedback](#-specific-feedback)
-    - [✅ Highlights](#-highlights)
+    - [📋 Review Summary (Overall Comment)](#-review-summary-overall-comment)
+    - [Specific Feedback (Inline Comments)](#specific-feedback-inline-comments)
   - [Review Areas](#review-areas)
   - [Configuration](#configuration)
     - [Workflow Customization](#workflow-customization)
@@ -45,11 +42,11 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 
 ## Setup
 
-For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#getting-started) and [Configuration](../../README.md#configuration) documentation.
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#quick-start) section and [Authentication documentation](../../docs/authentication.md).
 
-To use this workflow, you can use either of the following steps:
-1. Run the `/setup-github` command from Gemini-CLI to set up workflows for your repository.
-1. Copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
+To use this workflow, you can use either of the following methods:
+1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
+2. Copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
@@ -68,6 +65,10 @@ The Gemini PR Review workflow is triggered by:
 - **Issue Comments**: When a comment on a PR contains `@gemini-cli /review`
 - **Manual Dispatch**: Via the GitHub Actions UI ("Run workflow")
 
+## Interaction Flow
+
+The workflow follows a clear, multi-step process to handle review requests:
+
 ```mermaid
 flowchart TD
     subgraph Triggers
@@ -78,7 +79,7 @@ flowchart TD
         E[Manual Dispatch via Actions UI]
     end
 
-    subgraph "Gemini CLI on GitHub"
+    subgraph "Gemini CLI Workflow"
         F[Generate GitHub App Token]
         G[Checkout PR Code]
         H[Get PR Details & Changed Files]
@@ -110,11 +111,6 @@ Trigger a review manually by commenting on a PR:
 @gemini-cli /review
 ```
 
-**Required Permissions**: Only users with the following roles can trigger manual reviews:
-- Repository Owner
-- Repository Member  
-- Repository Collaborator
-
 ### Custom Review Instructions
 
 You can provide specific focus areas by adding instructions after the trigger:
@@ -136,32 +132,34 @@ You can also trigger reviews through the GitHub Actions UI:
 
 ## Review Output Format
 
-The AI review follows a structured format:
+The AI review follows a structured format, providing both a high-level summary and detailed inline feedback.
 
-### 📋 Review Summary
-Brief 2-3 sentence overview of the PR and overall assessment.
+### 📋 Review Summary (Overall Comment)
 
-### 🔍 General Feedback  
-- Overall code quality observations
-- Architectural patterns and decisions
-- Positive implementation aspects
-- Recurring themes across files
+After posting all inline comments, the action submits the review with a final summary comment that includes:
 
-### 🎯 Specific Feedback
-Priority-based issues (only shown if issues exist):
+-   **Review Summary**: A brief 2-3 sentence overview of the pull request and the overall assessment.
+-   **General Feedback**: High-level observations about code quality, architectural patterns, positive implementation aspects, or recurring themes that were not addressed in inline comments.
 
-**🔴 Critical**: Security vulnerabilities, breaking changes, major bugs that must be fixed before merging
 
-**🟡 High**: Performance problems, design flaws, significant bugs that should be addressed
+### Specific Feedback (Inline Comments)
 
-**🟢 Medium**: Code quality improvements, style issues, minor optimizations, better practices
+The action provides specific, actionable feedback directly on the relevant lines of code in the pull request. Each comment includes:
 
-**🔵 Low**: Nice-to-have improvements, documentation suggestions, minor refactoring
+-   **Priority**: An emoji indicating the severity of the feedback.
+    -   🔴 **Critical**: Must be fixed before merging (e.g., security vulnerabilities, breaking changes).
+    -   🟠 **High**: Should be addressed (e.g., performance issues, design flaws).
+    -   🟡 **Medium**: Recommended improvements (e.g., code quality, style).
+    -   🟢 **Low**: Nice-to-have suggestions (e.g., documentation, minor refactoring).
+    -   🔵 **Unclear**: Priority is not determined.
+-   **Suggestion**: A code block with a suggested change, where applicable.
 
-### ✅ Highlights
-- Well-implemented features and good practices
-- Quality code sections worth acknowledging  
-- Improvements from previous versions
+**Example Inline Comment:**
+
+> 🟢 Use camelCase for function names
+> ```suggestion
+> myFunction
+> ```
 
 ## Review Areas
 

@@ -5,55 +5,50 @@ This action can be configured to send telemetry data (traces, metrics, and logs)
 The action uses its own built-in telemetry system that ensures consistent and reliable telemetry collection across all workflows.
 
 - [Observability with OpenTelemetry](#observability-with-opentelemetry)
-  - [Required Inputs](#required-inputs)
-  - [Setup: Obtaining Input Values](#setup-obtaining-input-values)
-    - [Quick Setup](#quick-setup)
-  - [Advanced Setup](#advanced-setup)
-  - [GitHub Actions Configuration](#github-actions-configuration)
+  - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+  - [Configuration](#configuration)
   - [Viewing Telemetry Data](#viewing-telemetry-data)
   - [Collector Configuration](#collector-configuration)
+  - [Example](#example)
   - [Troubleshooting](#troubleshooting)
 
+## Overview
 
-## Required Inputs
+The Gemini CLI Action integrates OpenTelemetry to provide comprehensive observability for your workflows. This includes:
 
-For a complete list of required inputs, their descriptions, and how to configure them, see [docs](../README.md#inputs).
+- **Metrics**: Monitor performance indicators and usage statistics  
+- **Logs**: Capture detailed information for debugging and analysis
+- **Traces**: Track the execution flow and timing of operations
 
-When enabled, the action will automatically start an OpenTelemetry collector that forwards traces, metrics, and logs to your specified GCP project. You can then use Google Cloud's operations suite (formerly Stackdriver) to visualize and analyze this data.
+## Prerequisites
 
-When enabled, the action will automatically start an OpenTelemetry collector that forwards traces, metrics, and logs to your specified GCP project. You can then use Google Cloud's operations suite (formerly Stackdriver) to visualize and analyze this data.
+Before enabling observability, ensure you have:
 
-## Setup: Obtaining Input Values
+- A Google Cloud project with billing enabled
+- Completed authentication setup (see [Authentication documentation](./authentication.md))
+- The following APIs enabled in your GCP project:
+  - Cloud Monitoring API  
+  - Cloud Logging API
+  - Cloud Trace API
 
-The recommended way to configure your Google Cloud project and get the values for the inputs above is to use the provided setup script. This script automates the creation of all necessary resources using **Direct Workload Identity Federation**, ensuring a secure, keyless authentication mechanism without intermediate service accounts.
+## Setup
 
-For detailed setup instructions, see the [Workload Identity Federation documentation](./workload-identity.md).
+To enable observability, you must first configure authentication to Google Cloud.
+The setup script provided in the [Authentication guide](./authentication.md) will
+automatically provision the necessary IAM permissions for observability.
 
-### Quick Setup
+Please follow the instructions in the
+[**Authentication documentation**](./authentication.md) to set up your
+environment.
 
-> Note that setting up this Observability requires a Google Cloud account as well as Google Cloud CLI (install gcloud [here](https://cloud.google.com/sdk/docs/install))
-
-```bash
-./scripts/setup_workload_identity.sh --repo <OWNER/REPO> --project <PROJECT_ID>
-```
-
--   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
--   `<PROJECT_ID>`: Your Google Cloud `project_id`.
-
-After the `setup_workload_identity.sh` script finishes running, it will output a link to where you can edit your repository variables. Click on that link and then add the variables output from the script into your GitHub "Repository variables".
-
-Additionally, to complete the setup add your `GEMINI_API_KEY` as a secret - this is discussed in more detail in the `run-gemini-cli` [README](https://github.com/google-github-actions/run-gemini-cli?tab=readme-ov-file#getting-started).
-
-## Advanced Setup
-
-For advanced configuration options, manual setup instructions, troubleshooting, and security best practices, see the complete [Workload Identity Federation documentation](./workload-identity.md).
-
-## GitHub Actions Configuration
+## Configuration
 
 After running the setup script, configure your GitHub Actions workflow with the provided values:
 
 ```yaml
-- uses: google-github-actions/run-gemini-cli@v1
+- uses: google-github-actions/run-gemini-cli@main
   with:
     gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
     gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
@@ -71,8 +66,7 @@ After running the setup script, configure your GitHub Actions workflow with the 
 
 **Important**: To enable telemetry, you must include the `settings` configuration as shown above. This tells the Gemini CLI to:
 - Enable telemetry collection
-- Send data to the local OpenTelemetry collector (which forwards to GCP)
-- Disable sandbox mode (required for telemetry)
+- Send data to the local OpenTelemetry collector which forwards to your GCP project
 
 ## Viewing Telemetry Data
 
@@ -84,12 +78,42 @@ Once configured, you can view your telemetry data in the Google Cloud Console:
 
 ## Collector Configuration
 
-The action automatically handles the setup of the OpenTelemetry (OTel) collector. 
-This includes generating the necessary Google Cloud configuration, setting the correct
-file permissions for credentials, and running the collector in a Docker container. The
-collector is configured to use only the `googlecloud` exporter, ensuring telemetry
-is sent directly to your Google Cloud project. 
+The action automatically handles the setup of the OpenTelemetry (OTel) collector. This includes generating the necessary Google Cloud configuration, setting the correct file permissions for credentials, and running the collector in a Docker container. The collector is configured to use only the `googlecloud` exporter, ensuring telemetry is sent directly to your Google Cloud project.
+
+## Example
+
+```yaml
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/run-gemini-cli@main
+        with:
+          gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
+          gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          settings: |
+            {
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              }
+            }
+          prompt: "Review this pull request"
+```
 
 ## Troubleshooting
 
-If you encounter issues with observability setup, see the troubleshooting section in the [Workload Identity Federation documentation](./workload-identity.md#troubleshooting).
+**Telemetry not appearing in Google Cloud Console:**
+1. Verify that authentication is properly configured
+2. Check that the required APIs are enabled in your GCP project
+3. Ensure the service account has the necessary IAM permissions
+4. Confirm telemetry is enabled in your workflow settings
+
+**Permission errors:**
+- Verify your service account has these roles:
+  - `roles/logging.logWriter`
+  - `roles/monitoring.metricWriter` 
+  - `roles/cloudtrace.agent`
+
+For additional troubleshooting guidance, see the [Authentication documentation](./authentication.md).
