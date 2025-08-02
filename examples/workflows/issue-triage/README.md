@@ -37,12 +37,14 @@ For detailed setup instructions, including prerequisites and authentication, ple
 
 To implement this issue triage system, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
-2. Copy the workflow files into your repository's `.github/workflows` directory:
+2. Copy the workflow and command files into your repository:
 
 ```bash
-mkdir -p .github/workflows
+mkdir -p .github/workflows .gemini/commands
 curl -o .github/workflows/gemini-issue-automated-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/gemini-issue-automated-triage.yml
 curl -o .github/workflows/gemini-issue-scheduled-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/gemini-issue-scheduled-triage.yml
+curl -o .gemini/commands/gemini-issue-automated-triage.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/commands/gemini-issue-automated-triage.toml
+curl -o .gemini/commands/gemini-issue-scheduled-triage.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/issue-triage/commands/gemini-issue-scheduled-triage.toml
 ```
 
 You can customize the prompts and settings in the workflow files to suit your specific needs. For example, you can change the triage logic, the labels that are applied, or the schedule of the scheduled triage.
@@ -109,7 +111,7 @@ The two workflows work together to ensure that all new and existing issues are t
 
 ## Configuration
 
-You can customize the triage workflows by modifying:
+You can customize the triage workflows by modifying the prompt in the `gemini-issue-automated-triage.toml` and `gemini-issue-scheduled-triage.toml` files. You can also modify the workflow files to change:
 
 - **Triage Logic**: Adjust the AI prompts to change how issues are analyzed
 - **Label Assignment**: Configure which labels are applied based on issue content

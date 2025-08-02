@@ -34,11 +34,12 @@ For detailed setup instructions, including prerequisites and authentication, ple
 
 To use this workflow, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
-2. Copy the `gemini-cli.yml` file into your repository's `.github/workflows` directory:
+2. Copy the workflow and command files into your repository:
 
 ```bash
-mkdir -p .github/workflows
+mkdir -p .github/workflows .gemini/commands
 curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/gemini-cli.yml
+curl -o .gemini/commands/gemini-cli.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/commands/gemini-cli.toml
 ```
 
 ## Usage
@@ -111,7 +112,7 @@ flowchart TD
 
 ## Configuration
 
-The Gemini CLI system prompt, located in the `prompt` input, defines the Gemini AI's role and instructions. You can edit this prompt to, for example:
+The Gemini CLI system prompt is defined in the `gemini-cli.toml` file. You can edit this prompt to, for example:
 
 - Change its persona or primary function.
 - Add project-specific guidelines or context.

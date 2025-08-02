@@ -46,11 +46,12 @@ For detailed setup instructions, including prerequisites and authentication, ple
 
 To use this workflow, you can use either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
-2. Copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
+2. Copy the workflow and command files into your repository:
 
 ```bash
-mkdir -p .github/workflows
+mkdir -p .github/workflows .gemini/commands
 curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/pr-review/gemini-pr-review.yml
+curl -o .gemini/commands/gemini-pr-review.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/pr-review/commands/gemini-pr-review.toml
 ```
 
 ## Usage
@@ -184,7 +185,7 @@ You can customize the workflow by modifying:
 
 ### Review Prompt Customization
 
-The AI prompt can be customized to:
+The AI prompt is defined in the `gemini-pr-review.toml` file. You can customize the prompt to:
 - Focus on specific technologies or frameworks
 - Emphasize particular coding standards
 - Include project-specific guidelines

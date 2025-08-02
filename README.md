@@ -249,3 +249,4 @@ started.
 [variables]: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables#creating-configuration-variables-for-a-repository
 [GitHub CLI]: https://docs.github.com/en/github-cli/github-cli
 [GEMINI.md]: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#context-files-hierarchical-instructional-context
+[Custom Commands]: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/commands.md#custom-commands

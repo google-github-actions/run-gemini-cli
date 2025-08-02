@@ -61,7 +61,9 @@ Thumbs.db
 .idea/
 
 # gemini-cli settings
-.gemini/
+# Ignore user-specific settings, but allow project-specific commands.
+.gemini/*
+!.gemini/commands/
 
 # GitHub App credentials
 gha-creds-*.json
