@@ -2,7 +2,7 @@
 
 ## Overview
 
-`run-gemini-cli` is a GitHub Action that integrates [Gemini] AI into your development workflow via the [Gemini CLI]. It acts both as an autonomous agent for critical routine coding tasks, and an on-demand collaborator you can quickly delegate work to.
+`run-gemini-cli` is a GitHub Action that integrates [Gemini] into your development workflow via the [Gemini CLI]. It acts both as an autonomous agent for critical routine coding tasks, and an on-demand collaborator you can quickly delegate work to.
 
 Use it to perform GitHub pull request reviews, triage issues, perform code analysis and modification, and more using [Gemini] conversationally (e.g., `@gemini-cli fix this issue`) directly inside your GitHub repositories.
 
@@ -14,16 +14,21 @@ Cloud product, please contact [Google Cloud support].**
   - [Overview](#overview)
   - [Features](#features)
   - [Quick Start](#quick-start)
+    - [1. Get a Gemini API Key](#1-get-a-gemini-api-key)
+    - [2. Add it as a GitHub Secret](#2-add-it-as-a-github-secret)
+    - [3. Choose a Workflow](#3-choose-a-workflow)
+    - [4. Try it out!](#4-try-it-out)
   - [Workflows](#workflows)
     - [Issue Triage](#issue-triage)
     - [Pull Request Review](#pull-request-review)
     - [Gemini CLI Assistant](#gemini-cli-assistant)
-  - [Configuration](#configuration)
     - [Inputs](#inputs)
     - [Outputs](#outputs)
-    - [Environment Variables](#environment-variables)
+    - [Repository Variables](#repository-variables)
     - [Secrets](#secrets)
   - [Authentication](#authentication)
+    - [Google Authentication](#google-authentication)
+    - [GitHub Authentication](#github-authentication)
   - [Observability](#observability)
   - [Customization](#customization)
   - [Contributing](#contributing)
@@ -52,21 +57,38 @@ Store your API key as a secret named `GEMINI_API_KEY` in your repository:
 - Name: `GEMINI_API_KEY`, Value: your API key
 
 ### 3. Choose a Workflow
-Copy one of our pre-built workflows from the [`/workflows`](./workflows) directory:
+You have two options to set up a workflow:
 
-```bash
-# Example: Add PR Review workflow
-mkdir -p .github/workflows
-curl -o .github/workflows/gemini-pr-review.yml \
-  https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/pr-review/gemini-pr-review.yml
-```
+**Option A: Use setup command (Recommended)**
+1. Start the Gemini CLI:
+   ```bash
+   gemini
+   ```
+2. In the chat interface, type:
+   ```
+   /setup-github
+   ```
+
+**Option B: Manually copy workflows** 
+1. Copy the pre-built workflows from the [`/workflows`](./workflows) directory to your repository's `.github/workflows` directory.
 
 ### 4. Try it out!
-- Open a Pull Request in your repository
-- Comment `@gemini-cli /review` to trigger an AI review
-- Or wait for automatic reviews on new PRs
 
-For detailed setup instructions and advanced configuration, see the [Authentication documentation](./docs/authentication.md).
+**Pull Request Review:**
+- Open a pull request in your repository and wait for automatic review
+- Comment `@gemini-cli /review` on an existing pull request to manually trigger a review
+
+**Issue Triage:**
+- Open an issue and wait for automatic triage
+- Comment `@gemini-cli /triage` on existing issues to manually trigger triaging
+
+**General AI Assistance:**
+- In any issue or pull request, mention `@gemini-cli` followed by your request
+- Examples:
+  - `@gemini-cli explain this code change`
+  - `@gemini-cli suggest improvements for this function`
+  - `@gemini-cli help me debug this error`
+  - `@gemini-cli write unit tests for this component`
 
 ## Workflows
 
@@ -81,12 +103,8 @@ For a detailed guide on how to set up the issue triage system, go to the
 ### Pull Request Review
 
 This action can be used to automatically review pull requests when they are
-opened. Additionally, users with `OWNER`, `MEMBER`, or `COLLABORATOR`
-permissions can trigger a review by commenting `@gemini-cli /review` in a pull
-request.
-
-For a detailed guide on how to set up the pull request review system, go to the
-[GitHub PR Review workflow documentation](./workflows/pr-review).
+opened. For a detailed guide on how to set up the pull request review system,
+go to the [GitHub PR Review workflow documentation](./workflows/pr-review).
 
 ### Gemini CLI Assistant
 
@@ -94,13 +112,6 @@ This type of action can be used to invoke a general-purpose, conversational Gemi
 AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the general-purpose Gemini CLI workflow,
 go to the [Gemini CLI workflow documentation](./workflows/gemini-cli).
-
-## Configuration
-
-For detailed information on configuring this action, see the following guides:
-
-- **[Authentication](./docs/authentication.md):** Learn how to authenticate with Google services and the GitHub API
-- **[Observability](./docs/observability.md):** Set up telemetry to monitor action performance
 
 ### Inputs
 
@@ -139,9 +150,9 @@ For detailed information on configuring this action, see the following guides:
 
 <!-- END_AUTOGEN_OUTPUTS -->
 
-### Environment Variables
+### Repository Variables
 
-The following environment variables are automatically passed into the action's inputs if set in your repository or workflow. You may also set them directly as workflow inputs if preferred.
+We recommend setting the following values as repository variables so they can be reused across all workflows. Alternatively, you can set them inline as action inputs in individual workflows or to override repository-level values.
 
 | Name                        | Description                                            | Type     | Required | When Required             |
 | --------------------------- | ------------------------------------------------------ | -------- | -------- | ------------------------- |
@@ -155,12 +166,12 @@ The following environment variables are automatically passed into the action's i
 | `APP_ID`                    | GitHub App ID for custom authentication.               | Variable | No       | Using a custom GitHub App |
 
 
-To add an environment variable: 
+To add a repository variable: 
 1) Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
 2) Enter the variable name and value.
 3) Save.
 
-For organization-wide or environment-specific variables, refer to the [GitHub documentation on variables][variables].
+For details about repository variables, refer to the [GitHub documentation on variables][variables].
 
 ### Secrets
 
@@ -214,10 +225,10 @@ the [Observability documentation](./docs/observability.md).
 
 ## Customization
 
-Create a `GEMINI.md` file in the root of your repository to provide
+Create a [GEMINI.md] file in the root of your repository to provide
 project-specific context and instructions to [Gemini CLI]. This is useful for defining
 coding conventions, architectural patterns, or other guidelines the model should
-follow.
+follow for a given repository.
 
 ## Contributing
 
@@ -231,5 +242,6 @@ started.
 [Google AI Studio]: https://aistudio.google.com/apikey
 [Gemini CLI]: https://github.com/google-gemini/gemini-cli/
 [Google Cloud support]: https://cloud.google.com/support
-[variables]: https://docs.github.com/en/actions/learn-github-actions/variables
+[variables]: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables#creating-configuration-variables-for-a-repository
 [GitHub CLI]: https://docs.github.com/en/github-cli/github-cli
+[GEMINI.md]: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#context-files-hierarchical-instructional-context
