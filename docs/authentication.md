@@ -148,6 +148,7 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 | Variable Name               | Description                                          |
 | --------------------------- | ---------------------------------------------------- |
 | `GCP_WIF_PROVIDER`          | The resource name of the Workload Identity Provider. |
+| `SERVICE_ACCOUNT_EMAIL`     | The service account with the required permissions.   |
 | `GOOGLE_CLOUD_PROJECT`      | Your Google Cloud project ID.                        |
 | `GOOGLE_CLOUD_LOCATION`     | Your Google Cloud project Location.                  |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to use Vertex AI.                      |
@@ -157,11 +158,12 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 ```yaml
 - uses: google-github-actions/run-gemini-cli@main
   with:
-    prompt: "Explain this code"
-    gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-    gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-    gcp_location: ${{ vars.GOOGLE_CLOUD_LOCATION }}
-    use_vertex_ai: 'true'
+    prompt: 'Explain this code'
+    gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+    gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+    gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+    gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+    use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
 ```
 
 ### Connecting to Gemini Code Assist
@@ -180,6 +182,7 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 | ----------------------- | ------------------------------------------------------- |
 | `GCP_WIF_PROVIDER`      | The resource name of the Workload Identity Provider.    |
 | `GOOGLE_CLOUD_PROJECT`  | Your Google Cloud project ID.                           |
+| `GOOGLE_CLOUD_LOCATION` | Your Google Cloud project Location.                     |
 | `SERVICE_ACCOUNT_EMAIL` | The email of the service account for Code Assist.       |
 | `GOOGLE_GENAI_USE_GCA`  | Set to `true` to authenticate using Gemini Code Assist. |
 
@@ -188,11 +191,12 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 ```yaml
 - uses: google-github-actions/run-gemini-cli@main
   with:
-    prompt: "Explain this code"
-    gcp_workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-    gcp_project_id: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-    gcp_service_account: ${{ vars.SERVICE_ACCOUNT_EMAIL }}
-    use_gemini_code_assist: 'true'
+    prompt: 'Explain this code'
+    gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+    gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+    gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+    gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+    use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
 ```
 
 ## Additional Resources
