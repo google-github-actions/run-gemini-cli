@@ -93,8 +93,7 @@ jobs:
               "telemetry": {
                 "enabled": true,
                 "target": "gcp"
-              },
-              "sandbox": false
+              }
             }
           prompt: |-
             ## Role
