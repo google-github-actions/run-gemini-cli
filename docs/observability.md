@@ -37,7 +37,7 @@ For detailed setup instructions, see the [Workload Identity Federation documenta
 ./scripts/setup_workload_identity.sh --repo <OWNER/REPO> --project <PROJECT_ID>
 ```
 
--   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`.
+-   `<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`. Here, `OWNER` means your GitHub organization (for organization-owned repos) or username (for user-owned repos).
 -   `<PROJECT_ID>`: Your Google Cloud `project_id`.
 
 After the `setup_workload_identity.sh` script finishes running, it will output a link to where you can edit your repository variables. Click on that link and then add the variables output from the script into your GitHub "Repository variables".

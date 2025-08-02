@@ -27,7 +27,6 @@ Set the following environment variables in your repository:
 | GOOGLE_CLOUD_LOCATION     | Region of the Google Cloud project.                    | Variable | No       | When using Google Cloud            |
 | GOOGLE_GENAI_USE_VERTEXAI | Set to 'true' to use Vertex AI                         | Variable | No       | When using Vertex AI               |
 | GOOGLE_GENAI_USE_GCA      | Set to 'true' to use Gemini Code Assist                | Variable | No       | When using Gemini Code Assist      |
-
 | APP_ID                    | GitHub App ID for custom authentication.               | Variable | No       | When using a custom GitHub App     |
 
 SERVICE_ACCOUNT_EMAIL
