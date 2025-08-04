@@ -35,7 +35,7 @@ Cloud product, please contact [Google Cloud support].**
 
 ## Features
 
-- **Automation**: Trigger workflows based on events (e.g. issue opening) or schedules (e.g. nightly). 
+- **Automation**: Trigger workflows based on events (e.g. issue opening) or schedules (e.g. nightly).
 - **On-demand Collaboration**: Trigger workflows in issue and pull request
   comments by mentioning the [Gemini CLI] (e.g., `@gemini-cli /review`).
 - **Extensible with Tools**: Leverage [Gemini] models' tool-calling capabilities to
@@ -61,16 +61,19 @@ You have two options to set up a workflow:
 
 **Option A: Use setup command (Recommended)**
 1. Start the Gemini CLI:
-   ```bash
+
+   ```shell
    gemini
    ```
+
 2. In the chat interface, type:
+
    ```
    /setup-github
    ```
 
-**Option B: Manually copy workflows** 
-1. Copy the pre-built workflows from the [`/workflows`](./workflows) directory to your repository's `.github/workflows` directory.
+**Option B: Manually copy workflows**
+1. Copy the pre-built workflows from the [`examples/workflows`](./examples/workflows) directory to your repository's `.github/workflows` directory.
 
 ### 4. Try it out!
 
@@ -98,20 +101,20 @@ This action provides several pre-built workflows for different use cases. Each w
 
 This action can be used to triage GitHub Issues automatically or on a schedule.
 For a detailed guide on how to set up the issue triage system, go to the
-[GitHub Issue Triage workflow documentation](./workflows/issue-triage).
+[GitHub Issue Triage workflow documentation](./examples/workflows/issue-triage).
 
 ### Pull Request Review
 
 This action can be used to automatically review pull requests when they are
 opened. For a detailed guide on how to set up the pull request review system,
-go to the [GitHub PR Review workflow documentation](./workflows/pr-review).
+go to the [GitHub PR Review workflow documentation](./examples/workflows/pr-review).
 
 ### Gemini CLI Assistant
 
 This type of action can be used to invoke a general-purpose, conversational Gemini
 AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the general-purpose Gemini CLI workflow,
-go to the [Gemini CLI workflow documentation](./workflows/gemini-cli).
+go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 ### Inputs
 
@@ -166,7 +169,7 @@ We recommend setting the following values as repository variables so they can be
 | `APP_ID`                    | GitHub App ID for custom authentication.               | Variable | No       | Using a custom GitHub App |
 
 
-To add a repository variable: 
+To add a repository variable:
 1) Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
 2) Enter the variable name and value.
 3) Save.
@@ -183,16 +186,17 @@ You can set the following secrets in your repository:
 | `APP_PRIVATE_KEY` | Private key for your GitHub App (PEM format). | No       | Using a custom GitHub App.    |
 
 To add a secret:
-1) Go to your repository's **Settings > Secrets and variables >Actions > New repository secret**. 
-2) Enter the secret name and value.
-3) Save.
+
+1. Go to your repository's **Settings > Secrets and variables >Actions > New repository secret**.
+2. Enter the secret name and value.
+3. Save.
 
 For more information, refer to the
 [official GitHub documentation on creating and using encrypted secrets][secrets].
 
 ## Authentication
 
-This action requires authentication to both Google services (for Gemini AI) and the GitHub API. 
+This action requires authentication to both Google services (for Gemini AI) and the GitHub API.
 
 ### Google Authentication
 

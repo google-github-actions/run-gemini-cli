@@ -23,7 +23,7 @@ This directory contains a collection of example workflows that demonstrate how t
 
 ## Setup
 
-For detailed setup instructions, including prerequisites and authentication, please refer to the main [Authentication documentation](../docs/authentication.md).
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Authentication documentation](../../docs/authentication.md).
 
 To use a workflow, you can utilize either of the following steps:
 - Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
@@ -57,7 +57,7 @@ Add the following to your workflow YAML file to set a custom value:
 
 ```yaml
 with:
-  settings: |
+  settings: |-
     {
       "maxSessionTurns": 10
     }
