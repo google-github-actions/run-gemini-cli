@@ -149,7 +149,7 @@ Alternatively, you can omit the `telemetry` settings entirely, as telemetry is d
 **Permission errors:**
 - Verify your service account has these roles:
   - `roles/logging.logWriter`
-  - `roles/monitoring.metricWriter` 
+  - `roles/monitoring.editor` 
   - `roles/cloudtrace.agent`
 
 For additional troubleshooting guidance, see the [Authentication documentation](./authentication.md).

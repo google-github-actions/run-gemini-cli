@@ -92,12 +92,12 @@ Your user account needs these permissions in the target GCP project to run the s
 Basic setup for your repository:
 
 ```shell
-./scripts/setup_workload_identity.sh --repo OWNER/REPO --project <PROJECT_ID>
+./scripts/setup_workload_identity.sh --repo OWNER/REPO --project GOOGLE_CLOUD_PROJECT
 ```
 
-`<OWNER/REPO>`: Your GitHub repository in the format `owner/repo`. Here, `OWNER` means your GitHub organization (for organization-owned repos) or username (for user-owned repos).
-
-`<PROJECT_ID>`: Your Google Cloud `project_id`.
+**Required Parameters:**
+- `OWNER/REPO`: Your GitHub repository in the format `owner/repo`. Here, `OWNER` means your GitHub organization (for organization-owned repos) or username (for user-owned repos).
+- `GOOGLE_CLOUD_PROJECT`: Your Google Cloud project ID.
 
 For example:
 
@@ -109,30 +109,33 @@ For example:
 
 Command Line Options:
 
-| Option                             | Description                                    | Example                    |
-| ---------------------------------- | ---------------------------------------------- | -------------------------- |
-| `--repo OWNER/REPO`                | **Required**: GitHub repository                | `--repo google/my-repo`    |
-| `--project GOOGLE_CLOUD_PROJECT`   | GCP project ID (auto-detected if not provided) | `--project my-gcp-project` |
-| `--location GOOGLE_CLOUD_LOCATION` | GCP project Location (defaults to 'global')    | `--location us-east1`      |
-| `--pool-name NAME`                 | Custom pool name (default: `github`)           | `--pool-name my-pool`      |
-| `--help`                           | Show help message                              |                            |
+| Option                             | Description                                    | Required | Example                       |
+| ---------------------------------- | ---------------------------------------------- | -------- | ----------------------------- |
+| `--repo OWNER/REPO`                | GitHub repository                              | Yes      | `--repo google/my-repo`       |
+| `--project GOOGLE_CLOUD_PROJECT`   | Google Cloud project ID                        | Yes      | `--project my-gcp-project`    |
+| `--location GOOGLE_CLOUD_LOCATION` | GCP project location (defaults to `global`)    | No       | `--location us-east1`         |
+| `--pool-name NAME`                 | Custom pool name (default: auto-generated)     | No       | `--pool-name my-pool`         |
+| `--provider-name NAME`             | Custom provider name (default: auto-generated) | No       | `--provider-name my-provider` |
+| `--help`                           | Show help message                              | No       |                               |
 
 **What the Script Does**
 
-1.  **Creates Workload Identity Pool**: A shared resource (named `github` by default).
-2.  **Creates Workload Identity Provider**: Unique per repository, linked to the pool.
-3.  **Grants Permissions**: Assigns IAM roles for observability and AI services.
-4.  **Outputs Configuration**: Prints the GitHub Actions variables needed for your workflow.
+1.  **Creates Workload Identity Pool**: A shared resource (auto-generated unique name based on repository).
+2.  **Creates Workload Identity Provider**: Unique per repository, linked to the pool (auto-generated unique name based on repository).
+3.  **Creates Service Account**: For authentication with required permissions.
+4.  **Grants Permissions**: Assigns IAM roles for observability and AI services.
+5.  **Outputs Configuration**: Prints the GitHub Actions variables needed for your workflow.
 
 **Automatic Permissions**
 
 The script automatically grants these essential IAM roles:
 
 - **`roles/logging.logWriter`**: To write logs to Cloud Logging.
-- **`roles/monitoring.metricWriter`**: To write metrics to Cloud Monitoring.
+- **`roles/monitoring.editor`**: To write metrics to Cloud Monitoring.
 - **`roles/cloudtrace.agent`**: To send traces to Cloud Trace.
 - **`roles/aiplatform.user`**: To make inference calls to Vertex AI.
 - **`roles/cloudaicompanion.user`**: To make inference calls using Gemini Code Assist.
+- **`roles/iam.serviceAccountTokenCreator`**: To generate access tokens.
 
 #### Connecting to Vertex AI
 

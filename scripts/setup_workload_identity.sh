@@ -54,7 +54,8 @@ print_header() {
 GOOGLE_CLOUD_PROJECT=""
 GOOGLE_CLOUD_LOCATION="global"
 GITHUB_REPO=""
-POOL_NAME="github"
+POOL_NAME=""
+PROVIDER_NAME=""
 
 # Show help
 show_help() {
@@ -66,21 +67,22 @@ USAGE:
 
 REQUIRED:
     -r, --repo OWNER/REPO       GitHub repository (e.g., google/my-repo)
-    -p, --project PROJECT_ID    Google Cloud project ID (auto-detected if not provided)
+    -p, --project GOOGLE_CLOUD_PROJECT    Google Cloud project ID
 
 OPTIONS:
     --pool-name NAME           Custom workload identity pool name (default: auto-generated)
+    --provider-name NAME       Custom workload identity provider name (default: auto-generated)
     -h, --help                 Show this help
 
 EXAMPLES:
     # Basic setup for a repository
-    $0 --repo google/my-repo
-
-    # With specific project
     $0 --repo google/my-repo --project my-gcp-project
 
     # Custom pool name
-    $0 --repo google/my-repo --pool-name my-pool
+    $0 --repo google/my-repo --project my-gcp-project --pool-name my-pool
+
+    # Custom pool and provider names
+    $0 --repo google/my-repo --project my-gcp-project --pool-name my-pool --provider-name my-provider
 
 ABOUT DIRECT WORKLOAD IDENTITY FEDERATION:
     This script sets up Direct Workload Identity Federation (preferred method).
@@ -105,6 +107,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --pool-name)
             POOL_NAME="$2"
+            shift 2
+            ;;
+        --provider-name)
+            PROVIDER_NAME="$2"
             shift 2
             ;;
         -l|--location)
@@ -136,11 +142,11 @@ if [[ -z "${GITHUB_REPO}" ]]; then
     exit 1
 fi
 if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
-    print_error "GCP project is required. Use --project PROJECT_ID"
+    print_error "GCP project is required. Use --project GOOGLE_CLOUD_PROJECT"
     echo ""
-    echo "💡 To find your project name:"
+    echo "💡 To find your project ID:"
     echo "   1. Go to your Google Cloud console"
-    echo "   2. The URL displays: https://pantheon.corp.google.com/welcome?project=PROJECT_ID"
+    echo "   2. The URL displays: https://console.cloud.google.com/welcome?project=GOOGLE_CLOUD_PROJECT"
     echo ""
     echo "Use --help for usage information."
     exit 1
@@ -153,20 +159,6 @@ if [[ ! "${GITHUB_REPO}" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]]; then
     exit 1
 fi
 
-# Auto-detect project ID if not provided
-if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
-    print_info "Auto-detecting Google Cloud project..."
-    GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project 2>/dev/null)
-    if [[ -z "${GOOGLE_CLOUD_PROJECT}" ]]; then
-        print_error "Could not auto-detect Google Cloud project ID"
-        echo "Please either:"
-        echo "  1. Set default project: gcloud config set project YOUR_PROJECT_ID"
-        echo "  2. Use --project flag: $0 --repo ${GITHUB_REPO} --project YOUR_PROJECT_ID"
-        exit 1
-    fi
-    print_success "Using project: ${GOOGLE_CLOUD_PROJECT}"
-fi
-
 # Extract repository components
 REPO_OWNER=$(echo "${GITHUB_REPO}" | cut -d'/' -f1)
 
@@ -174,8 +166,16 @@ REPO_OWNER=$(echo "${GITHUB_REPO}" | cut -d'/' -f1)
 REPO_HASH_INPUT=$(echo -n "${GITHUB_REPO}")
 REPO_HASH_SHA=$(echo "${REPO_HASH_INPUT}" | shasum -a 256)
 REPO_HASH=$(echo "${REPO_HASH_SHA}" | cut -c1-8)
-POOL_NAME="github-${REPO_HASH}"
-PROVIDER_NAME="gh-${REPO_HASH}"
+
+# Use custom pool name if provided, otherwise generate one
+if [[ -z "${POOL_NAME}" ]]; then
+    POOL_NAME="github-${REPO_HASH}"
+fi
+
+# Use custom provider name if provided, otherwise generate one
+if [[ -z "${PROVIDER_NAME}" ]]; then
+    PROVIDER_NAME="gh-${REPO_HASH}"
+fi
 
 print_header "Starting Direct Workload Identity Federation setup"
 echo "📦 Repository: ${GITHUB_REPO}"
@@ -330,7 +330,7 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
 
 print_info "Granting monitoring permissions..."
 gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/monitoring.editor" \
+    --role="roles/monitoring.metricWriter" \
     --member="${PRINCIPAL_SET}" \
     --condition=None
 
