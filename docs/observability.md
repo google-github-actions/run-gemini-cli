@@ -12,6 +12,7 @@ The action uses its own built-in telemetry system that ensures consistent and re
   - [Viewing Telemetry Data](#viewing-telemetry-data)
   - [Collector Configuration](#collector-configuration)
   - [Example](#example)
+  - [Disabling](#disabling)
   - [Troubleshooting](#troubleshooting)
 
 ## Overview
@@ -100,6 +101,41 @@ jobs:
               }
             }
           prompt: "Review this pull request"
+```
+
+## Disabling
+
+If you prefer to disable OpenTelemetry, you can explicitly opt out by setting `enabled: false` in your settings:
+
+```yaml
+- uses: google-github-actions/run-gemini-cli@main
+  with:
+    gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+    gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+    gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+    # Disable telemetry in settings
+    settings: |-
+      {
+        "telemetry": {
+          "enabled": false,
+          "target": "gcp"
+        }
+      }
+    # ... other inputs ...
+```
+
+Alternatively, you can omit the `telemetry` settings entirely, as telemetry is disabled by default:
+
+```yaml
+- uses: google-github-actions/run-gemini-cli@main
+  with:
+    gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+    gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+    gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+    settings: |-
+      {
+        # ... other settings ...
+      }
 ```
 
 ## Troubleshooting
