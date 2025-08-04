@@ -19,12 +19,12 @@ description: |-
 
 inputs:
   prompt:
-    description: |
+    description: |-
       A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
     required: false
     default: 'You are a helpful assistant.'
   settings:
-    description: |
+    description: |-
       A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
       For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
     required: false
@@ -67,7 +67,7 @@ runs:
     - name: 'Configure Gemini CLI'
       if: |-
         ${{ inputs.settings != '' }}
-      run: |
+      run: |-
         mkdir -p .gemini/
         echo "${SETTINGS}" > ".gemini/settings.json"
       shell: 'bash'
@@ -138,7 +138,7 @@ runs:
 
     - name: 'Run Gemini CLI'
       id: 'gemini_run'
-      run: |
+      run: |-
         set -e
         GEMINI_RESPONSE=$(gemini --yolo --prompt "${PROMPT}")
         # Set the captured response as a step output, supporting multiline

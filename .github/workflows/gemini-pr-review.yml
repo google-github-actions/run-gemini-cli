@@ -403,7 +403,7 @@ jobs:
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
           github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
-          script: |
+          script: |-
             github.rest.issues.createComment({
               owner: '${{ github.repository }}'.split('/')[0],
               repo: '${{ github.repository }}'.split('/')[1],

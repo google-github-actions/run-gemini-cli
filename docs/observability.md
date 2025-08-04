@@ -49,7 +49,7 @@ environment.
 After running the setup script, configure your GitHub Actions workflow with the provided values:
 
 ```yaml
-- uses: 'google-github-actions/run-gemini-cli@v1'
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
     gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -88,7 +88,7 @@ jobs:
   review:
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: 'google-github-actions/run-gemini-cli@v1'
+      - uses: 'google-github-actions/run-gemini-cli@v0'
         with:
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
@@ -100,7 +100,8 @@ jobs:
                 "target": "gcp"
               }
             }
-          prompt: "Review this pull request"
+          prompt: |-
+            Review this pull request
 ```
 
 ## Disabling
@@ -108,7 +109,7 @@ jobs:
 If you prefer to disable OpenTelemetry, you can explicitly opt out by setting `enabled: false` in your settings:
 
 ```yaml
-- uses: google-github-actions/run-gemini-cli@main
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
     gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -127,7 +128,7 @@ If you prefer to disable OpenTelemetry, you can explicitly opt out by setting `e
 Alternatively, you can omit the `telemetry` settings entirely, as telemetry is disabled by default:
 
 ```yaml
-- uses: google-github-actions/run-gemini-cli@main
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
     gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'

@@ -29,7 +29,7 @@ permissions:
 jobs:
   gemini-cli:
     # This condition is complex to ensure we only run when explicitly invoked.
-    if: |
+    if: |-
       github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'issues' && github.event.action == 'opened' &&
@@ -200,7 +200,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: 'Set up git user for commits'
-        run: |
+        run: |-
           git config --global user.name 'gemini-cli[bot]'
           git config --global user.email 'gemini-cli[bot]@users.noreply.github.com'
 
@@ -226,7 +226,7 @@ jobs:
       - name: 'Create new branch for issue'
         if: |-
           ${{  steps.get_context.outputs.is_pr == 'false' }}
-        run: |
+        run: |-
           set -euo pipefail
           BRANCH_NAME="gemini-issue-${{ steps.get_context.outputs.issue_number }}"
           git checkout -b "${BRANCH_NAME}"
@@ -239,7 +239,7 @@ jobs:
           ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
           REPOSITORY: '${{ github.repository }}'
           REQUEST_TYPE: '${{ steps.get_context.outputs.request_type }}'
-        run: |
+        run: |-
           set -euo pipefail
           MESSAGE=""
           case "${REQUEST_TYPE}" in
@@ -261,7 +261,7 @@ jobs:
 
       - name: 'Run Gemini'
         id: 'run_gemini'
-        uses: 'google-github-actions/run-gemini-cli@v1'
+        uses: 'google-github-actions/run-gemini-cli@v0'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
@@ -285,7 +285,7 @@ jobs:
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          settings: |
+          settings: |-
             {
               "maxSessionTurns": 50,
               "coreTools": [

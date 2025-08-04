@@ -49,7 +49,7 @@ This is the simplest method and is suitable for projects that do not require Goo
 #### Example
 
 ```yaml
-- uses: 'google-github-actions/run-gemini-cli@v1'
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     prompt: |-
       Explain this code
@@ -93,7 +93,7 @@ Your user account needs these permissions in the target GCP project to run the s
 Basic setup for your repository:
 
 ```shell
-./scripts/setup_workload_identity.sh --repo OWNER/REPO --project GOOGLE_CLOUD_PROJECT
+./scripts/setup_workload_identity.sh --repo "[OWNER]/[REPO]" --project "[GOOGLE_CLOUD_PROJECT]"
 ```
 
 **Required Parameters:**
@@ -103,7 +103,7 @@ Basic setup for your repository:
 For example:
 
 ```shell
-./scripts/setup_workload_identity.sh --repo google/my-repo --project my-project
+./scripts/setup_workload_identity.sh --repo "my-github-org/my-github-repo" --project "my-gcp-project"
 ```
 
 **Usage**
@@ -161,7 +161,7 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 **Example**
 
 ```yaml
-- uses: 'google-github-actions/run-gemini-cli@v1'
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
     gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
@@ -195,7 +195,7 @@ After running the `setup_workload_identity.sh` script, add the following variabl
 **Example**
 
 ```yaml
-- uses: 'google-github-actions/run-gemini-cli@v1'
+- uses: 'google-github-actions/run-gemini-cli@v0'
   with:
     gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
     gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
@@ -222,9 +222,9 @@ If the `APP_ID` and `APP_PRIVATE_KEY` secrets are not configured in your reposit
 
 ```yaml
 permissions:
-    contents: read
-    issues: write
-    pull-requests: write
+  contents: 'read'
+  issues: 'write'
+  pull-requests: 'write'
 ```
 
 *   **Job-Scoped:** The token's access is limited to the repository where the workflow is running and expires when the job is complete.
