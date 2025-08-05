@@ -48,7 +48,7 @@ Cloud product, please contact [Google Cloud support].**
 Get started with Gemini CLI in your repository in just a few minutes:
 
 ### 1. Get a Gemini API Key
-Obtain your API key from [Google AI Studio] (it's free!)
+Obtain your API key from [Google AI Studio] with generous free-of-charge quotas
 
 ### 2. Add it as a GitHub Secret
 Store your API key as a secret named `GEMINI_API_KEY` in your repository:
