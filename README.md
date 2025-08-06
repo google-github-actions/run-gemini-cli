@@ -6,10 +6,6 @@
 
 Use it to perform GitHub pull request reviews, triage issues, perform code analysis and modification, and more using [Gemini] conversationally (e.g., `@gemini-cli fix this issue`) directly inside your GitHub repositories.
 
-**This is not an officially supported Google product, and it is not covered by a
-Google Cloud support contract. To report bugs or request features in a Google
-Cloud product, please contact [Google Cloud support].**
-
 - [run-gemini-cli](#run-gemini-cli)
   - [Overview](#overview)
   - [Features](#features)
