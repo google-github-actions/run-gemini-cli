@@ -69,7 +69,7 @@ jobs:
         uses: './'
         id: 'gemini_issue_triage'
         env:
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token }}'
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           ISSUES_TO_TRIAGE: '${{ steps.find_issues.outputs.issues_to_triage }}'
           REPOSITORY: '${{ github.repository }}'
         with:
