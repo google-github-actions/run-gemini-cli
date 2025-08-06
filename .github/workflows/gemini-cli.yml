@@ -165,7 +165,7 @@ jobs:
 
           # Clean up user request
           if [[ ${USER_REQUEST} == *"@gemini-cli"* ]]; then
-            USER_REQUEST=$(echo "${USER_REQUEST}" | sed 's/.*@gemini-cli//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+              USER_REQUEST=$(echo "${USER_REQUEST}" | sed 's/@gemini-cli//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           fi
 
           if [[ "${IS_PR}" == "true" ]]; then
