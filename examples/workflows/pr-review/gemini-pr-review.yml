@@ -213,7 +213,8 @@ jobs:
             3. Run: echo "${PR_NUMBER}" to get the PR number
             4. Run: echo "${ADDITIONAL_INSTRUCTIONS}" to see any specific review
                instructions from the user
-            5. Run: gh pr diff "${PR_NUMBER}" to see the full diff
+            5. Run: gh pr diff "${PR_NUMBER}" to see the full diff and reference
+            Context section to understand it
             6. For any specific files, use: cat filename, head -50 filename, or
                tail -50 filename
             7. If ADDITIONAL_INSTRUCTIONS contains text, prioritize those
@@ -291,7 +292,7 @@ jobs:
             * Security: Identify potential vulnerabilities (e.g., insecure storage, injection attacks,
               insufficient access controls).
 
-            ### Miscellanous Considerations
+            ### Miscellaneous Considerations
             * Testing: Ensure adequate unit tests, integration tests, and end-to-end tests. Evaluate
               coverage, edge case handling, and overall test quality.
             * Performance: Assess performance under expected load, identify bottlenecks, and suggest
@@ -340,13 +341,47 @@ jobs:
             Keep comments bodies concise and to the point.
             Keep each comment focused on one issue.
 
+            ## Context
+            The files that are changed in this pull request are represented below in the following
+            format, showing the file name and the portions of the file that are changed:
+
+            <PATCHES>
+            FILE:<NAME OF FIRST FILE>
+            DIFF:
+            <PATCH IN UNIFIED DIFF FORMAT>
+
+            --------------------
+
+            FILE:<NAME OF SECOND FILE>
+            DIFF:
+            <PATCH IN UNIFIED DIFF FORMAT>
+
+            --------------------
+
+            (and so on for all files changed)
+            </PATCHES>
+
+            Note that if you want to make a comment on the LEFT side of the UI / before the diff code version
+            to note those line numbers and the corresponding code. Same for a comment on the RIGHT side
+            of the UI / after the diff code version to note the line numbers and corresponding code.
+            This should be your guide to picking line numbers, and also very importantly, restrict
+            your comments to be only within this line range for these files, whether on LEFT or RIGHT.
+            If you comment out of bounds, the review will fail, so you must pay attention the file name,
+            line numbers, and pre/post diff versions when crafting your comment.
+
+            Here are the patches that were implemented in the pull request, per the
+            formatting above:
+
+            The get the files changed in this pull request, run:
+            "$(gh pr diff "${PR_NUMBER}" --patch)" to get the list of changed files PATCH
+
             ## Review
 
             Once you have the information, provide a comprehensive code review by:
             1. Creating a pending review: Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
 
             2. Adding review comments:
-                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a piority. They syntax is:
+                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a priority. They syntax is:
                   Normal Comment Syntax:
                   <COMMENT>
                   {{PRIORITY}} {{COMMENT_TEXT}}
@@ -396,6 +431,7 @@ jobs:
                 - Mention overall patterns or architectural decisions
                 - Highlight positive aspects of the implementation
                 - Note any recurring themes across files
+
 
       - name: 'Post PR review failure comment'
         if: |-
