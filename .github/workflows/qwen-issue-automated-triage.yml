@@ -1,4 +1,4 @@
-name: '🏷️ Gemini Automated Issue Triage'
+name: '🏷️ Qwen Automated Issue Triage'
 
 on:
   issues:
@@ -35,7 +35,7 @@ jobs:
       github.event_name == 'issues' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
-       contains(github.event.comment.body, '@gemini-cli /triage') &&
+       contains(github.event.comment.body, '@qwen-cli /triage') &&
        (github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'COLLABORATOR'))
@@ -55,9 +55,9 @@ jobs:
           app-id: '${{ vars.APP_ID }}'
           private-key: '${{ secrets.APP_PRIVATE_KEY }}'
 
-      - name: 'Run Gemini Issue Triage'
+      - name: 'Run Qwen Issue Triage'
         uses: './'
-        id: 'gemini_issue_triage'
+        id: 'qwen_issue_triage'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
@@ -65,14 +65,14 @@ jobs:
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
         with:
-          gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
+          qwen_cli_version: '${{ vars.QWEN_CLI_VERSION }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+          openai_api_key: '${{ secrets.OPENAI_API_KEY }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
-          use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          use_qwen_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           settings: |-
             {
               "maxSessionTurns": 25,
@@ -116,7 +116,7 @@ jobs:
 
       - name: 'Post Issue Triage Failure Comment'
         if: |-
-          ${{ failure() && steps.gemini_issue_triage.outcome == 'failure' }}
+          ${{ failure() && steps.qwen_issue_triage.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
           github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
@@ -125,5 +125,5 @@ jobs:
               owner: '${{ github.repository }}'.split('/')[0],
               repo: '${{ github.repository }}'.split('/')[1],
               issue_number: '${{ github.event.issue.number }}',
-              body: 'There is a problem with the Gemini CLI issue triaging. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+              body: 'There is a problem with the Qwen CLI issue triaging. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
             })

@@ -1,4 +1,4 @@
-name: '🧐 Gemini Pull Request Review'
+name: '🧐 Qwen Pull Request Review'
 
 on:
   pull_request:
@@ -38,7 +38,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.action == 'opened') ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
-        contains(github.event.comment.body, '@gemini-cli /review') &&
+        contains(github.event.comment.body, '@qwen-cli /review') &&
         (
           github.event.comment.author_association == 'OWNER' ||
           github.event.comment.author_association == 'MEMBER' ||
@@ -46,7 +46,7 @@ jobs:
         )
       ) ||
       (github.event_name == 'pull_request_review_comment' &&
-        contains(github.event.comment.body, '@gemini-cli /review') &&
+        contains(github.event.comment.body, '@qwen-cli /review') &&
         (
           github.event.comment.author_association == 'OWNER' ||
           github.event.comment.author_association == 'MEMBER' ||
@@ -54,7 +54,7 @@ jobs:
         )
       ) ||
       (github.event_name == 'pull_request_review' &&
-        contains(github.event.review.body, '@gemini-cli /review') &&
+        contains(github.event.review.body, '@qwen-cli /review') &&
         (
           github.event.review.author_association == 'OWNER' ||
           github.event.review.author_association == 'MEMBER' ||
@@ -125,7 +125,7 @@ jobs:
 
           # Extract additional instructions from comment
           ADDITIONAL_INSTRUCTIONS="$(
-            echo "${COMMENT_BODY}" | sed 's/.*@gemini-cli \/review//' | xargs
+            echo "${COMMENT_BODY}" | sed 's/.*@qwen-cli \/review//' | xargs
           )"
           echo "additional_instructions=${ADDITIONAL_INSTRUCTIONS}" >> "${GITHUB_OUTPUT}"
 
@@ -141,9 +141,9 @@ jobs:
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: 'Run Gemini PR Review'
+      - name: 'Run Qwen PR Review'
         uses: './'
-        id: 'gemini_pr_review'
+        id: 'qwen_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           PR_NUMBER: '${{ steps.get_pr.outputs.pr_number || steps.get_pr_comment.outputs.pr_number }}'
@@ -152,14 +152,14 @@ jobs:
           ADDITIONAL_INSTRUCTIONS: '${{ steps.get_pr.outputs.additional_instructions || steps.get_pr_comment.outputs.additional_instructions }}'
           REPOSITORY: '${{ github.repository }}'
         with:
-          gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
+          qwen_cli_version: '${{ vars.QWEN_CLI_VERSION }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+          openai_api_key: '${{ secrets.OPENAI_API_KEY }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
-          use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          use_qwen_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           settings: |-
             {
               "maxSessionTurns": 20,
@@ -399,7 +399,7 @@ jobs:
 
       - name: 'Post PR review failure comment'
         if: |-
-          ${{ failure() && steps.gemini_pr_review.outcome == 'failure' }}
+          ${{ failure() && steps.qwen_pr_review.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
           github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
@@ -408,5 +408,5 @@ jobs:
               owner: '${{ github.repository }}'.split('/')[0],
               repo: '${{ github.repository }}'.split('/')[1],
               issue_number: '${{ steps.get_pr.outputs.pr_number || steps.get_pr_comment.outputs.pr_number }}',
-              body: 'There is a problem with the Gemini CLI PR review. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+              body: 'There is a problem with the Qwen CLI PR review. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
             })

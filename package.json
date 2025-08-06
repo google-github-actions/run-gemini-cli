@@ -1,5 +1,5 @@
 {
-  "name": "run-gemini-cli",
+  "name": "run-qwen-cli",
   "version": "0.1.3",
   "description": "This works with our versioning tools, this is NOT an NPM repo",
   "scripts": {
@@ -13,18 +13,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/google-github-actions/run-gemini-cli.git"
+    "url": "git+https://github.com/google-github-actions/run-qwen-cli.git"
   },
   "keywords": [
-    "gemini",
-    "gemini-cli"
+    "qwen",
+    "qwen-cli"
   ],
   "author": "Google",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/google-github-actions/run-gemini-cli/issues"
+    "url": "https://github.com/google-github-actions/run-qwen-cli/issues"
   },
-  "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
+  "homepage": "https://github.com/google-github-actions/run-qwen-cli#readme",
   "devDependencies": {
     "@google-github-actions/actions-utils": "^0.8.8"
   }

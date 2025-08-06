@@ -1,11 +1,11 @@
 # Authentication
 
-This guide covers the different ways to authenticate the Gemini CLI action in your GitHub Actions workflows.
+This guide covers the different ways to authenticate the Qwen CLI action in your GitHub Actions workflows.
 
 - [Authentication](#authentication)
   - [Google Authentication](#google-authentication)
     - [Choosing a Google Authentication Method](#choosing-a-google-authentication-method)
-    - [Method 1: Authenticating with a Gemini API Key](#method-1-authenticating-with-a-gemini-api-key)
+    - [Method 1: Authenticating with an OpenAI-compatible API Key](#method-1-authenticating-with-an-openai-compatible-api-key)
       - [Prerequisites](#prerequisites)
       - [Setup](#setup)
       - [Example](#example)
@@ -24,27 +24,27 @@ This guide covers the different ways to authenticate the Gemini CLI action in yo
 
 ## Google Authentication
 
-### Choosing a Google Authentication Method
+### Choosing an Authentication Method
 
-The Gemini CLI Action requires authentication. Choose the one that best fits your use case.
+The Qwen CLI Action requires authentication. Choose the one that best fits your use case.
 
 | Method                           | Use Case                                                                              |
 | -------------------------------- | ------------------------------------------------------------------------------------- |
-| **Gemini API Key**               | The simplest method. Ideal for projects that do not require Google Cloud integration. |
+| **OpenAI-compatible API Key**   | The simplest method. Ideal for projects that do not require Google Cloud integration. |
 | **Workload Identity Federation** | The most secure method for authenticating to Google Cloud services.                   |
 
-### Method 1: Authenticating with a Gemini API Key
+### Method 1: Authenticating with an OpenAI-compatible API Key
 
 This is the simplest method and is suitable for projects that do not require Google Cloud integration.
 
 #### Prerequisites
 
-- A Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+- An OpenAI-compatible API key from your Qwen provider (Alibaba Cloud, OpenRouter, etc.).
 
 #### Setup
 
-1.  **Create an API Key**: Go to Google AI Studio and create a new API key.
-2.  **Add to GitHub Secrets**: In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add a new repository secret with the name `GEMINI_API_KEY` and paste your key as the value.
+1.  **Create an API Key**: Obtain an API key from your Qwen provider.
+2.  **Add to GitHub Secrets**: In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add a new repository secret with the name `OPENAI_API_KEY` and paste your key as the value.
 
 #### Example
 

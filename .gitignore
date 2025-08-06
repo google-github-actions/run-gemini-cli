@@ -60,8 +60,8 @@ Thumbs.db
 .vscode/
 .idea/
 
-# gemini-cli settings
-.gemini/
+# qwen-cli settings
+.qwen/
 
 # GitHub App credentials
 gha-creds-*.json

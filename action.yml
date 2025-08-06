@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: 'Run Gemini CLI'
+name: 'Run Qwen CLI'
 author: 'Google LLC'
 description: |-
-  Invoke the Gemini CLI from a GitHub Action.
+  Invoke the Qwen CLI from a GitHub Action.
 
 inputs:
   prompt:
     description: |-
-      A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
+      A string passed to the Qwen CLI's [`--prompt` argument](https://github.com/QwenLM/qwen-code/blob/main/docs/cli/configuration.md#command-line-arguments).
     required: false
     default: 'You are a helpful assistant.'
   settings:
     description: |-
-      A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
-      For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
+      A JSON string written to `.qwen/settings.json` to configure the CLI's _project_ settings.
+      For more details, see the documentation on [settings files](https://github.com/QwenLM/qwen-code/blob/main/docs/cli/configuration.md#settings-files).
     required: false
-  gemini_api_key:
-    description: 'The API key for the Gemini API.'
+  openai_api_key:
+    description: 'The API key for the OpenAI-compatible API (for Qwen).'
     required: false
   gcp_project_id:
     description: 'The Google Cloud project ID.'
@@ -47,29 +47,29 @@ inputs:
     description: 'A flag to indicate if Vertex AI should be used.'
     required: false
     default: 'false'
-  use_gemini_code_assist:
-    description: 'A flag to indicate if Gemini Code Assist should be used.'
+  use_qwen_code_assist:
+    description: 'A flag to indicate if Qwen Code Assist should be used.'
     required: false
     default: 'false'
-  gemini_cli_version:
-    description: 'The version of the Gemini CLI to install.'
+  qwen_cli_version:
+    description: 'The version of the Qwen CLI to install.'
     required: false
     default: 'latest'
 
 outputs:
   summary:
-    description: 'The summarized output from the Gemini CLI execution.'
-    value: '${{ steps.gemini_run.outputs.gemini_response }}'
+    description: 'The summarized output from the Qwen CLI execution.'
+    value: '${{ steps.qwen_run.outputs.qwen_response }}'
 
 runs:
   using: 'composite'
   steps:
-    - name: 'Configure Gemini CLI'
+    - name: 'Configure Qwen CLI'
       if: |-
         ${{ inputs.settings != '' }}
       run: |-
-        mkdir -p .gemini/
-        echo "${SETTINGS}" > ".gemini/settings.json"
+        mkdir -p .qwen/
+        echo "${SETTINGS}" > ".qwen/settings.json"
       shell: 'bash'
       env:
         SETTINGS: '${{ inputs.settings }}'
@@ -95,65 +95,65 @@ runs:
       shell: 'bash'
       run: |-
         set -euo pipefail
-        mkdir -p .gemini/
-        sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
+        mkdir -p .qwen/
+        sed "s/OTLP_GOOGLE_CLOUD_PROJECT/${OTLP_GOOGLE_CLOUD_PROJECT}/g" "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".qwen/collector-gcp.yaml"
 
         chmod 444 "$GOOGLE_APPLICATION_CREDENTIALS"
-        docker run -d --name gemini-telemetry-collector --network host \
+        docker run -d --name qwen-telemetry-collector --network host \
           -v "${GITHUB_WORKSPACE}:/github/workspace" \
           -e "GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS/$GITHUB_WORKSPACE//github/workspace}" \
           -w "/github/workspace" \
           otel/opentelemetry-collector-contrib:0.128.0 \
-          --config /github/workspace/.gemini/collector-gcp.yaml
+          --config /github/workspace/.qwen/collector-gcp.yaml
 
-    - name: 'Install Gemini CLI'
+    - name: 'Install Qwen CLI'
       id: 'install'
       env:
-        GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
+        QWEN_CLI_VERSION: '${{ inputs.qwen_cli_version }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
 
-        VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
+        VERSION_INPUT="${QWEN_CLI_VERSION:-latest}"
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
-          echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
-          npm install -g @google/gemini-cli@"${VERSION_INPUT}"
+          echo "Installing Qwen CLI from npm: @qwen-code/qwen-code@${VERSION_INPUT}"
+          npm install -g @qwen-code/qwen-code@"${VERSION_INPUT}"
         else
-          echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
-          git clone https://github.com/google-gemini/gemini-cli.git
-          cd gemini-cli
+          echo "Installing Qwen CLI from GitHub: github:QwenLM/qwen-code#${VERSION_INPUT}"
+          git clone https://github.com/QwenLM/qwen-code.git
+          cd qwen-code
           git checkout "${VERSION_INPUT}"
           npm install
           npm run bundle
           npm install -g .
         fi
         echo "Verifying installation:"
-        if command -v gemini >/dev/null 2>&1; then
-          gemini --version || echo "Gemini CLI installed successfully (version command not available)"
+        if command -v qwen >/dev/null 2>&1; then
+          qwen --version || echo "Qwen CLI installed successfully (version command not available)"
         else
-          echo "Error: Gemini CLI not found in PATH"
+          echo "Error: Qwen CLI not found in PATH"
           exit 1
         fi
 
-    - name: 'Run Gemini CLI'
-      id: 'gemini_run'
+    - name: 'Run Qwen CLI'
+      id: 'qwen_run'
       run: |-
         set -e
-        GEMINI_RESPONSE=$(gemini --yolo --prompt "${PROMPT}")
+        QWEN_RESPONSE=$(qwen --yolo --prompt "${PROMPT}")
         # Set the captured response as a step output, supporting multiline
-        echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
-        echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
+        echo "qwen_response<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "${QWEN_RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
-        echo "${GEMINI_RESPONSE}"
+        echo "${QWEN_RESPONSE}"
       shell: 'bash'
       env:
-        GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
+        OPENAI_API_KEY: '${{ inputs.openai_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
         GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
-        GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
+        GOOGLE_GENAI_USE_GCA: '${{ inputs.use_qwen_code_assist }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
 

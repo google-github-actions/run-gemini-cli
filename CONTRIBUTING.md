@@ -1,8 +1,8 @@
-# Contributing to run-gemini-cli
+# Contributing to run-qwen-cli
 
-First off, thank you for considering contributing to the run-gemini-cli!
+First off, thank you for considering contributing to the run-qwen-cli!
 
-- [Contributing to run-gemini-cli](#contributing-to-run-gemini-cli)
+- [Contributing to run-qwen-cli](#contributing-to-run-qwen-cli)
   - [Overview](#overview)
   - [Prerequisites](#prerequisites)
   - [Development Setup](#development-setup)
@@ -20,7 +20,7 @@ First off, thank you for considering contributing to the run-gemini-cli!
 
 ## Overview
 
-This project is a composite GitHub Action that integrates Gemini AI into GitHub workflows. We welcome contributions including bug fixes, feature enhancements, documentation improvements, and new workflow examples.
+This project is a composite GitHub Action that integrates Qwen AI into GitHub workflows. We welcome contributions including bug fixes, feature enhancements, documentation improvements, and new workflow examples.
 
 ## Prerequisites
 
