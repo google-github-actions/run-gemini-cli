@@ -256,7 +256,7 @@ jobs:
               This is a strict requirement as the GitHub (and other SCM's) API won't allow comments on parts of code files that are not
               included in the diff hunks.
             8. Code Suggestions in Review Comments:
-              * Succintness: Aim to make code suggestions succinct, unless necessary. Larger code suggestions tend to be
+              * Succinctness: Aim to make code suggestions succinct, unless necessary. Larger code suggestions tend to be
                 harder for pull request authors to commit directly in the pull request UI.
               * Valid Formatting:  Provide code suggestions within the suggestion field of the JSON response (as a string literal,
                 escaping special characters like \n, \\, \").  Do not include markdown code blocks in the suggestion field.
@@ -387,7 +387,7 @@ jobs:
             1. Creating a pending review: Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
 
             2. Adding review comments:
-                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a severity. They syntax is:
+                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preferred whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a severity. They syntax is:
                   Normal Comment Syntax:
                   <COMMENT>
                   {{SEVERITY}} {{COMMENT_TEXT}}
