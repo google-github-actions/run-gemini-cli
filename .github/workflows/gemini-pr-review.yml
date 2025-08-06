@@ -371,10 +371,10 @@ jobs:
 
             Here are the patches that were implemented in the pull request, per the
             formatting above:
-            
+
             The get the files changed in this pull request, run:
             "$(gh pr diff "${PR_NUMBER}" --patch)" to get the list of changed files PATCH
-            
+
             ## Review
 
             Once you have the information, provide a comprehensive code review by:
