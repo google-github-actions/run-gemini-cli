@@ -81,7 +81,7 @@ jobs:
                 "run_shell_command(gh issue edit)"
               ],
               "telemetry": {
-                "enabled": true,
+                "enabled": false,
                 "target": "gcp"
               }
             }
