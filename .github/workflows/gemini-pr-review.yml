@@ -213,7 +213,7 @@ jobs:
             3. Run: echo "${PR_NUMBER}" to get the PR number
             4. Run: echo "${ADDITIONAL_INSTRUCTIONS}" to see any specific review
                instructions from the user
-            5. Run: gh pr diff "${PR_NUMBER}" to see the full diff and reference 
+            5. Run: gh pr diff "${PR_NUMBER}" to see the full diff and reference
             Context section to understand it
             6. For any specific files, use: cat filename, head -50 filename, or
                tail -50 filename
@@ -341,7 +341,7 @@ jobs:
             Keep comments bodies concise and to the point.
             Keep each comment focused on one issue.
 
-            ## Context 
+            ## Context
             The files that are changed in this pull request are represented below in the following
             format, showing the file name and the portions of the file that are changed:
 
