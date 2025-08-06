@@ -71,6 +71,8 @@ jobs:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
           openai_api_key: '${{ secrets.OPENAI_API_KEY }}'
+          openai_base_url: '${{ vars.OPENAI_BASE_URL }}'
+          openai_model: '${{ vars.OPENAI_MODEL }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           use_qwen_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           settings: |-

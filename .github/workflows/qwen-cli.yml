@@ -279,6 +279,8 @@ jobs:
           SERVICE_ACCOUNT_EMAIL: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
         with:
           openai_api_key: '${{ secrets.OPENAI_API_KEY }}'
+          openai_base_url: '${{ vars.OPENAI_BASE_URL }}'
+          openai_model: '${{ vars.OPENAI_MODEL }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'

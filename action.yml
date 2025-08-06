@@ -31,6 +31,12 @@ inputs:
   openai_api_key:
     description: 'The API key for the OpenAI-compatible API (for Qwen).'
     required: false
+  openai_base_url:
+    description: 'The base URL for the OpenAI-compatible API.'
+    required: false
+  openai_model:
+    description: 'The model name for the OpenAI-compatible API.'
+    required: false
   gcp_project_id:
     description: 'The Google Cloud project ID.'
     required: false
@@ -149,6 +155,8 @@ runs:
       shell: 'bash'
       env:
         OPENAI_API_KEY: '${{ inputs.openai_api_key }}'
+        OPENAI_BASE_URL: '${{ inputs.openai_base_url }}'
+        OPENAI_MODEL: '${{ inputs.openai_model }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
