@@ -38,7 +38,7 @@ To use this workflow, you can utilize either of the following methods:
 
 ```bash
 mkdir -p .github/workflows
-curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/gemini-cli/gemini-cli.yml
+curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-cli/gemini-cli.yml
 ```
 
 ## Usage

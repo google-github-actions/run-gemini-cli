@@ -50,7 +50,7 @@ To use this workflow, you can use either of the following methods:
 
 ```bash
 mkdir -p .github/workflows
-curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/workflows/pr-review/gemini-pr-review.yml
+curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-pr-review.yml
 ```
 
 ## Usage
