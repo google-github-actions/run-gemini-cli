@@ -130,7 +130,16 @@ jobs:
             USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.body)
             ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.number)
           elif [[ "${EVENT_NAME}" == "issue_comment" ]]; then
-            USER_REQUEST=$(echo "${EVENT_PAYLOAD}" | jq -r .comment.body)
+            ISSUE_BODY=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.body)
+            COMMENT_BODY=$(echo "${EVENT_PAYLOAD}" | jq -r .comment.body)
+            USER_REQUEST=$(cat <<-EOF
+              **Original Issue Body:**
+              ${ISSUE_BODY}
+              ---
+              **New User Comment:**
+              ${COMMENT_BODY}
+              EOF
+            )
             ISSUE_NUMBER=$(echo "${EVENT_PAYLOAD}" | jq -r .issue.number)
             if [[ $(echo "${EVENT_PAYLOAD}" | jq -r .issue.pull_request) != "null" ]]; then
               IS_PR="true"
