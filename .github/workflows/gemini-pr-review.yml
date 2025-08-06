@@ -297,7 +297,7 @@ jobs:
             * Security: Identify potential vulnerabilities (e.g., insecure storage, injection attacks,
               insufficient access controls).
 
-            ### Miscellanous Considerations
+            ### Miscellaneous Considerations
             * Testing: Ensure adequate unit tests, integration tests, and end-to-end tests. Evaluate
               coverage, edge case handling, and overall test quality.
             * Performance: Assess performance under expected load, identify bottlenecks, and suggest
@@ -352,7 +352,7 @@ jobs:
             1. Creating a pending review: Use the mcp__github__create_pending_pull_request_review to create a Pending Pull Request Review.
 
             2. Adding review comments:
-                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a piority. They syntax is:
+                2.1 Use the mcp__github__add_comment_to_pending_review to add comments to the Pending Pull Request Review. Inline comments are preffered whenever possible, so repeat this step, calling mcp__github__add_comment_to_pending_review, as needed. All comments about specific lines of code should use inline comments. It is preferred to use code suggestions when possible, which include a code block that is labeled "suggestion", which contains what the new code should be. All comments should also have a priority. They syntax is:
                   Normal Comment Syntax:
                   <COMMENT>
                   {{PRIORITY}} {{COMMENT_TEXT}}
