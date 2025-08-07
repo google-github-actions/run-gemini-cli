@@ -107,8 +107,14 @@ jobs:
           echo "pr_number=${PR_NUMBER}" >> "${GITHUB_OUTPUT}"
 
           # Get PR details
-          PR_DATA="$(gh pr view "${PR_NUMBER}" --json title,body,additions,deletions,changedFiles,baseRefName,headRefName)"
+          PR_DATA="$(gh pr view "${PR_NUMBER}" --json title,body,additions,deletions,changedFiles,baseRefName,headRefName,author)"
           echo "pr_data=${PR_DATA}" >> "${GITHUB_OUTPUT}"
+          
+          # Print author association for debugging
+          AUTHOR_LOGIN="$(echo "${PR_DATA}" | jq -r '.author.login')"
+          AUTHOR_ASSOCIATION="$(gh api repos/${{ github.repository }}/pulls/"${PR_NUMBER}" --jq '.author_association')"
+          echo "PR Author: ${AUTHOR_LOGIN}"
+          echo "PR Author Association: ${AUTHOR_ASSOCIATION}"
 
           # Get file changes
           CHANGED_FILES="$(gh pr diff "${PR_NUMBER}" --name-only)"
@@ -139,8 +145,20 @@ jobs:
           echo "additional_instructions=${ADDITIONAL_INSTRUCTIONS}" >> "${GITHUB_OUTPUT}"
 
           # Get PR details
-          PR_DATA="$(gh pr view "${PR_NUMBER}" --json title,body,additions,deletions,changedFiles,baseRefName,headRefName)"
+          PR_DATA="$(gh pr view "${PR_NUMBER}" --json title,body,additions,deletions,changedFiles,baseRefName,headRefName,author)"
           echo "pr_data=${PR_DATA}" >> "${GITHUB_OUTPUT}"
+          
+          # Print author association for debugging
+          AUTHOR_LOGIN="$(echo "${PR_DATA}" | jq -r '.author.login')"
+          echo "PR Author: ${AUTHOR_LOGIN}"
+          
+          # Get PR author association from GitHub API
+          PR_AUTHOR_ASSOCIATION="$(gh api repos/${{ github.repository }}/collaborators/"${AUTHOR_LOGIN}"/permission --jq '.permission' 2>/dev/null || echo 'none')"
+          echo "PR Author Association (API): ${PR_AUTHOR_ASSOCIATION}"
+          
+          # Get comment author association from event
+          echo "Comment Author: ${{ github.event.comment.user.login }}"
+          echo "Comment Author Association (Event): ${{ github.event.comment.author_association }}"
 
           # Get file changes
           CHANGED_FILES="$(gh pr diff "${PR_NUMBER}" --name-only)"
