@@ -140,7 +140,15 @@ runs:
       id: 'gemini_run'
       run: |-
         set -e
+
+        # Unset GEMINI_API_KEY if empty
+        if [ -z "${GEMINI_API_KEY}" ]; then
+          unset GEMINI_API_KEY
+        fi
+
+        # Run Gemini CLI with the provided prompt
         GEMINI_RESPONSE=$(gemini --yolo --prompt "${PROMPT}")
+
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
