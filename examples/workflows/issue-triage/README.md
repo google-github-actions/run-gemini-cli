@@ -33,7 +33,7 @@ The Issue Triage workflows provide an automated system for analyzing and categor
 
 ## Setup
 
-For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#quick-start) section and [Authentication documentation](../../docs/authentication.md).
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
 
 To implement this issue triage system, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
