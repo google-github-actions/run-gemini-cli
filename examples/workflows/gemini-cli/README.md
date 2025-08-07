@@ -30,7 +30,7 @@ Unlike specialized Gemini CLI workflows for [pull request reviews](../pr-review)
 
 ## Setup
 
-For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../README.md#quick-start) section and [Authentication documentation](../../docs/authentication.md).
+For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
 
 To use this workflow, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
