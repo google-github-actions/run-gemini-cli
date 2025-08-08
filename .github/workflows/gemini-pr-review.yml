@@ -4,6 +4,7 @@ on:
   pull_request:
     types:
       - 'opened'
+      - 'reopened'
   issue_comment:
     types:
       - 'created'
@@ -39,36 +40,25 @@ jobs:
   review-pr:
     if: |-
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.action == 'opened' &&
-        (
-          github.event.pull_request.author_association == 'OWNER' ||
-          github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.author_association == 'COLLABORATOR'
-        )
+      (
+        github.event_name == 'pull_request' &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
       ) ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
+      (
+        (
+          (
+            github.event_name == 'issue_comment' &&
+            github.event.issue.pull_request
+          ) ||
+          github.event_name == 'pull_request_review_comment'
+        ) &&
         contains(github.event.comment.body, '@gemini-cli /review') &&
-        (
-          github.event.comment.author_association == 'OWNER' ||
-          github.event.comment.author_association == 'MEMBER' ||
-          github.event.comment.author_association == 'COLLABORATOR'
-        )
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
       ) ||
-      (github.event_name == 'pull_request_review_comment' &&
-        contains(github.event.comment.body, '@gemini-cli /review') &&
-        (
-          github.event.comment.author_association == 'OWNER' ||
-          github.event.comment.author_association == 'MEMBER' ||
-          github.event.comment.author_association == 'COLLABORATOR'
-        )
-      ) ||
-      (github.event_name == 'pull_request_review' &&
+      (
+        github.event_name == 'pull_request_review' &&
         contains(github.event.review.body, '@gemini-cli /review') &&
-        (
-          github.event.review.author_association == 'OWNER' ||
-          github.event.review.author_association == 'MEMBER' ||
-          github.event.review.author_association == 'COLLABORATOR'
-        )
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
       )
     timeout-minutes: 5
     runs-on: 'ubuntu-latest'

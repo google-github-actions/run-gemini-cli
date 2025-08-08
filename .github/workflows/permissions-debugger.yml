@@ -1,0 +1,51 @@
+name: 'run'
+
+on:
+  pull_request:
+    types:
+      - 'opened'
+      - 'reopened'
+  pull_request_review:
+    types:
+      - 'submitted'
+  pull_request_review_comment:
+    types:
+      - 'created'
+  issue_comment:
+    types:
+      - 'created'
+  issues:
+    types:
+      - 'opened'
+      - 'reopened'
+  workflow_dispatch:
+
+
+permissions:
+  contents: 'read'
+
+jobs:
+  debug-permissions:
+    if: |-
+      ${{ vars.DEBUG_PERMISSIONS }}
+    name: 'Run'
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - shell: 'bash'
+        env:
+          DEBUG_EVENT_NAME: '${{ github.event_name }}'
+          DEBUG_EVENT_ACTION: '${{ github.event.action }}'
+          DEBUG_EVENT_SENDER_TYPE: '${{ github.event.sender.type }}'
+          DEBUG_PULL_REQUEST_AUTHOR_ASSOCIATION: '${{ github.event.pull_request.author_association }}'
+          DEBUG_ISSUE_AUTHOR_ASSOCIATION: '${{ github.event.issue.author_association }}'
+          DEBUG_COMMENT_AUTHOR_ASSOCIATION: '${{ github.event.comment.author_association }}'
+          DEBUG_REVIEW_AUTHOR_ASSOCIATION: '${{ github.event.review.author_association }}'
+        run: |-
+          echo "event_name: ${DEBUG_EVENT_NAME}"
+          echo "event.action: ${DEBUG_EVENT_ACTION}"
+          echo "event.sender.type: ${DEBUG_EVENT_SENDER_TYPE}"
+          echo "event.pull_request.author_association: ${DEBUG_PULL_REQUEST_AUTHOR_ASSOCIATION}"
+          echo "event.issue.author_association: ${DEBUG_ISSUE_AUTHOR_ASSOCIATION}"
+          echo "event.comment.author_association: ${DEBUG_COMMENT_AUTHOR_ASSOCIATION}"
+          echo "event.review.author_association: ${DEBUG_REVIEW_AUTHOR_ASSOCIATION}"
