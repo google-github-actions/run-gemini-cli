@@ -59,7 +59,7 @@ curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com
 
 The Gemini PR Review workflow is triggered by:
 
-- **New PRs**: When a pull request is opened
+- **New PRs**: When a pull request is opened or reopened
 - **PR Review Comments**: When a review comment contains `@gemini-cli /review`
 - **PR Reviews**: When a review body contains `@gemini-cli /review`
 - **Issue Comments**: When a comment on a PR contains `@gemini-cli /review`
