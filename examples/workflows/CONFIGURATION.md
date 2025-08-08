@@ -6,6 +6,8 @@ This guide covers how to customize and configure Gemini CLI workflows to meet yo
   - [How to Configure Gemini CLI](#how-to-configure-gemini-cli)
     - [Key Settings](#key-settings)
       - [Conversation Length (`maxSessionTurns`)](#conversation-length-maxsessionturns)
+      - [Allowlist Tools (`coreTools`)](#allowlist-tools-coretools)
+      - [MCP Servers (`mcpServers`)](#mcp-servers-mcpservers)
     - [Custom Context and Guidance (`GEMINI.md`)](#custom-context-and-guidance-geminimd)
   - [GitHub Actions Workflow Settings](#github-actions-workflow-settings)
     - [Setting Timeouts](#setting-timeouts)
@@ -43,6 +45,59 @@ with:
     }
 ```
 
+#### Allowlist Tools (`coreTools`)
+
+Allows you to specify a list of [built-in tools] that should be made available to the model. You can also use this to allowlist commands for shell tool.
+
+**Default:** All tools available for use by Gemini CLI.
+
+**How to configure:**
+
+Add the following to your workflow YAML file to specify core tools:
+
+```yaml
+with:
+  settings: |-
+    {
+      "coreTools": [
+        "read_file"
+        "run_shell_command(echo)",
+        "run_shell_command(gh label list)"
+      ]
+    }
+```
+
+#### MCP Servers (`mcpServers`)
+
+Configures connections to one or more Model Context Protocol (MCP) servers for discovering and using custom tools. This allows you to extend Gemini CLI GitHub Action with additional capabilities.
+
+**Default:** Empty
+
+**Example:**
+
+```yaml
+with:
+  settings: |-
+    {
+      "mcpServers": {
+        "github": {
+          "command": "docker",
+          "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "ghcr.io/github/github-mcp-server"
+          ],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+          }
+        }
+      }
+    }
+```
+
 ### Custom Context and Guidance (`GEMINI.md`)
 
 To provide Gemini CLI with custom instructions—such as coding conventions, architectural patterns, or other guidance—add a `GEMINI.md` file to the root of your repository. Gemini CLI will use the content of this file to inform its responses.
@@ -60,3 +115,5 @@ Only users with the following roles can trigger the workflow:
 - Repository Owner (`OWNER`)
 - Repository Member (`MEMBER`)
 - Repository Collaborator (`COLLABORATOR`)
+
+[built-in tools]: https://github.com/google-gemini/gemini-cli/blob/main/docs/core/tools-api.md#built-in-tools
