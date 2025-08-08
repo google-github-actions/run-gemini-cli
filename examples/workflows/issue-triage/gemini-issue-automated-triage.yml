@@ -64,6 +64,7 @@ jobs:
           ISSUE_BODY: '${{ github.event.issue.body }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
+          SURFACE: 'GITHUB_ACTION'
         with:
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'

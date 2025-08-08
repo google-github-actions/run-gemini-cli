@@ -150,6 +150,7 @@ jobs:
           CHANGED_FILES: '${{ steps.get_pr.outputs.changed_files || steps.get_pr_comment.outputs.changed_files }}'
           ADDITIONAL_INSTRUCTIONS: '${{ steps.get_pr.outputs.additional_instructions || steps.get_pr_comment.outputs.additional_instructions }}'
           REPOSITORY: '${{ github.repository }}'
+          SURFACE: 'GITHUB_ACTION'
         with:
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'

@@ -195,6 +195,7 @@ jobs:
           USER_REQUEST: '${{ steps.get_context.outputs.user_request }}'
           ISSUE_NUMBER: '${{ steps.get_context.outputs.issue_number }}'
           IS_PR: '${{ steps.get_context.outputs.is_pr }}'
+          SURFACE: 'GITHUB_ACTION'
         with:
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
