@@ -31,7 +31,6 @@ Workflows that help maintain code quality, perform analysis, or enforce standard
 
 Workflows that help manage GitHub issues, projects, or team collaboration.
 
-
 > ### 1. Workflow to Enforce Contribution Guidelines in Pull Requests
 >
 >
@@ -40,11 +39,13 @@ Workflows that help manage GitHub issues, projects, or team collaboration.
 > **Description:** Automates validation of pull requests against your repository's CONTRIBUTING.md using the Google Gemini CLI. The workflow posts a single upserted PR comment indicating PASS/FAIL with a concise checklist of actionable items, and can optionally fail the job to enforce compliance.
 >
 > **Key Features:**
+>
 > - Reads and evaluates PR title, body, and diff against CONTRIBUTING.md
 > - Posts a single PR comment with a visible PASS/FAIL marker in Comment Title and details of compliance status in the comment body
 > - Optional enforcement: fail the workflow when violations are detected
 >
 > **Setup Requirements:**
+>
 > - Copy [.github/workflows/pr-contribution-guidelines-enforcement.yml](https://github.com/jasmeetsb/gemini-github-actions/blob/main/.github/workflows/pr-contribution-guidelines-enforcement.yml) to your .github/workflows/ folder.
 > - Secrets:
 >   - `GEMINI_API_KEY`
@@ -65,8 +66,6 @@ Workflows that help manage GitHub issues, projects, or team collaboration.
 >
 > - Example location in this repo: [.github/workflows/pr-contribution-guidelines-enforcement.yml](https://github.com/jasmeetsb/gemini-github-actions/blob/main/.github/workflows/pr-contribution-guidelines-enforcement.yml)
 > - Typical usage in a consumer repo: `.github/workflows/pr-contribution-guidelines-enforcement.yml` (copy the file and adjust settings/secrets as needed)
-
-
 
 ### 📝 Documentation
 
