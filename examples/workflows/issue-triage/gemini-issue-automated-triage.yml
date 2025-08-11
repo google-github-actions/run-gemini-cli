@@ -101,7 +101,7 @@ jobs:
                variables: "${ISSUE_TITLE}" and "${ISSUE_BODY}".
             3. Classify issues by their kind (bug, enhancement, documentation,
                cleanup, etc) and their priority (p0, p1, p2, p3). Set the
-               labels accoridng to the format `kind/*` and `priority/*` patterns.
+               labels according to the format `kind/*` and `priority/*` patterns.
             4. Apply the selected labels to this issue using:
                `gh issue edit "${ISSUE_NUMBER}" --add-label "label1,label2"`
             5. If the "status/needs-triage" label is present, remove it using:
