@@ -68,9 +68,6 @@ jobs:
       )
     timeout-minutes: 10
     runs-on: 'ubuntu-latest'
-    env:
-      ACTIONS_STEP_DEBUG: true # Default to debug logging
-
     steps:
       - name: 'Generate GitHub App Token'
         id: 'generate_token'
@@ -216,10 +213,9 @@ jobs:
           gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          # Default to debug logging. Disable debug logging by removing '"debug": true,'
           settings: |-
             {
-              "debug": true,
+              "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
               "maxSessionTurns": 50,
               "telemetry": {
                 "enabled": true,

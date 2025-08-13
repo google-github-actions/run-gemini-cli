@@ -74,9 +74,6 @@ jobs:
       )
     timeout-minutes: 5
     runs-on: 'ubuntu-latest'
-    env:
-      ACTIONS_STEP_DEBUG: true # Default to debug logging
-
     steps:
       - name: 'Checkout PR code'
         uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
@@ -173,10 +170,9 @@ jobs:
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          # Default to debug logging. Disable debug logging by removing '"debug": true,'
           settings: |-
             {
-              "debug": true,
+              "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
               "maxSessionTurns": 20,
               "mcpServers": {
                 "github": {
