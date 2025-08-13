@@ -55,9 +55,9 @@ jobs:
           app-id: '${{ vars.APP_ID }}'
           private-key: '${{ secrets.APP_PRIVATE_KEY }}'
 
-      - name: 'Run Gemini Issue Triage'
+      - name: 'Suggest Labels'
         uses: './'
-        id: 'gemini_issue_triage'
+        id: 'suggest_labels'
         env:
           GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
@@ -78,8 +78,7 @@ jobs:
               "maxSessionTurns": 25,
               "coreTools": [
                 "run_shell_command(echo)",
-                "run_shell_command(gh label list)",
-                "run_shell_command(gh issue edit)"
+                "run_shell_command(gh label list)"
               ],
               "telemetry": {
                 "enabled": true,
@@ -90,9 +89,7 @@ jobs:
             ## Role
 
             You are an issue triage assistant. Analyze the current GitHub issue
-            and apply the most appropriate existing labels. Use the available
-            tools to gather information; do not ask for information to be
-            provided.
+            and suggest the most appropriate existing labels.
 
             ## Steps
 
@@ -102,22 +99,54 @@ jobs:
             3. Classify issues by their kind (bug, enhancement, documentation,
                cleanup, etc) and their priority (p0, p1, p2, p3). Set the
                labels accoridng to the format `kind/*` and `priority/*` patterns.
-            4. Apply the selected labels to this issue using:
-               `gh issue edit "${ISSUE_NUMBER}" --add-label "label1,label2"`
-            5. If the "status/needs-triage" label is present, remove it using:
-               `gh issue edit "${ISSUE_NUMBER}" --remove-label "status/needs-triage"`
+            4. Output the labels as a comma-separated string. For example: "kind/bug,priority/p1".
+               If the "status/needs-triage" label should be removed, include "remove:status/needs-triage" in the output string.
 
             ## Guidelines
 
             - Only use labels that already exist in the repository
             - Do not add comments or modify the issue content
             - Triage only the current issue
-            - Assign all applicable labels based on the issue content
-            - Reference all shell variables as "${VAR}" (with quotes and braces)
+            - Output only the comma-separated string of labels.
+            - If no labels are applicable, output an empty string.
+
+      - name: 'Apply Labels'
+        if: |-
+          ${{ steps.suggest_labels.outputs.result }}
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          LABELS_TO_APPLY: '${{ steps.suggest_labels.outputs.result }}'
+          ISSUE_NUMBER: '${{ github.event.issue.number }}'
+        run: |
+          set -euo pipefail
+
+          ADD_LABELS=""
+          REMOVE_LABELS=""
+
+          # Separate labels to add and remove
+          for label in $(echo "${LABELS_TO_APPLY}" | tr ',' ' '); do
+            if [[ $label == remove:* ]]; then
+              REMOVE_LABELS="${REMOVE_LABELS},${label#remove:}"
+            else
+              ADD_LABELS="${ADD_LABELS},${label}"
+            fi
+          done
+
+          # Remove leading commas
+          ADD_LABELS="${ADD_LABELS#,}"
+          REMOVE_LABELS="${REMOVE_LABELS#,}"
+
+          if [[ -n "${ADD_LABELS}" ]]; then
+            gh issue edit "${ISSUE_NUMBER}" --add-label "${ADD_LABELS}"
+          fi
+
+          if [[ -n "${REMOVE_LABELS}" ]]; then
+            gh issue edit "${ISSUE_NUMBER}" --remove-label "${REMOVE_LABELS}"
+          fi
 
       - name: 'Post Issue Triage Failure Comment'
         if: |-
-          ${{ failure() && steps.gemini_issue_triage.outcome == 'failure' }}
+          ${{ failure() && steps.suggest_labels.outcome == 'failure' }}
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
         with:
           github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
