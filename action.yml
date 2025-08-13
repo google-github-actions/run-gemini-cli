@@ -147,7 +147,16 @@ runs:
         fi
 
         # Run Gemini CLI with the provided prompt
-        GEMINI_RESPONSE=$(gemini --yolo --prompt "${PROMPT}")
+        TEMP_OUTPUT=$(mktemp)
+        if gemini --yolo --debug --prompt "${PROMPT}" > "${TEMP_OUTPUT}" 2>&1; then
+          GEMINI_RESPONSE=$(cat "${TEMP_OUTPUT}")
+        else
+          echo "Error: Gemini CLI execution failed"
+          cat "${TEMP_OUTPUT}"
+          rm -f "${TEMP_OUTPUT}"
+          exit 1
+        fi
+        rm -f "${TEMP_OUTPUT}"
 
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
