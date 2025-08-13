@@ -118,7 +118,7 @@ runs:
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
           echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
-          npm install -g @google/gemini-cli@"${VERSION_INPUT}"
+          npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
           git clone https://github.com/google-gemini/gemini-cli.git
@@ -126,7 +126,7 @@ runs:
           git checkout "${VERSION_INPUT}"
           npm install
           npm run bundle
-          npm install -g .
+          npm install --silent --no-audit --prefer-offline --global .
         fi
         echo "Verifying installation:"
         if command -v gemini >/dev/null 2>&1; then
@@ -138,32 +138,43 @@ runs:
 
     - name: 'Run Gemini CLI'
       id: 'gemini_run'
+      shell: 'bash'
       run: |-
-        set -e
+        set -euo pipefail
 
         # Unset GEMINI_API_KEY if empty
         if [ -z "${GEMINI_API_KEY}" ]; then
           unset GEMINI_API_KEY
         fi
 
-        # Run Gemini CLI with the provided prompt
-        TEMP_OUTPUT=$(mktemp)
-        if gemini --yolo --debug --prompt "${PROMPT}" > "${TEMP_OUTPUT}" 2>&1; then
-          GEMINI_RESPONSE=$(cat "${TEMP_OUTPUT}")
-        else
-          echo "Error: Gemini CLI execution failed"
-          cat "${TEMP_OUTPUT}"
+        # Create a temporary directory for storing the output, and ensure it's
+        # cleaned up later
+        TEMP_OUTPUT="$(mktemp -p "${RUNNER_TEMP}" gemini.XXXXXXXXXX)"
+        function cleanup {
           rm -f "${TEMP_OUTPUT}"
+        }
+        trap cleanup EXIT
+
+        # Run Gemini CLI with the provided prompt
+        if ! gemini --yolo --prompt "${PROMPT}" &> "${TEMP_OUTPUT}"; then
+          GEMINI_RESPONSE="$(cat "${TEMP_OUTPUT}")"
+          FIRST_LINE="$(echo "${GEMINI_RESPONSE}" | head -n1)"
+          echo "::error title=Gemini CLI execution failed::${FIRST_LINE}"
+          echo "${GEMINI_RESPONSE}"
           exit 1
         fi
-        rm -f "${TEMP_OUTPUT}"
+
+        GEMINI_RESPONSE="$(cat "${TEMP_OUTPUT}")"
+
+        # Print the response
+        echo "::group::Gemini response"
+        echo "${GEMINI_RESPONSE}"
+        echo "::endgroup::"
 
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
-        echo "${GEMINI_RESPONSE}"
-      shell: 'bash'
       env:
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
