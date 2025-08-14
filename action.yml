@@ -60,6 +60,9 @@ outputs:
   summary:
     description: 'The summarized output from the Gemini CLI execution.'
     value: '${{ steps.gemini_run.outputs.gemini_response }}'
+  error:
+    description: 'The error output from the Gemini CLI execution, if any.'
+    value: '${{ steps.gemini_run.outputs.gemini_errors }}'
 
 runs:
   using: 'composite'
@@ -149,22 +152,20 @@ runs:
 
         # Create a temporary directory for storing the output, and ensure it's
         # cleaned up later
-        TEMP_OUTPUT="$(mktemp -p "${RUNNER_TEMP}" gemini.XXXXXXXXXX)"
+        TEMP_STDOUT="$(mktemp -p "${RUNNER_TEMP}" gemini-out.XXXXXXXXXX)"
+        TEMP_STDERR="$(mktemp -p "${RUNNER_TEMP}" gemini-err.XXXXXXXXXX)"
         function cleanup {
-          rm -f "${TEMP_OUTPUT}"
+          rm -f "${TEMP_STDOUT}" "${TEMP_STDERR}"
         }
         trap cleanup EXIT
 
         # Run Gemini CLI with the provided prompt
-        if ! gemini --yolo --prompt "${PROMPT}" &> "${TEMP_OUTPUT}"; then
-          GEMINI_RESPONSE="$(cat "${TEMP_OUTPUT}")"
-          FIRST_LINE="$(echo "${GEMINI_RESPONSE}" | head -n1)"
-          echo "::error title=Gemini CLI execution failed::${FIRST_LINE}"
-          echo "${GEMINI_RESPONSE}"
-          exit 1
+        FAILED=false
+        if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+          FAILED=true
         fi
 
-        GEMINI_RESPONSE="$(cat "${TEMP_OUTPUT}")"
+        GEMINI_RESPONSE="$(cat "${TEMP_STDOUT}")"
 
         # Print the response
         echo "::group::Gemini response"
@@ -175,6 +176,25 @@ runs:
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
+
+        GEMINI_ERRORS="$(cat "${TEMP_STDERR}")"
+
+        # Print any errors
+        echo "::group::Gemini error messages"
+        echo "${GEMINI_ERRORS}"
+        echo "::endgroup::"
+
+        # Set the captured errors as a step output, supporting multiline
+        echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "${GEMINI_ERRORS}" >> "${GITHUB_OUTPUT}"
+        echo "EOF" >> "${GITHUB_OUTPUT}"
+
+        if [[ "${FAILED}" = true ]]; then
+          LAST_LINE="$(echo "${GEMINI_ERRORS}" | tail -n1)"
+          echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
+          echo "See logs for more details"
+          exit 1
+        fi
       env:
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
