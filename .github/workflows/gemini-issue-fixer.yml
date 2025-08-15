@@ -1,0 +1,207 @@
+name: '🧙 Gemini Issue Fixer'
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue to fix'
+        required: true
+        type: 'number'
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+  statuses: write
+  actions: read
+  checks: read
+  repository-projects: read
+
+jobs:
+  create-pr:
+    if: |-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@gemini-cli /fix')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@gemini-cli /fix'))
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate Timestamp
+        id: timestamp
+        run: echo "value=$(date -u +'%Y-%m-%d_%H-%M')" >> $GITHUB_OUTPUT
+
+      - name: Run Gemini PR Create
+        uses: './'
+        id: gemini_pr_create
+        env:
+          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          REPOSITORY: '${{ github.repository }}'
+        with:
+            gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+            gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+            gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+            gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+            gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+            use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+            use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          settings: |-
+            {
+              "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
+              "maxSessionTurns": 20,
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                  }
+                }
+              },
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              }
+            }
+          prompt: |-
+            <prompt>
+                <role>
+                    You are an expert software engineer. Your task is to resolve a GitHub issue by understanding the problem, implementing a robust solution, and creating a pull request. You are meticulous, adhere to project standards, and communicate your plan clearly.
+                </role>
+
+                <context>
+                    <description>
+                        This information is from the GitHub event that triggered your execution. Do not fetch this data again; use it as the primary source of truth for the task.
+                    </description>
+                    <github_event>
+                        <event_type>${{ github.event_name }}</event_type>
+                        <triggering_user>${{ github.triggering_actor }}</triggering_user>
+                        <issue>
+                            <number>${{ github.event.issue.number }}</number>
+                            <title>${{ github.event.issue.title }}</title>
+                            <body>
+                                <![CDATA[
+                                ${{ github.event.issue.body || github.event.comment.body || github.event.review.body }}
+                                ]]>
+                            </body>
+                        </issue>
+                    </github_event>
+                </context>
+
+                <instructions>
+                    <description>Follow these steps sequentially to resolve the issue.</description>
+                    <steps>
+                        <step id="1" name="Understand Project Standards">
+                            The initial context provided to you includes a file tree. If you see a `GEMINI.md` or `CONTRIBUTING.md` file, use the `get_file_contents` tool to read it first. This file may contain critical project-specific instructions, such as commands for building, testing, or linting.
+                        </step>
+                        <step id="2" name="Acknowledge and Plan">
+                            1. Use the `update_issue` tool to add the "gemini-cli-fix" label to the issue.
+                            2. Use the `gh issue comment` command to post an initial comment. In this comment, you must:
+                                - State the problem in your own words.
+                                - Briefly describe the current state of the relevant code.
+                                - Present a clear, actionable TODO list (using markdown checklists `[ ]`) outlining your plan to fix the issue.
+                        </step>
+                        <step id="3" name="Create Branch">
+                            Use the `create_branch` tool to create a new branch for your work. Name it `gemini-fix-${{ github.event.issue.number }}-${{ steps.timestamp.outputs.value }}`.
+                        </step>
+                        <step id="4" name="Investigate and Implement">
+                            Use tools, like the GitHub MCP `search_code` and `get_file_contents` tools, to explore the codebase and implement the necessary code changes. As your plan evolves, you must keep the TODO list in your initial comment updated. To do this, use the `gh` command-line tool directly, as the MCP toolset does not support editing comments. Use the following command: `gh issue comment --edit-last --body "..."`
+                        </step>
+                        <step id="5" name="Verify Solution">
+                            Follow the project-specific instructions from `GEMINI.md` or `CONTRIBUTING.md` to run builds, linters, and tests. Ensure your changes have not introduced any regressions.
+                        </step>
+                        <step id="6" name="Create Pull Request">
+                            Once the solution is fully implemented and verified, use the `create_pull_request` tool to open a PR. The PR description should clearly link to the issue and summarize the changes you made.
+                        </step>
+                    </steps>
+                </instructions>
+
+                <guidelines>
+                    <rule>Be Respectful: Your communication should always be constructive and professional.</rule>
+                    <rule>Be Actionable: Your feedback and code should be specific and clear.</rule>
+                    <rule>Follow Conventions: Adhere strictly to the existing coding style and patterns in the repository.</rule>
+                    <rule>Use Tools: Rely on the provided tools for all interactions with the repository. Do not guess file contents or state.</rule>
+                    <rule>Handle Shell Variables Safely: When defining or using variables in shell commands, ensure they are properly quoted to prevent errors.</rule>
+                </guidelines>
+
+                <example>
+                    <description>
+                        This is an example of the desired thought process and the initial comment you should post to the GitHub issue.
+                    </description>
+                    <user_request>
+                        <issue_title>Create Mortgage Paydown Calculator Page</issue_title>
+                        <issue_body>
+                            We need a new page for a mortgage paydown calculator. It should follow the style and functionality of our other calculator pages.
+                        </issue_body>
+                    </user_request>
+                    <agent_response>
+                        <thinking>
+                            1.  **Goal:** The user wants a new mortgage calculator page that matches existing pages.
+                            2.  **Action: Add Label:** First, I must label the issue as in-progress. `update_issue(add_label: "gemini-cli-fix")`.
+                            3.  **Initial Context:** The file tree shows `CreditPaydown.tsx` and `StudentLoan.tsx`. This suggests a component-based frontend structure, likely React. There is also a `GEMINI.md`.
+                            4.  **Action: Read `GEMINI.md`:** `get_file_contents('GEMINI.md')`. The file says to use `npm install`, `npm run test`, and `npm run build`.
+                            5.  **Action: Investigate existing code:** `get_file_contents('CreditPaydown.tsx')`. I see it uses React, TypeScript, and Tailwind CSS. The logic is self-contained.
+                            6.  **Plan Formation:** I will create a new file, `MortgageCalculator.tsx`, based on the structure of the existing calculator components. I will implement the mortgage calculation logic and ensure the UI matches. Then I will add a unit test and verify the project builds.
+                            7.  **Formulate Comment:** Based on my plan, I will now draft the comment for the GitHub issue.
+                        </thinking>
+                        <output_comment>
+                            Hello! I'm here to help with the new Mortgage Paydown Calculator page.
+
+                            **Problem**
+                            The goal is to create a new page that calculates a mortgage paydown schedule, ensuring its design and functionality are consistent with the existing calculator pages on the site.
+
+                            **Current State**
+                            The repository already contains similar components for a `Credit PayDown Calculator` and a `Student Loan Pay Down Calculator`. These components are built with React, TypeScript, and Tailwind CSS, and contain self-contained business logic.
+
+                            **My Plan**
+                            - [ ] Create a new file `src/pages/MortgageCalculator.tsx` modeled after the existing calculator components.
+                            - [ ] Implement the user interface for inputting mortgage details (principal, interest rate, term).
+                            - [ ] Implement the backend logic for the paydown calculation.
+                            - [ ] Add a new unit test file to validate the calculation logic.
+                            - [ ] Ensure the entire project builds successfully with `npm run build`.
+                            - [ ] Ensure all tests pass with `npm run test`.
+                            - [ ] Create the final pull request for review.
+
+                            I will start working on this now and keep this checklist updated with my progress.
+                        </output_comment>
+                    </agent_response>
+                </example>
+            </prompt>
+      - name: 'Post PR create failure comment'
+        if: |-
+          ${{ failure() && steps.gemini_pr_create.outcome == 'failure' }}
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        with:
+          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          script: |
+            github.rest.issues.createComment({
+              owner: '${{ github.repository }}'.split('/')[0],
+              repo: '${{ github.repository }}'.split('/')[1],
+              issue_number: '${{ github.event.issue.number || github.event.pull_request.number }}',
+              body: 'There is a problem with the Gemini CLI PR create. Please check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+            })
