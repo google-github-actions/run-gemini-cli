@@ -36,6 +36,7 @@ jobs:
         contains(github.event.issue.body, '@gemini-cli') &&
         !contains(github.event.issue.body, '@gemini-cli /review') &&
         !contains(github.event.issue.body, '@gemini-cli /triage') &&
+        !contains(github.event.issue.body, '@gemini-cli /fix') &&
         (
           github.event.repository.private == true ||
           contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association)
@@ -49,6 +50,7 @@ jobs:
         contains(github.event.comment.body, '@gemini-cli') &&
         !contains(github.event.comment.body, '@gemini-cli /review') &&
         !contains(github.event.comment.body, '@gemini-cli /triage') &&
+        !contains(github.event.issue.body, '@gemini-cli /fix') &&
         (
           github.event.repository.private == true ||
           contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
@@ -59,6 +61,7 @@ jobs:
         contains(github.event.review.body, '@gemini-cli') &&
         !contains(github.event.review.body, '@gemini-cli /review') &&
         !contains(github.event.review.body, '@gemini-cli /triage') &&
+        !contains(github.event.issue.body, '@gemini-cli /fix') &&
         (
           github.event.repository.private == true ||
           contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)

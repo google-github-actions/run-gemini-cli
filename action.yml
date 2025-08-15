@@ -189,6 +189,10 @@ runs:
         echo "${GEMINI_ERRORS}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
+        if echo "${GEMINI_ERRORS}" | grep -q "Reached max session turns for this session"; then
+         FAILED=true
+        fi
+
         if [[ "${FAILED}" = true ]]; then
           LAST_LINE="$(echo "${GEMINI_ERRORS}" | tail -n1)"
           echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
