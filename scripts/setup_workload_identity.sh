@@ -269,7 +269,7 @@ WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${POOL_NAME}" \
     --format="value(name)")
 
 # Step 3: Create Workload Identity Provider
-print_header "Step 2: Creating Workload Identity Provider"
+print_header "Step 3: Creating Workload Identity Provider"
 ATTRIBUTE_CONDITION="assertion.repository_owner == '${REPO_OWNER}'"
 
 if ! gcloud iam workload-identity-pools providers describe "${PROVIDER_NAME}" \
@@ -316,7 +316,7 @@ else
 fi
 
 # Step 4: Grant required permissions to the Workload Identity Pool
-print_header "Step 3: Granting required permissions to Workload Identity Pool"
+print_header "Step 4: Granting required permissions to Workload Identity Pool"
 PRINCIPAL_SET="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
 print_info "Granting required permissions directly to the Workload Identity Pool..."
