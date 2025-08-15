@@ -157,7 +157,7 @@ jobs:
 
             1. **Creating a Fix for an Issue**
                - Carefully read the user request and the related issue or PR description.
-               - Use available tools to gather all relevant context (e.g., `gh issue comment`, `gh pr diff`, `cat`, `head`, `tail`).
+               - Use available tools to gather all relevant context (e.g., `gh issue view`, `gh issue comments list` `gh pr diff`, `cat`, `head`, `tail`).
                - Identify the root cause of the problem before proceeding.
                - **Show and maintain a plan as a checklist**:
                  - At the very beginning, outline the steps needed to resolve the issue or address the request and post them as a checklist comment on the issue or PR (use GitHub markdown checkboxes: `- [ ] Task`).
