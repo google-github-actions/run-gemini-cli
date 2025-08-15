@@ -129,7 +129,11 @@ jobs:
           settings: |-
             {
               "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
-              "maxSessionTurns": 50
+              "maxSessionTurns": 50,
+              "telemetry": {
+                "enabled": true,
+                "target": "gcp"
+              }
             }
           prompt: |-
             ## Role
