@@ -12,8 +12,9 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
   - [Quick Start](#quick-start)
     - [1. Get a Gemini API Key](#1-get-a-gemini-api-key)
     - [2. Add it as a GitHub Secret](#2-add-it-as-a-github-secret)
-    - [3. Choose a Workflow](#3-choose-a-workflow)
-    - [4. Try it out!](#4-try-it-out)
+    - [3. Update your .gitignore](#3-update-your-gitignore)
+    - [4. Choose a Workflow](#4-choose-a-workflow)
+    - [5. Try it out!](#5-try-it-out)
   - [Workflows](#workflows)
     - [Issue Triage](#issue-triage)
     - [Pull Request Review](#pull-request-review)
@@ -52,17 +53,28 @@ Store your API key as a secret named `GEMINI_API_KEY` in your repository:
 - Click **New repository secret**
 - Name: `GEMINI_API_KEY`, Value: your API key
 
-### 3. Choose a Workflow
+### 3. Update your .gitignore
+Add the following entries to your `.gitignore` file:
+
+```gitignore
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
+```
+
+### 4. Choose a Workflow
 You have two options to set up a workflow:
 
 **Option A: Use setup command (Recommended)**
-1. Start the Gemini CLI:
+1. Start the Gemini CLI in your terminal:
 
    ```shell
    gemini
    ```
 
-2. In the chat interface, type:
+2. In Gemini CLI in your terminal, type:
 
    ```
    /setup-github
@@ -71,7 +83,7 @@ You have two options to set up a workflow:
 **Option B: Manually copy workflows**
 1. Copy the pre-built workflows from the [`examples/workflows`](./examples/workflows) directory to your repository's `.github/workflows` directory.
 
-### 4. Try it out!
+### 5. Try it out!
 
 **Pull Request Review:**
 - Open a pull request in your repository and wait for automatic review

@@ -6,6 +6,8 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
   - [Overview](#overview)
   - [Features](#features)
   - [Setup](#setup)
+    - [Prerequisites](#prerequisites)
+    - [Setup Methods](#setup-methods)
   - [Usage](#usage)
     - [Supported Triggers](#supported-triggers)
   - [Interaction Flow](#interaction-flow)
@@ -43,6 +45,20 @@ The PR Review workflow uses Google's Gemini AI to provide comprehensive code rev
 ## Setup
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
+
+### Prerequisites
+
+Add the following entries to your `.gitignore` file to prevent PR review artifacts from being committed:
+
+```gitignore
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
+```
+
+### Setup Methods
 
 To use this workflow, you can use either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.

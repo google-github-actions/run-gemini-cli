@@ -6,6 +6,8 @@ This document describes a comprehensive system for triaging GitHub issues using 
   - [Overview](#overview)
   - [Features](#features)
   - [Setup](#setup)
+    - [Prerequisites](#prerequisites)
+    - [Setup Methods](#setup-methods)
   - [Usage](#usage)
     - [Supported Triggers](#supported-triggers)
     - [Real-Time Issue Triage](#real-time-issue-triage)
@@ -34,6 +36,20 @@ The Issue Triage workflows provide an automated system for analyzing and categor
 ## Setup
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
+
+### Prerequisites
+
+Add the following entries to your `.gitignore` file to prevent issue triage artifacts from being committed:
+
+```gitignore
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
+```
+
+### Setup Methods
 
 To implement this issue triage system, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
