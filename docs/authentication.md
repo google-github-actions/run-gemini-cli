@@ -56,7 +56,30 @@ This is the simplest method and is suitable for projects that do not require Goo
     gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
 ```
 
-### Method 2: Authenticating with Google Cloud
+### Method 2: Authenticating with a Vertex AI API Key
+
+This method is used for quick setup using Vertex AI through Google Cloud Console
+
+#### Prerequisites
+
+- A Vertex AI API key from Google Cloud Console
+
+#### Setup
+
+1.  **Create an API Key**: Obtain your Google Cloud [API key](https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys?usertype=newuser)
+2.  **Add to GitHub Secrets**: In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add a new repository secret with the name `GOOGLE_API_KEY` and paste your key as the value and create new variable with the name `GOOGLE_GENAI_USE_VERTEXAI` and set value as `true`.
+
+#### Example
+
+```yaml
+- uses: 'google-github-actions/run-gemini-cli@v0'
+  with:
+    prompt: |-
+      Explain this code
+    google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
+```
+
+### Method 3: Authenticating with Google Cloud
 
 **[Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation)** is Google Cloud's preferred, keyless authentication method for GitHub Actions. It provides:
 
