@@ -58,6 +58,9 @@ inputs:
   google_api_key:
     description: 'The Vertex AI API key to use with Gemini.'
     required: false
+  gemini_debug:
+    description: 'Enable debug logging and output streaming.'
+    required: false
 
 outputs:
   summary:
@@ -166,7 +169,7 @@ runs:
         FAILED=false
 
         # Run Gemini CLI with the provided prompt, streaming responses in debug
-        if [[ -n "${DEBUG:-}" ]] || [[ -n "${ACTIONS_STEP_DEBUG:-}" ]]; then
+        if [[ "${DEBUG}" = true ]]; then
           echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
           if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then
             FAILED=true
@@ -198,6 +201,7 @@ runs:
           exit 1
         fi
       env:
+        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'

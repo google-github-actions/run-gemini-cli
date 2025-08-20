@@ -185,6 +185,7 @@ We recommend setting the following values as repository variables so they can be
 
 | Name                        | Description                                            | Type     | Required | When Required             |
 | --------------------------- | ------------------------------------------------------ | -------- | -------- | ------------------------- |
+| `DEBUG`                     | Enables debug logging for the Gemini CLI.              | Variable | No       | Never                     |
 | `GEMINI_CLI_VERSION`        | Controls which version of the Gemini CLI is installed. | Variable | No       | Pinning the CLI version   |
 | `GCP_WIF_PROVIDER`          | Full resource name of the Workload Identity Provider.  | Variable | No       | Using Google Cloud        |
 | `GOOGLE_CLOUD_PROJECT`      | Google Cloud project for inference and observability.  | Variable | No       | Using Google Cloud        |
