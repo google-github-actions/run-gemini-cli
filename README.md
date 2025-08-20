@@ -153,13 +153,14 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 -   <a name="gemini_cli_version"></a><a href="#user-content-gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install.
 
+
 <!-- END_AUTOGEN_INPUTS -->
 
 ### Outputs
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
-- `summary`: The summarized output from the Gemini CLI execution.
+-  `summary`: The summarized output from the Gemini CLI execution.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
@@ -181,9 +182,9 @@ We recommend setting the following values as repository variables so they can be
 | `GEMINI_MODEL`              | Specify the model to use for Gemini API calls.         | Variable | No       | Setting the model for Gemini API |
 
 To add a repository variable:
-1. Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
-2. Enter the variable name and value.
-3. Save.
+1) Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
+2) Enter the variable name and value.
+3) Save.
 
 For details about repository variables, refer to the [GitHub documentation on variables][variables].
 
