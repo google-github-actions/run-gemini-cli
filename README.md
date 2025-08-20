@@ -117,7 +117,7 @@ This action can be used to automatically review pull requests when they are
 opened. For a detailed guide on how to set up the pull request review system,
 go to the [GitHub PR Review workflow documentation](./examples/workflows/pr-review).
 
-There is a [known issue](https://github.com/google-github-actions/run-gemini-cli/issues/169) that action bot may approve the PR occasionally,
+There is a [known issue](https://github.com/google-github-actions/run-gemini-cli/issues/169) that action bot may approve the PR occasionally, 
 to avoid this situation as org owner you can restrict who can approve the PR following
 [Code Review Limits](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-pull-request-reviews-in-your-repository#enabling-code-review-limits).
 
@@ -131,7 +131,6 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 ### Inputs
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
-
 
 -   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
 
@@ -162,6 +161,7 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 - `summary`: The summarized output from the Gemini CLI execution.
 
+
 <!-- END_AUTOGEN_OUTPUTS -->
 
 ### Repository Variables
@@ -181,7 +181,6 @@ We recommend setting the following values as repository variables so they can be
 | `GEMINI_MODEL`              | Specify the model to use for Gemini API calls.         | Variable | No       | Setting the model for Gemini API |
 
 To add a repository variable:
-
 1. Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
 2. Enter the variable name and value.
 3. Save.
