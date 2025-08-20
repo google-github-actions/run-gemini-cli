@@ -55,6 +55,12 @@ inputs:
     description: 'The version of the Gemini CLI to install.'
     required: false
     default: 'latest'
+  gemini_model:
+    description: 'The model to use for Gemini API calls.'
+    required: false
+  google_api_key:
+    description: 'The Vertex AI API key to use with Gemini.'
+    required: false
 
 outputs:
   summary:
