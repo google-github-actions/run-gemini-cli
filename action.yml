@@ -162,10 +162,19 @@ runs:
         }
         trap cleanup EXIT
 
-        # Run Gemini CLI with the provided prompt
+        # Keep track of whether we've failed
         FAILED=false
-        if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then 
-          FAILED=true
+
+        # Run Gemini CLI with the provided prompt, streaming responses in debug
+        if [[ -n "${DEBUG:-}" ]] || [[ -n "${ACTIONS_STEP_DEBUG:-}" ]]; then
+          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
+          if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then
+            FAILED=true
+          fi
+        else
+          if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
         fi
 
         GEMINI_RESPONSE="$(cat "${TEMP_STDOUT}")"
