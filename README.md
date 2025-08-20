@@ -142,28 +142,29 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 <!-- BEGIN_AUTOGEN_INPUTS -->
 
-- <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
+-   <a name="prompt"></a><a href="#user-content-prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#command-line-arguments).
 
-- <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
-  For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
+-   <a name="settings"></a><a href="#user-content-settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
+    For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#settings-files).
 
-- <a name="gemini_api_key"></a><a href="#user-content-gemini_api_key"><code>gemini*api_key</code></a>: *(Optional)\_ The API key for the Gemini API.
+-   <a name="gemini_api_key"></a><a href="#user-content-gemini_api_key"><code>gemini_api_key</code></a>: _(Optional)_ The API key for the Gemini API.
 
-- <a name="gcp_project_id"></a><a href="#user-content-gcp_project_id"><code>gcp*project_id</code></a>: *(Optional)\_ The Google Cloud project ID.
+-   <a name="gcp_project_id"></a><a href="#user-content-gcp_project_id"><code>gcp_project_id</code></a>: _(Optional)_ The Google Cloud project ID.
 
-- <a name="gcp_location"></a><a href="#user-content-gcp_location"><code>gcp*location</code></a>: *(Optional)\_ The Google Cloud location.
+-   <a name="gcp_location"></a><a href="#user-content-gcp_location"><code>gcp_location</code></a>: _(Optional)_ The Google Cloud location.
 
-- <a name="gcp_workload_identity_provider"></a><a href="#user-content-gcp_workload_identity_provider"><code>gcp*workload_identity_provider</code></a>: *(Optional)\_ The Google Cloud Workload Identity Provider.
+-   <a name="gcp_workload_identity_provider"></a><a href="#user-content-gcp_workload_identity_provider"><code>gcp_workload_identity_provider</code></a>: _(Optional)_ The Google Cloud Workload Identity Provider.
 
-- <a name="gcp_service_account"></a><a href="#user-content-gcp_service_account"><code>gcp*service_account</code></a>: *(Optional)\_ The Google Cloud service account email.
+-   <a name="gcp_service_account"></a><a href="#user-content-gcp_service_account"><code>gcp_service_account</code></a>: _(Optional)_ The Google Cloud service account email.
 
-- <a name="use_vertex_ai"></a><a href="#user-content-use_vertex_ai"><code>use*vertex_ai</code></a>: *(Optional, default: `false`)\_ A flag to indicate if Vertex AI should be used.
+-   <a name="use_vertex_ai"></a><a href="#user-content-use_vertex_ai"><code>use_vertex_ai</code></a>: _(Optional, default: `false`)_ A flag to indicate if Vertex AI should be used.
 
-- <a name="use_gemini_code_assist"></a><a href="#user-content-use_gemini_code_assist"><code>use*gemini_code_assist</code></a>: *(Optional, default: `false`)\_ A flag to indicate if Gemini Code Assist should be used.
+-   <a name="use_gemini_code_assist"></a><a href="#user-content-use_gemini_code_assist"><code>use_gemini_code_assist</code></a>: _(Optional, default: `false`)_ A flag to indicate if Gemini Code Assist should be used.
 
-- <a name="gemini_cli_version"></a><a href="#user-content-gemini_cli_version"><code>gemini*cli_version</code></a>: *(Optional, default: `latest`)\_ The version of the Gemini CLI to install.
+-   <a name="gemini_cli_version"></a><a href="#user-content-gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install.
 
-- <a name="google_api_key"></a><a href="#user-content-google_api_key"><code>google*api_key</code></a>: *(Optional)\_ The Vertex AI API key to use with Gemini.
+-   <a name="google_api_key"></a><a href="#user-content-google_api_key"><code>google_api_key</code></a>: _(Optional)_ The Vertex AI API key to use with Gemini.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 
@@ -171,9 +172,10 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
-- `summary`: The summarized output from the Gemini CLI execution.
+-   `summary`: The summarized output from the Gemini CLI execution.
 
-- `error`: The error output from the Gemini CLI execution, if any.
+-   `error`: The error output from the Gemini CLI execution, if any.
+
 
 <!-- END_AUTOGEN_OUTPUTS -->
 
