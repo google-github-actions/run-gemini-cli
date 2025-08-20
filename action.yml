@@ -161,7 +161,7 @@ runs:
 
         # Run Gemini CLI with the provided prompt
         FAILED=false
-        if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+        if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then 
           FAILED=true
         fi
 
