@@ -55,9 +55,6 @@ inputs:
     description: 'The version of the Gemini CLI to install.'
     required: false
     default: 'latest'
-  gemini_model:
-    description: 'The model to use for Gemini API calls.'
-    required: false
   google_api_key:
     description: 'The Vertex AI API key to use with Gemini.'
     required: false
@@ -202,7 +199,6 @@ runs:
           exit 1
         fi
       env:
-        GEMINI_MODEL: '${{ inputs.gemini_model }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
