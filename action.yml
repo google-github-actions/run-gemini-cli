@@ -167,22 +167,12 @@ runs:
 
         GEMINI_RESPONSE="$(cat "${TEMP_STDOUT}")"
 
-        # Print the response
-        echo "::group::Gemini response"
-        echo "${GEMINI_RESPONSE}"
-        echo "::endgroup::"
-
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         GEMINI_ERRORS="$(cat "${TEMP_STDERR}")"
-
-        # Print any errors
-        echo "::group::Gemini error messages"
-        echo "${GEMINI_ERRORS}"
-        echo "::endgroup::"
 
         # Set the captured errors as a step output, supporting multiline
         echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
