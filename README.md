@@ -45,15 +45,19 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
 Get started with Gemini CLI in your repository in just a few minutes:
 
 ### 1. Get a Gemini API Key
+
 Obtain your API key from [Google AI Studio] with generous free-of-charge quotas
 
 ### 2. Add it as a GitHub Secret
+
 Store your API key as a secret named `GEMINI_API_KEY` in your repository:
+
 - Go to your repository's **Settings > Secrets and variables > Actions**
 - Click **New repository secret**
 - Name: `GEMINI_API_KEY`, Value: your API key
 
 ### 3. Update your .gitignore
+
 Add the following entries to your `.gitignore` file:
 
 ```gitignore
@@ -65,9 +69,11 @@ gha-creds-*.json
 ```
 
 ### 4. Choose a Workflow
+
 You have two options to set up a workflow:
 
 **Option A: Use setup command (Recommended)**
+
 1. Start the Gemini CLI in your terminal:
 
    ```shell
@@ -81,19 +87,23 @@ You have two options to set up a workflow:
    ```
 
 **Option B: Manually copy workflows**
+
 1. Copy the pre-built workflows from the [`examples/workflows`](./examples/workflows) directory to your repository's `.github/workflows` directory.
 
 ### 5. Try it out!
 
 **Pull Request Review:**
+
 - Open a pull request in your repository and wait for automatic review
 - Comment `@gemini-cli /review` on an existing pull request to manually trigger a review
 
 **Issue Triage:**
+
 - Open an issue and wait for automatic triage
 - Comment `@gemini-cli /triage` on existing issues to manually trigger triaging
 
 **General AI Assistance:**
+
 - In any issue or pull request, mention `@gemini-cli` followed by your request
 - Examples:
   - `@gemini-cli explain this code change`
@@ -117,7 +127,7 @@ This action can be used to automatically review pull requests when they are
 opened. For a detailed guide on how to set up the pull request review system,
 go to the [GitHub PR Review workflow documentation](./examples/workflows/pr-review).
 
-There is a [known issue](https://github.com/google-github-actions/run-gemini-cli/issues/169) that action bot may approve the PR occasionally, 
+There is a [known issue](https://github.com/google-github-actions/run-gemini-cli/issues/169) that action bot may approve the PR occasionally,
 to avoid this situation as org owner you can restrict who can approve the PR following
 [Code Review Limits](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-pull-request-reviews-in-your-repository#enabling-code-review-limits).
 
@@ -153,6 +163,8 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 -   <a name="gemini_cli_version"></a><a href="#user-content-gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install.
 
+-   <a name="google_api_key"></a><a href="#user-content-google_api_key"><code>google_api_key</code></a>: _(Optional)_ The Vertex AI API key to use with Gemini.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 
@@ -161,6 +173,8 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
 -   `summary`: The summarized output from the Gemini CLI execution.
+
+-   `error`: The error output from the Gemini CLI execution, if any.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
@@ -180,11 +194,11 @@ We recommend setting the following values as repository variables so they can be
 | `GOOGLE_GENAI_USE_GCA`      | Set to `true` to use Gemini Code Assist                | Variable | No       | Using Gemini Code Assist  |
 | `APP_ID`                    | GitHub App ID for custom authentication.               | Variable | No       | Using a custom GitHub App |
 
-
 To add a repository variable:
-1) Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
-2) Enter the variable name and value.
-3) Save.
+
+1. Go to your repository's **Settings > Secrets and variables > Actions > New variable**.
+2. Enter the variable name and value.
+3. Save.
 
 For details about repository variables, refer to the [GitHub documentation on variables][variables].
 
@@ -192,10 +206,11 @@ For details about repository variables, refer to the [GitHub documentation on va
 
 You can set the following secrets in your repository:
 
-| Name              | Description                                   | Required | When Required                 |
-| ----------------- | --------------------------------------------- | -------- | ----------------------------- |
-| `GEMINI_API_KEY`  | Your Gemini API key from Google AI Studio.    | No       | You don't have a GCP project. |
-| `APP_PRIVATE_KEY` | Private key for your GitHub App (PEM format). | No       | Using a custom GitHub App.    |
+| Name              | Description                                   | Required | When Required                         |
+| ----------------- | --------------------------------------------- | -------- | ------------------------------------- |
+| `GEMINI_API_KEY`  | Your Gemini API key from Google AI Studio.    | No       | You don't have a GCP project.         |
+| `APP_PRIVATE_KEY` | Private key for your GitHub App (PEM format). | No       | Using a custom GitHub App.            |
+| `GOOGLE_API_KEY`  | Your Google API Key to use with Vertex AI.    | No       | You have a express Vertex AI account. |
 
 To add a secret:
 

@@ -55,6 +55,9 @@ inputs:
     description: 'The version of the Gemini CLI to install.'
     required: false
     default: 'latest'
+  google_api_key:
+    description: 'The Vertex AI API key to use with Gemini.'
+    required: false
 
 outputs:
   summary:
@@ -167,22 +170,12 @@ runs:
 
         GEMINI_RESPONSE="$(cat "${TEMP_STDOUT}")"
 
-        # Print the response
-        echo "::group::Gemini response"
-        echo "${GEMINI_RESPONSE}"
-        echo "::endgroup::"
-
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${GEMINI_RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         GEMINI_ERRORS="$(cat "${TEMP_STDERR}")"
-
-        # Print any errors
-        echo "::group::Gemini error messages"
-        echo "${GEMINI_ERRORS}"
-        echo "::endgroup::"
 
         # Set the captured errors as a step output, supporting multiline
         echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
@@ -201,6 +194,7 @@ runs:
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
         GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
+        GOOGLE_API_KEY: '${{ inputs.google_api_key }}'
         GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
