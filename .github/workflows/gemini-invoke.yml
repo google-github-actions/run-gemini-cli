@@ -36,22 +36,6 @@ jobs:
           permission-issues: 'write'
           permission-pull-requests: 'write'
 
-      # Check out the SHA that corresponds to the event for when the issue
-      # fired. This protects against attacks where new commits are pushed
-      # between when a maintainer approved running the workflows and when the
-      # workflow actually starts.
-      - name: 'Checkout pull request'
-        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
-        with:
-          ref: '${{ github.event.pull_request.merge_commit_sha || github.event.pull_request.head.sha || github.sha }}'
-
-      # In case the Gemini CLI needs to make commits to the repo, configure it's
-      # identity.
-      - name: 'Set up git user for commits'
-        run: |-
-          git config --global user.name 'gemini-cli[bot]'
-          git config --global user.email 'gemini-cli[bot]@users.noreply.github.com'
-
       - name: 'Run Gemini CLI'
         id: 'run_gemini'
         uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
