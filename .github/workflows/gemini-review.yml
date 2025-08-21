@@ -22,8 +22,9 @@ jobs:
     timeout-minutes: 7
     permissions:
       contents: 'read'
-      pull-requests: 'write'
+      id-token: 'write'
       issues: 'write'
+      pull-requests: 'write'
     steps:
       - name: 'Mint identity token'
         id: 'mint_identity_token'

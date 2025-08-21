@@ -25,6 +25,7 @@ jobs:
       selected_labels: '${{ env.SELECTED_LABELS }}'
     permissions:
       contents: 'read'
+      id-token: 'write'
       issues: 'read'
       pull-requests: 'read'
     steps:

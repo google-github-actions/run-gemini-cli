@@ -108,8 +108,9 @@ jobs:
     uses: './.github/workflows/gemini-review.yml'
     permissions:
       contents: 'read'
-      pull-requests: 'write'
+      id-token: 'write'
       issues: 'write'
+      pull-requests: 'write'
     with:
       additional_context: '${{ needs.dispatch.outputs.additional_context }}'
     secrets: 'inherit'
@@ -121,6 +122,7 @@ jobs:
     uses: './.github/workflows/gemini-triage.yml'
     permissions:
       contents: 'read'
+      id-token: 'write'
       issues: 'write'
       pull-requests: 'write'
     with:
@@ -134,6 +136,7 @@ jobs:
     uses: './.github/workflows/gemini-invoke.yml'
     permissions:
       contents: 'read'
+      id-token: 'write'
       issues: 'write'
       pull-requests: 'write'
     with:
