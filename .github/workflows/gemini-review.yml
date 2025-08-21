@@ -138,6 +138,7 @@ jobs:
             - Use `mcp__github__get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
             - Use `mcp__github__get_pull_request_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
 
+            -----
 
             ## Execution Workflow
 
@@ -262,6 +263,8 @@ jobs:
                 - A bulleted list of general observations, positive highlights, or recurring patterns not suitable for inline comments.
                 - Keep this section concise and do not repeat details already covered in inline comments.
                 </SUMMARY>
+
+            -----
 
             ## Final Instructions
 
