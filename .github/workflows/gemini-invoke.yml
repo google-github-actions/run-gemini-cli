@@ -1,95 +1,40 @@
-name: '💬 Gemini CLI'
+name: '▶️ Gemini Invoke'
 
 on:
-  pull_request_review_comment:
-    types:
-      - 'created'
-  pull_request_review:
-    types:
-      - 'submitted'
-  issue_comment:
-    types:
-      - 'created'
+  workflow_call:
+    inputs:
+      additional_context:
+        type: 'string'
+        description: 'Any additional context from the request'
+        required: false
 
 concurrency:
-  group: '${{ github.workflow }}-${{ github.event.issue.number }}'
-  cancel-in-progress: |-
-    ${{ github.event.sender.type == 'User' && ( github.event.issue.author_association == 'OWNER' || github.event.issue.author_association == 'MEMBER' || github.event.issue.author_association == 'COLLABORATOR') }}
+  group: '${{ github.workflow }}-invoke-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number }}'
+  cancel-in-progress: false
 
 defaults:
   run:
     shell: 'bash'
 
-permissions:
-  contents: 'write'
-  pull-requests: 'write'
-  issues: 'write'
-
 jobs:
-  gemini-cli:
-    # This condition seeks to ensure the action is only run when it is triggered by a trusted user.
-    # For private repos, users who have access to the repo are considered trusted.
-    # For public repos, users who members, owners, or collaborators are considered trusted.
-    if: |-
-      (
-        github.event_name == 'issues' && github.event.action == 'opened' &&
-        contains(github.event.issue.body, '@gemini-cli') &&
-        !contains(github.event.issue.body, '@gemini-cli /review') &&
-        !contains(github.event.issue.body, '@gemini-cli /triage') &&
-        (
-          github.event.repository.private == true ||
-          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.issue.author_association)
-        )
-      ) ||
-      (
-        (
-          github.event_name == 'issue_comment' ||
-          github.event_name == 'pull_request_review_comment'
-        ) &&
-        contains(github.event.comment.body, '@gemini-cli') &&
-        !contains(github.event.comment.body, '@gemini-cli /review') &&
-        !contains(github.event.comment.body, '@gemini-cli /triage') &&
-        (
-          github.event.repository.private == true ||
-          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
-        )
-      ) ||
-      (
-        github.event_name == 'pull_request_review' &&
-        contains(github.event.review.body, '@gemini-cli') &&
-        !contains(github.event.review.body, '@gemini-cli /review') &&
-        !contains(github.event.review.body, '@gemini-cli /triage') &&
-        (
-          github.event.repository.private == true ||
-          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
-        )
-      )
-    timeout-minutes: 10
+  invoke:
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
     steps:
-      # Mint a token so that the comments show up as gemini-cli instead of
-      # github-actions.
-      - name: 'Generate GitHub App Token'
-        id: 'generate_token'
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
         if: |-
           ${{ vars.APP_ID }}
         uses: 'actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b' # ratchet:actions/create-github-app-token@v2
         with:
           app-id: '${{ vars.APP_ID }}'
           private-key: '${{ secrets.APP_PRIVATE_KEY }}'
-
-      # Tell the user that we're working on their request.
-      - name: 'Acknowledge request'
-        env:
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
-          ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          MESSAGE: |-
-            🤖 Hi @${{ github.actor }} - I am working on your request now!
-          REPOSITORY: '${{ github.repository }}'
-        run: |-
-          gh issue comment "${ISSUE_NUMBER}" \
-            --body "${MESSAGE}" \
-            --repo "${REPOSITORY}"
+          permission-contents: 'read'
+          permission-issues: 'write'
+          permission-pull-requests: 'write'
 
       # Check out the SHA that corresponds to the event for when the issue
       # fired. This protects against attacks where new commits are pushed
@@ -107,17 +52,18 @@ jobs:
           git config --global user.name 'gemini-cli[bot]'
           git config --global user.email 'gemini-cli[bot]@users.noreply.github.com'
 
-      - name: 'Run Gemini'
+      - name: 'Run Gemini CLI'
         id: 'run_gemini'
-        uses: './'
+        uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
         env:
+          TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
           DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
           EVENT_NAME: '${{ github.event_name }}'
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
           IS_PULL_REQUEST: '${{ !!github.event.pull_request }}'
           ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
-          USER_REQUEST: '${{ github.event.comment.body || github.event.review.body || github.event.issue.body }}'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
@@ -131,11 +77,57 @@ jobs:
           gemini_model: '${{ vars.GEMINI_MODEL }}'
           settings: |-
             {
-              "maxSessionTurns": 50,
+              "maxSessionTurns": 25,
               "telemetry": {
-                "enabled": true,
+                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
                 "target": "gcp"
-              }
+              },
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server"
+                  ],
+                  "includeTools": [
+                    "add_issue_comment",
+                    "get_issue",
+                    "get_issue_comments",
+                    "list_issues",
+                    "search_issues",
+                    "create_pull_request",
+                    "get_pull_request",
+                    "get_pull_request_comments",
+                    "get_pull_request_diff",
+                    "get_pull_request_files",
+                    "list_pull_requests",
+                    "search_pull_requests",
+                    "create_branch",
+                    "create_or_update_file",
+                    "delete_file",
+                    "fork_repository",
+                    "get_commit",
+                    "get_file_contents",
+                    "list_commits",
+                    "push_files",
+                    "search_code"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                  }
+                }
+              },
+              "coreTools": [
+                "run_shell_command(cat)",
+                "run_shell_command(echo)",
+                "run_shell_command(grep)",
+                "run_shell_command(head)",
+                "run_shell_command(tail)"
+              ]
             }
           prompt: |-
             ## Role
@@ -146,12 +138,13 @@ jobs:
 
             Start by running these commands to gather the required data and context:
 
-            1. Run: echo "${DESCRIPTION}" to get a description of the pull request or issue
-            2. Run: echo "${EVENT_NAME}" to learn what kind of GitHub event triggered this request
-            3. Run: echo "${IS_PULL_REQUEST}" to learn whether this is a Pull Request (PR) or Issue
-            4. Run: echo "${ISSUE_NUMBER}" to get the PR or Issue number
-            5. Run: echo "${REPOSITORY}" to get the github repository in <OWNER>/<REPO> format
-            6. Run: echo "${USER_REQUEST}" to get the user's request
+            1. Run: echo "${TITLE}" to get a title of the pull request or issue
+            2. Run: echo "${DESCRIPTION}" to get a description of the pull request or issue
+            3. Run: echo "${EVENT_NAME}" to learn what kind of GitHub event triggered this request
+            4. Run: echo "${IS_PULL_REQUEST}" to learn whether this is a Pull Request (PR) or Issue
+            5. Run: echo "${ISSUE_NUMBER}" to get the PR or Issue number
+            6. Run: echo "${REPOSITORY}" to get the github repository in <OWNER>/<REPO> format
+            7. Run: echo "${ADDITIONAL_CONTEXT}" to get the user's request and additional context
 
             ## How to Respond to Issues, PR Comments, and Questions
 
@@ -159,7 +152,7 @@ jobs:
 
             1. **Creating a Fix for an Issue**
                - Carefully read the user request and the related issue or PR description.
-               - Use available tools to gather all relevant context (e.g., `gh issue view`, `gh issue comments list` `gh pr diff`, `cat`, `head`, `tail`).
+               - Use available tools to gather all relevant context (e.g., `mcp__github__get_issue`, `mcp__github__get_issue_comments` `mcp__github__get_pull_request_diff`, `cat`, `head`, `tail`).
                - Identify the root cause of the problem before proceeding.
                - **Show and maintain a plan as a checklist**:
                  - At the very beginning, outline the steps needed to resolve the issue or address the request and post them as a checklist comment on the issue or PR (use GitHub markdown checkboxes: `- [ ] Task`).
@@ -172,10 +165,10 @@ jobs:
                    - [ ] Update documentation
                    - [ ] Verify the fix and close the issue
                    ```
-                 - Use: `gh issue comment "${ISSUE_NUMBER}" --body "<plan>"` to post the initial plan.
+                 - Use: `mcp__github__add_issue_comment` to post the initial plan.
                  - As you make progress, keep the checklist visible and up to date by editing the same comment (check off completed tasks with `- [x]`).
                    - To update the checklist:
-                     1. Find the comment ID for the checklist: `gh issue comment list "${ISSUE_NUMBER}"`
+                     1. Find the comment ID for the checklist: `mcp__github__get_issue_comments`
                      2. Edit the comment with the updated checklist: `gh issue comment --edit "<comment-id>" --body "<updated plan>"`
                      3. The checklist should only be maintained as a comment on the issue or PR. Do not track or update the checklist in code files.
                - If the fix requires code changes, determine which files and lines are affected. If clarification is needed, note any questions for the user.
@@ -218,17 +211,3 @@ jobs:
             - **Always commit and push your changes if you modify code or documentation.**
             - **If you are unsure about the fix or answer, explain your reasoning and ask clarifying questions.**
             - **Follow project conventions and best practices.**
-
-      - name: 'Print failure'
-        if: |-
-          ${{ failure() && !cancelled() }}
-        env:
-          GITHUB_TOKEN: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
-          ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          MESSAGE: |-
-            🤖 I'm sorry @${{ github.actor }}, but I was unable to process your request. Please [see the logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more details.
-          REPOSITORY: '${{ github.repository }}'
-        run: |-
-          gh issue comment "${ISSUE_NUMBER}" \
-            --body "${MESSAGE}" \
-            --repo "${REPOSITORY}"
