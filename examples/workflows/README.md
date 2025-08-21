@@ -61,10 +61,9 @@ Have you created an awesome workflow using Gemini CLI? We'd love to feature it i
 When adding your workflow to [AWESOME.md](./AWESOME.md), use this format:
 
 ```markdown
-### <Workflow Name>
-**Author:** [@<username>](https://github.com/<username>)  
+#### <Workflow Name>
+
 **Repository:** [<owner>/<repo>](https://github.com/<owner>/<repo>)  
-**Category:** <Category Name>
 
 Brief description of what the workflow does and its key features.
 

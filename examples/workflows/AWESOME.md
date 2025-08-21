@@ -10,10 +10,12 @@ Welcome to our collection of awesome community-contributed workflows! This page 
   - [Workflow Categories](#workflow-categories)
     - [🔍 Code Quality](#-code-quality)
     - [📋 Project Management](#-project-management)
+      - [Enforce Contribution Guidelines in Pull Requests](#enforce-contribution-guidelines-in-pull-requests)
     - [📝 Documentation](#-documentation)
     - [🛡️ Security](#️-security)
     - [🧪 Testing](#-testing)
     - [🚀 Deployment \& Release](#-deployment--release)
+      - [Generate Release Notes](#generate-release-notes)
     - [🎯 Specialized Use Cases](#-specialized-use-cases)
   - [Featured Workflows](#featured-workflows)
 
@@ -31,7 +33,7 @@ Workflows that help maintain code quality, perform analysis, or enforce standard
 
 Workflows that help manage GitHub issues, projects, or team collaboration.
 
-### 1. Workflow to Enforce Contribution Guidelines in Pull Requests
+#### Enforce Contribution Guidelines in Pull Requests
 
 **Repository:** [jasmeetsb/gemini-github-actions](https://github.com/jasmeetsb/gemini-github-actions)
 
@@ -86,7 +88,19 @@ Workflows that enhance testing processes, generate test cases, or analyze test r
 
 Workflows that handle deployment, release management, or publishing tasks.
 
-*No workflows yet. Be the first to contribute!*
+#### Generate Release Notes
+
+**Repository:** [conforma/policy](https://github.com/conforma/policy)  
+
+Make release notes based on all notable changes since a given tag.
+It categorizes the release notes nicely with emojis, output as Markdown.
+
+**Key Features:**
+- Categorize changes in release notes
+- Include relevant links in release notes
+- Add fun emojis in release notes
+
+**Workflow File:** [View on GitHub](https://github.com/conforma/policy/blob/bba371ad8f0fff7eea2ce7a50539cde658645a56/.github/workflows/release.yaml#L93-L114)
 
 ### 🎯 Specialized Use Cases
 
