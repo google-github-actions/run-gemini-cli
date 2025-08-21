@@ -27,6 +27,8 @@ jobs:
     if: |-
      ${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
     steps:
       - name: 'Print context for debugging'
         env:
