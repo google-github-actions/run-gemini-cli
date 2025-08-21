@@ -110,6 +110,7 @@ jobs:
       contents: 'read'
       pull-requests: 'write'
       issues: 'write'
+      id-token: 'write'
     with:
       additional_context: '${{ needs.dispatch.outputs.additional_context }}'
     secrets: 'inherit'
@@ -123,6 +124,7 @@ jobs:
       contents: 'read'
       issues: 'write'
       pull-requests: 'write'
+      id-token: 'write'
     with:
       additional_context: '${{ needs.dispatch.outputs.additional_context }}'
     secrets: 'inherit'
@@ -136,6 +138,7 @@ jobs:
       contents: 'read'
       issues: 'write'
       pull-requests: 'write'
+      id-token: 'write'
     with:
       additional_context: '${{ needs.dispatch.outputs.additional_context }}'
     secrets: 'inherit'
@@ -153,6 +156,7 @@ jobs:
       contents: 'read'
       issues: 'write'
       pull-requests: 'write'
+      id-token: 'write'
     steps:
       - name: 'Mint identity token'
         id: 'mint_identity_token'
