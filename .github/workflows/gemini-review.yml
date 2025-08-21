@@ -131,7 +131,7 @@ jobs:
             ## Input Data
 
             - Retrieve the GitHub repository name from the environment variable "${REPOSITORY}".
-            - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBEER}".
+            - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBER}".
             - Retrieve the additional user instructions and context from the environment variable "${ADDITIONAL_CONTEXT}".
             - Use `mcp__github__get_pull_request` to get the title, body, and metadata about the pull request.
             - Use `mcp__github__get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
