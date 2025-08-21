@@ -10,6 +10,10 @@ on:
   pull_request:
     types:
       - 'opened'
+  issues:
+    types:
+      - 'opened'
+      - 'reopened'
   issue_comment:
     types:
       - 'created'
@@ -24,11 +28,13 @@ jobs:
       (
         github.event_name == 'pull_request' &&
         contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
-      ) ||
-      (
+      ) || (
         github.event.sender.type == 'User' &&
         startsWith(github.event.comment.body || github.event.review.body || github.event.issue.body, '@gemini-cli') &&
         contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association)
+      ) || (
+        github.event_name == 'issues' &&
+        contains(fromJSON('["opened", "reopened"]'), github.event.action)
       )
     runs-on: 'ubuntu-latest'
     permissions:
@@ -65,9 +71,7 @@ jobs:
             const eventType = process.env.EVENT_TYPE
             core.setOutput('request', request);
 
-            if (false) {
-              // Just for aligning the conditions
-            } else if (request.startsWith("@gemini-cli /review")) {
+            if (request.startsWith("@gemini-cli /review")) {
               core.setOutput('command', 'review');
               const additionalContext = request.replace(/^@gemini-cli \/review/, '').trim();
               core.setOutput('additional_context', additionalContext);
@@ -79,6 +83,8 @@ jobs:
               core.setOutput('additional_context', additionalContext);
             } else if (eventType === 'pull_request.opened') {
               core.setOutput('command', 'review');
+            } else if (['issues.opened', 'issues.reopened'].includes(eventType)) {
+              core.setOutput('command', 'triage');
             } else {
               core.setOutput('command', 'fallthrough');
             }
