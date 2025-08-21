@@ -185,7 +185,7 @@ jobs:
                   - [ ] Step 1: Detailed description of the first action.
                   - [ ] Step 2: ...
 
-                  Please review this plan. To approve, please comment `/approve` on this issue.
+                  Please review this plan. To approve, comment `/approve` on this issue. To reject, comment `/deny`.
                   ```
 
             3. **Post the Plan**: Use `mcp__github__add_issue_comment` to post your plan.
