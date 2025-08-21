@@ -165,6 +165,10 @@ go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
 
 -   <a name="google_api_key"></a><a href="#user-content-google_api_key"><code>google_api_key</code></a>: _(Optional)_ The Vertex AI API key to use with Gemini.
 
+-   <a name="gemini_debug"></a><a href="#user-content-gemini_debug"><code>gemini_debug</code></a>: _(Optional)_ Enable debug logging and output streaming.
+
+-   <a name="gemini_model"></a><a href="#user-content-gemini_model"><code>gemini_model</code></a>: _(Optional)_ The model to use with Gemini.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 

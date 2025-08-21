@@ -61,6 +61,9 @@ inputs:
   gemini_debug:
     description: 'Enable debug logging and output streaming.'
     required: false
+  gemini_model:
+    description: 'The model to use with Gemini.'
+    required: false
 
 outputs:
   summary:
@@ -211,6 +214,7 @@ runs:
         GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
+        GEMINI_MODEL: '${{ inputs.gemini_model }}'
 
 branding:
   icon: 'terminal'
