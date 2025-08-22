@@ -9,6 +9,12 @@ on:
       - 'release/**/*'
     paths:
       - '.github/workflows/gemini-issue-scheduled-triage.yml'
+  push:
+    branches:
+      - 'main'
+      - 'release/**/*'
+    paths:
+      - '.github/workflows/gemini-issue-scheduled-triage.yml'
   workflow_dispatch:
 
 concurrency:
@@ -30,7 +36,7 @@ jobs:
       pull-requests: 'read'
     outputs:
       available_labels: '${{ steps.get_labels.outputs.available_labels }}'
-      triaged_issues: '${{ steps.gemini_issue_analysis.outputs.triaged_issues }}'
+      triaged_issues: '${{ env.TRIAGED_ISSUES }}'
     steps:
       - name: 'Get repository labels'
         id: 'get_labels'
@@ -58,6 +64,7 @@ jobs:
         id: 'find_issues'
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
         run: |-
           echo '🔍 Finding unlabeled issues and issues marked for triage...'
           ISSUES="$(gh issue list \
@@ -105,7 +112,8 @@ jobs:
               },
               "coreTools": [
                 "run_shell_command(echo)",
-                "run_shell_command(jq)"
+                "run_shell_command(jq)",
+                "run_shell_command(printenv)"
               ]
             }
           prompt: |-
@@ -185,7 +193,7 @@ jobs:
 
             Assemble the results into a single JSON array, formatted as a string, according to the **Output Specification** below. Finally, execute the command to write this string to the output file, ensuring the JSON is enclosed in single quotes to prevent shell interpretation.
 
-                - `Run: echo 'triaged_issues=...' > "${OUTPUT_PATH}"`. (Replace `...` with the final, minified JSON array string).
+                - `Run: echo 'TRIAGED_ISSUES=...' > "${OUTPUT_PATH}"`. (Replace `...` with the final, minified JSON array string).
 
             ## Output Specification
 
@@ -242,7 +250,6 @@ jobs:
 
       - name: 'Apply labels'
         env:
-          ISSUE_NUMBER: '${{ github.event.issue.number }}'
           AVAILABLE_LABELS: '${{ needs.triage.outputs.available_labels }}'
           TRIAGED_ISSUES: '${{ needs.triage.outputs.triaged_issues }}'
         uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' # ratchet:actions/github-script@v7.0.1
@@ -257,18 +264,21 @@ jobs:
               .sort()
 
             // Parse out the triaged issues
-            const triagedIssues = (process.env.AVAILABLE_LABELS || {})
+            const triagedIssues = (JSON.parse(process.env.TRIAGED_ISSUES || '{}'))
               .sort((a, b) => a.issue_number - b.issue_number)
+
+            core.debug(`Triaged issues: ${JSON.stringify(triagedIssues)}`);
 
             // Iterate over each label
             for (const issue of triagedIssues) {
               if (!issue) {
+                core.debug(`Skipping empty issue: ${JSON.stringify(issue)}`);
                 continue;
               }
 
-              const issueNumber = issue.issue_Number;
+              const issueNumber = issue.issue_number;
               if (!issueNumber) {
-                core.debug(`Skipping issue with no data: ${JSON.stringify(entry)}`);
+                core.debug(`Skipping issue with no data: ${JSON.stringify(issue)}`);
                 continue;
               }
 
@@ -278,6 +288,8 @@ jobs:
                 .map((label) => label.trim())
                 .filter((label) => availableLabels.includes(label))
                 .sort()
+
+              core.debug(`Identified labels to set: ${JSON.stringify(labelsToSet)}`);
 
               if (labelsToSet.length === 0) {
                 core.info(`Skipping issue #${issueNumber} - no labels to set.`)
