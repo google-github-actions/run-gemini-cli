@@ -136,9 +136,7 @@ This action can be used to automatically review pull requests when they are
 opened. For a detailed guide on how to set up the pull request review system,
 go to the [GitHub PR Review workflow documentation](./examples/workflows/pr-review).
 
-There is a [known issue](https://github.com/google-github-actions/run-gemini-cli/issues/169) that action bot may approve the PR occasionally,
-to avoid this situation as org owner you can restrict who can approve the PR following
-[Code Review Limits](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/managing-pull-request-reviews-in-your-repository#enabling-code-review-limits).
+
 
 ### Gemini CLI Assistant
 
@@ -267,6 +265,18 @@ for debugging and optimization.
 
 For detailed instructions on how to set up and configure observability, go to
 the [Observability documentation](./docs/observability.md).
+
+## Best Practices
+
+To ensure the security, reliability, and efficiency of your automated workflows, we strongly recommend following our best practices. These guidelines cover key areas such as repository security, workflow configuration, and monitoring.
+
+Key recommendations include:
+
+*   **Securing Your Repository:** Implementing branch and tag protection, and restricting pull request approvers.
+*   **Workflow Configuration:** Using Workload Identity Federation for secure authentication to Google Cloud, managing secrets effectively, and pinning action versions to prevent unexpected changes.
+*   **Monitoring and Auditing:** Regularly reviewing action logs and enabling OpenTelemetry for deeper insights into performance and behavior.
+
+For a comprehensive guide on securing your repository and workflows, please refer to our [**Best Practices documentation**](./docs/best-practices.md).
 
 ## Customization
 
