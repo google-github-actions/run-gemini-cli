@@ -1,83 +1,65 @@
-name: '🏷️ Gemini Automated Issue Triage'
+name: '🔀 Gemini Triage'
 
 on:
-  issues:
-    types:
-      - 'opened'
-      - 'reopened'
-  issue_comment:
-    types:
-      - 'created'
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      issue_number:
-        description: 'issue number to triage'
-        required: true
-        type: 'number'
+      additional_context:
+        type: 'string'
+        description: 'Any additional context from the request'
+        required: false
 
 concurrency:
-  group: '${{ github.workflow }}-${{ github.event.issue.number }}'
+  group: '${{ github.workflow }}-triage-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number }}'
   cancel-in-progress: true
 
 defaults:
   run:
     shell: 'bash'
 
-permissions:
-  contents: 'read'
-  id-token: 'write'
-  issues: 'write'
-  statuses: 'write'
-
 jobs:
-  triage-issue:
-    if: |-
-      github.event_name == 'issues' ||
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'issue_comment' &&
-        contains(github.event.comment.body, '@gemini-cli /triage') &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
-      )
-    timeout-minutes: 5
+  triage:
     runs-on: 'ubuntu-latest'
+    timeout-minutes: 7
+    outputs:
+      available_labels: '${{ steps.get_labels.outputs.available_labels }}'
+      selected_labels: '${{ env.SELECTED_LABELS }}'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      issues: 'read'
+      pull-requests: 'read'
     steps:
-      - name: 'Checkout repository'
-        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
-
-      - name: 'Generate GitHub App Token'
-        id: 'generate_token'
-        if: |-
-          ${{ vars.APP_ID }}
-        uses: 'actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b' # ratchet:actions/create-github-app-token@v2
-        with:
-          app-id: '${{ vars.APP_ID }}'
-          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
-
-      - name: 'Get Repository Labels'
+      - name: 'Get repository labels'
         id: 'get_labels'
-        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' # ratchet:actions/github-script@v7.0.1
         with:
-          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          # NOTE: we intentionally do not use the given token. The default
+          # GITHUB_TOKEN provided by the action has enough permissions to read
+          # the labels.
           script: |-
             const { data: labels } = await github.rest.issues.listLabelsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            const labelNames = labels.map(label => label.name);
+
+            if (!labels || labels.length === 0) {
+              core.setFailed('There are no issue labels in this repository.')
+            }
+
+            const labelNames = labels.map(label => label.name).sort();
             core.setOutput('available_labels', labelNames.join(','));
             core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
             return labelNames;
 
-      - name: 'Run Gemini Issue Analysis'
-        uses: 'google-github-actions/run-gemini-cli@v0'
-        id: 'gemini_issue_analysis'
+      - name: 'Run Gemini issue analysis'
+        id: 'gemini_analysis'
+        if: |-
+          ${{ steps.get_labels.outputs.available_labels != '' }}
+        uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
         env:
-          GITHUB_TOKEN: '' # Do not pass any auth token here since this runs on untrusted inputs
+          GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
           ISSUE_TITLE: '${{ github.event.issue.title }}'
           ISSUE_BODY: '${{ github.event.issue.body }}'
-          ISSUE_NUMBER: '${{ github.event.issue.number }}'
-          REPOSITORY: '${{ github.repository }}'
           AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
         with:
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
@@ -89,104 +71,115 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           gemini_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
-          gemini_model: '${{ vars.GEMINI_MODEL }}'
           settings: |-
             {
               "maxSessionTurns": 25,
+              "telemetry": {
+                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
+                "target": "gcp"
+              },
               "coreTools": [
                 "run_shell_command(echo)"
-              ],
-              "telemetry": {
-                "enabled": false,
-                "target": "gcp"
-              }
+              ]
             }
+          # For reasons beyond my understanding, Gemini CLI cannot set the
+          # GitHub Outputs, but it CAN set the GitHub Env.
           prompt: |-
             ## Role
 
-            You are an issue triage assistant. Analyze the current GitHub issue
-            and identify the most appropriate existing labels. Use the available
-            tools to gather information; do not ask for information to be
-            provided.
-
-            ## Steps
-
-            1. Review the available labels in the environment variable: "${AVAILABLE_LABELS}".
-            2. Review the issue title and body provided in the environment
-               variables: "${ISSUE_TITLE}" and "${ISSUE_BODY}".
-            3. Classify the issue by the appropriate labels from the available labels.
-            4. Output the appropriate labels for this issue in JSON format with explanation, for example:
-               ```
-               {"labels_to_set": ["kind/bug", "priority/p0"], "explanation": "This is a critical bug report affecting main functionality"}
-               ```
-            5. If the issue cannot be classified using the available labels, output:
-               ```
-               {"labels_to_set": [], "explanation": "Unable to classify this issue with available labels"}
-               ```
+            You are an issue triage assistant. Analyze the current GitHub issue and identify the most appropriate existing labels. Use the available tools to gather information; do not ask for information to be provided.
 
             ## Guidelines
 
-            - Only use labels that already exist in the repository
-            - Assign all applicable labels based on the issue content
-            - Reference all shell variables as "${VAR}" (with quotes and braces)
-            - Output only valid JSON format
-            - Do not include any explanation or additional text, just the JSON
+            - Retrieve the value for environment variables using the "echo" shell command.
+            - Environment variables are specified in the format "${VARIABLE}" (with quotes and braces).
+            - Only use labels that are from the list of available labels.
+            - You can choose multiple labels to apply.
 
-      - name: 'Apply Labels to Issue'
+            ## Steps
+
+            1. Retrieve the available labels from the environment variable: "${AVAILABLE_LABELS}".
+
+            2. Retrieve the issue title from the environment variable: "${ISSUE_TITLE}".
+
+            3. Retrieve the issue body from the environment variable: "${ISSUE_BODY}".
+
+            4. Review the issue title, issue body, and available labels.
+
+            5. Based on the issue title and issue body, classify the issue and choose all appropriate labels from the list of available labels.
+
+            5. Classify the issue by identifying the appropriate labels from the list of available labels.
+
+            6. Convert the list of appropriate labels into a comma-separated list (CSV). If there are no appropriate labels, use the empty string.
+
+            7. Use the "echo" shell command to append the CSV labels into the filepath referenced by the environment variable "${GITHUB_ENV}":
+
+                ```
+                echo "SELECTED_LABELS=[APPROPRIATE_LABELS_AS_CSV]" >> "[filepath_for_env]"
+                ```
+
+                for example:
+
+                ```
+                echo "SELECTED_LABELS=bug,enhancement" >> "/tmp/runner/env"
+                ```
+
+  label:
+    runs-on: 'ubuntu-latest'
+    needs:
+      - 'triage'
+    if: |-
+      ${{ needs.triage.outputs.selected_labels != '' }}
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: 'Mint identity token'
+        id: 'mint_identity_token'
         if: |-
-          ${{ steps.gemini_issue_analysis.outputs.summary != '' }}
-        env:
-          REPOSITORY: '${{ github.repository }}'
-          ISSUE_NUMBER: '${{ github.event.issue.number }}'
-          LABELS_OUTPUT: '${{ steps.gemini_issue_analysis.outputs.summary }}'
-        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
+          ${{ vars.APP_ID }}
+        uses: 'actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b' # ratchet:actions/create-github-app-token@v2
         with:
-          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
+          app-id: '${{ vars.APP_ID }}'
+          private-key: '${{ secrets.APP_PRIVATE_KEY }}'
+          permission-contents: 'read'
+          permission-issues: 'write'
+          permission-pull-requests: 'write'
+
+      - name: 'Apply labels'
+        env:
+          ISSUE_NUMBER: '${{ github.event.issue.number }}'
+          AVAILABLE_LABELS: '${{ needs.triage.outputs.available_labels }}'
+          SELECTED_LABELS: '${{ needs.triage.outputs.selected_labels }}'
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' # ratchet:actions/github-script@v7.0.1
+        with:
+          # Use the provided token so that the "gemini-cli" is the actor in the
+          # log for what changed the labels.
+          github-token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
           script: |-
-            // Strip code block markers if present
-            const rawLabels = process.env.LABELS_OUTPUT;
-            core.info(`Raw labels JSON: ${rawLabels}`);
-            let parsedLabels;
-            try {
-              const trimmedLabels = rawLabels.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '').trim();
-              parsedLabels = JSON.parse(trimmedLabels);
-              core.info(`Parsed labels JSON: ${JSON.stringify(parsedLabels)}`);
-            } catch (err) {
-              core.setFailed(`Failed to parse labels JSON from Gemini output: ${err.message}\nRaw output: ${rawLabels}`);
-              return;
-            }
+            // Parse the available labels
+            const availableLabels = (process.env.AVAILABLE_LABELS || '').split(',')
+              .map((label) => label.trim())
+              .sort()
 
-            const issueNumber = parseInt(process.env.ISSUE_NUMBER);
+            // Parse the label as a CSV, reject invalid ones - we do this just
+            // in case someone was able to prompt inject malicious labels.
+            const selectedLabels = (process.env.SELECTED_LABELS || '').split(',')
+              .map((label) => label.trim())
+              .filter((label) => availableLabels.includes(label))
+              .sort()
 
-            // Set labels based on triage result
-            if (parsedLabels.labels_to_set && parsedLabels.labels_to_set.length > 0) {
+            // Set the labels
+            const issueNumber = process.env.ISSUE_NUMBER;
+            if (selectedLabels && selectedLabels.length > 0) {
               await github.rest.issues.setLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                labels: parsedLabels.labels_to_set
+                labels: selectedLabels,
               });
-              const explanation = parsedLabels.explanation ? ` - ${parsedLabels.explanation}` : '';
-              core.info(`Successfully set labels for #${issueNumber}: ${parsedLabels.labels_to_set.join(', ')}${explanation}`);
+              core.info(`Successfully set labels: ${selectedLabels.join(',')}`);
             } else {
-              // If no labels to set, leave the issue as is
-              const explanation = parsedLabels.explanation ? ` - ${parsedLabels.explanation}` : '';
-              core.info(`No labels to set for #${issueNumber}, leaving as is${explanation}`);
+              core.info(`Failed to determine labels to set. There may not be enough information in the issue or pull request.`)
             }
-
-      - name: 'Post Issue Analysis Failure Comment'
-        if: |-
-          ${{ failure() && steps.gemini_issue_analysis.outcome == 'failure' }}
-        env:
-          ISSUE_NUMBER: '${{ github.event.issue.number }}'
-          RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea'
-        with:
-          github-token: '${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}'
-          script: |-
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: parseInt(process.env.ISSUE_NUMBER),
-              body: 'There is a problem with the Gemini CLI issue triaging. Please check the [action logs](${process.env.RUN_URL}) for details.'
-            })

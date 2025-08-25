@@ -16,6 +16,7 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
     - [4. Choose a Workflow](#4-choose-a-workflow)
     - [5. Try it out!](#5-try-it-out)
   - [Workflows](#workflows)
+    - [Gemini Dispatch](#gemini-dispatch)
     - [Issue Triage](#issue-triage)
     - [Pull Request Review](#pull-request-review)
     - [Gemini CLI Assistant](#gemini-cli-assistant)
@@ -114,6 +115,14 @@ You have two options to set up a workflow:
 ## Workflows
 
 This action provides several pre-built workflows for different use cases. Each workflow is designed to be copied into your repository's `.github/workflows` directory and customized as needed.
+
+### Gemini Dispatch
+
+This workflow acts as a central dispatcher for Gemini CLI, routing requests to
+the appropriate workflow based on the triggering event and the command provided
+in the comment. For a detailed guide on how to set up the dispatch workflow, go
+to the
+[Gemini Dispatch workflow documentation](./examples/workflows/gemini-dispatch).
 
 ### Issue Triage
 

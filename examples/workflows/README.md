@@ -11,9 +11,10 @@ This directory contains a collection of example workflows that demonstrate how t
 
 ## Available Workflows
 
+*   **[Gemini Dispatch](./gemini-dispatch)**: A central dispatcher that routes requests to the appropriate workflow based on the triggering event and the command provided in the comment.
 *   **[Issue Triage](./issue-triage)**: Automatically triage GitHub issues using Gemini. This workflow can be configured to run on a schedule or be triggered by issue events.
 *   **[Pull Request Review](./pr-review)**: Automatically review pull requests using Gemini. This workflow can be triggered by pull request events and provides a comprehensive review of the changes.
-*   **[Gemini CLI Assistant](./gemini-cli)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
+*   **[Gemini CLI Assistant](./gemini-assistant)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
 
 ## Setup
 
