@@ -1,4 +1,4 @@
-name: '💬 Gemini CLI'
+name: '▶️ Gemini Invoke'
 
 on:
   pull_request_review_comment:

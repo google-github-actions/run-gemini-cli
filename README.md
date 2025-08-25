@@ -136,7 +136,7 @@ to avoid this situation as org owner you can restrict who can approve the PR fol
 This type of action can be used to invoke a general-purpose, conversational Gemini
 AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the general-purpose Gemini CLI workflow,
-go to the [Gemini CLI workflow documentation](./examples/workflows/gemini-cli).
+go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-assistant).
 
 ### Inputs
 

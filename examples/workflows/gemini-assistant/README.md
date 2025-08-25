@@ -50,11 +50,11 @@ gha-creds-*.json
 
 To use this workflow, you can utilize either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
-2. Copy the `gemini-cli.yml` file into your repository's `.github/workflows` directory:
+2. Copy the `gemini-invoke.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
-curl -o .github/workflows/gemini-cli.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-cli/gemini-cli.yml
+curl -o .github/workflows/gemini-invoke.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.yml
 ```
 
 ## Usage
