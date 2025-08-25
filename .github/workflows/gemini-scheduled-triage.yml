@@ -8,13 +8,13 @@ on:
       - 'main'
       - 'release/**/*'
     paths:
-      - '.github/workflows/gemini-issue-scheduled-triage.yml'
+      - '.github/workflows/gemini-scheduled-triage.yml'
   push:
     branches:
       - 'main'
       - 'release/**/*'
     paths:
-      - '.github/workflows/gemini-issue-scheduled-triage.yml'
+      - '.github/workflows/gemini-scheduled-triage.yml'
   workflow_dispatch:
 
 concurrency:
