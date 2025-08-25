@@ -62,11 +62,11 @@ gha-creds-*.json
 
 To use this workflow, you can use either of the following methods:
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
-2. Copy the `gemini-pr-review.yml` file into your repository's `.github/workflows` directory:
+2. Copy the `gemini-review.yml` file into your repository's `.github/workflows` directory:
 
 ```bash
 mkdir -p .github/workflows
-curl -o .github/workflows/gemini-pr-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-pr-review.yml
+curl -o .github/workflows/gemini-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-review.yml
 ```
 
 ## Usage
