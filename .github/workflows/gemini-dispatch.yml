@@ -43,10 +43,13 @@ jobs:
           env | grep '^DEBUG_'
 
   dispatch:
+    # For PRs: only if not from a fork
+    # For comments: only if user types @gemini-cli and is OWNER/MEMBER/COLLABORATOR
+    # For issues: only on open/reopen
     if: |-
       (
         github.event_name == 'pull_request' &&
-        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association)
+        github.event.pull_request.head.repo.fork == false
       ) || (
         github.event.sender.type == 'User' &&
         startsWith(github.event.comment.body || github.event.review.body || github.event.issue.body, '@gemini-cli') &&
