@@ -65,6 +65,7 @@ Before contributing, ensure you have:
       ```sh
       npm run docs
       ```
+    - If you update workflow files in `/.gemini/workflows/`, run `./scripts/generate-examples.sh` to auto-generate the examples.
 
 3. **Commit Your Changes**
     - Commit with a descriptive message following [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
