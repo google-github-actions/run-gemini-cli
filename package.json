@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
-    "node": "20.x",
+    "node": ">= 20.x",
     "npm": ">= 10.x"
   },
   "repository": {
@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
   "devDependencies": {
-    "@google-github-actions/actions-utils": "^0.8.8"
+    "@google-github-actions/actions-utils": "^0.8.10"
   }
 }
