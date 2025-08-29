@@ -97,20 +97,27 @@ jobs:
               core.setOutput('command', 'review');
               const additionalContext = request.replace(/^@gemini-cli \/review/, '').trim();
               core.setOutput('additional_context', additionalContext);
+              core.summary.addRaw('Dispatched command: **review**')
             } else if (request.startsWith("@gemini-cli /triage")) {
               core.setOutput('command', 'triage');
+              core.summary.addRaw('Dispatched command: **triage**')
             } else if (request.startsWith("@gemini-cli /fix")) {
               core.setOutput('command', 'fix');
+              core.summary.addRaw('Dispatched command: **fix**')
             } else if (request.startsWith("@gemini-cli")) {
               core.setOutput('command', 'invoke');
               const additionalContext = request.replace(/^@gemini-cli/, '').trim();
               core.setOutput('additional_context', additionalContext);
+              core.summary.addRaw('Dispatched command: **invoke**')
             } else if (eventType === 'pull_request.opened') {
               core.setOutput('command', 'review');
+              core.summary.addRaw('Dispatched command: **review**')
             } else if (['issues.opened', 'issues.reopened'].includes(eventType)) {
               core.setOutput('command', 'triage');
+              core.summary.addRaw('Dispatched command: **triage**')
             } else {
               core.setOutput('command', 'fallthrough');
+              core.summary.addRaw('Dispatched command: **fallthrough**')
             }
 
       - name: 'Acknowledge request'
