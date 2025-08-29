@@ -269,3 +269,6 @@ jobs:
             ## Final Instructions
 
             Remember, you are running in a virtual machine and no one reviewing your output. Your review must be posted to GitHub using the MCP tools to create a pending review, add comments to the pending review, and submit the pending review.
+
+      - name: 'Add job summary'
+        run: 'echo "Pull request review is in progress." >> "$GITHUB_STEP_SUMMARY"'

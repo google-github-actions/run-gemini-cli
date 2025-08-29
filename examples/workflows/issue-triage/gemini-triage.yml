@@ -125,6 +125,9 @@ jobs:
                 echo "SELECTED_LABELS=bug,enhancement" >> "/tmp/runner/env"
                 ```
 
+      - name: 'Add job summary'
+        run: 'echo "Selected labels: **${{ env.SELECTED_LABELS }}**" >> "$GITHUB_STEP_SUMMARY"'
+
   label:
     runs-on: 'ubuntu-latest'
     needs:
@@ -149,6 +152,7 @@ jobs:
           permission-pull-requests: 'write'
 
       - name: 'Apply labels'
+        id: 'apply_labels'
         env:
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           AVAILABLE_LABELS: '${{ needs.triage.outputs.available_labels }}'
@@ -184,3 +188,6 @@ jobs:
             } else {
               core.info(`Failed to determine labels to set. There may not be enough information in the issue or pull request.`)
             }
+
+      - name: 'Add job summary'
+        run: 'echo "Applied labels: **${{ needs.triage.outputs.selected_labels }}**" >> "$GITHUB_STEP_SUMMARY"'
