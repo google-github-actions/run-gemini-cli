@@ -8,6 +8,7 @@ This document describes a comprehensive system for triaging GitHub issues using 
   - [Setup](#setup)
     - [Prerequisites](#prerequisites)
     - [Setup Methods](#setup-methods)
+  - [Dependencies](#dependencies)
   - [Usage](#usage)
     - [Supported Triggers](#supported-triggers)
     - [Real-Time Issue Triage](#real-time-issue-triage)
@@ -61,6 +62,10 @@ curl -o .github/workflows/gemini-dispatch.yml https://raw.githubusercontent.com/
 curl -o .github/workflows/gemini-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/issue-triage/gemini-triage.yml
 curl -o .github/workflows/gemini-scheduled-triage.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/issue-triage/gemini-scheduled-triage.yml
 ```
+
+> **Note:** The `gemini-dispatch.yml` workflow is designed to call multiple
+> workflows. If you are only setting up `gemini-triage.yml`, you should comment out or
+> remove the other jobs in your copy of `gemini-dispatch.yml`.
 
 You can customize the prompts and settings in the workflow files to suit your specific needs. For example, you can change the triage logic, the labels that are applied, or the schedule of the scheduled triage.
 
