@@ -44,11 +44,15 @@ inputs:
     description: 'The Google Cloud service account email.'
     required: false
   use_vertex_ai:
-    description: 'A flag to indicate if Vertex AI should be used.'
+    description: |-
+      Whether to use Vertex AI for Gemini model access instead of the default Gemini API key.
+      For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
     required: false
     default: 'false'
   use_gemini_code_assist:
-    description: 'A flag to indicate if Gemini Code Assist should be used.'
+    description: |-
+      Whether to use Code Assist for Gemini model access instead of the default Gemini API key.
+      For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
     required: false
     default: 'false'
   gemini_cli_version:
