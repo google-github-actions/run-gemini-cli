@@ -8,6 +8,7 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
   - [Setup](#setup)
     - [Prerequisites](#prerequisites)
     - [Setup Methods](#setup-methods)
+  - [Dependencies](#dependencies)
   - [Usage](#usage)
     - [Supported Triggers](#supported-triggers)
   - [Interaction Flow](#interaction-flow)
@@ -69,6 +70,10 @@ mkdir -p .github/workflows
 curl -o .github/workflows/gemini-dispatch.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-dispatch/gemini-dispatch.yml
 curl -o .github/workflows/gemini-review.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-review.yml
 ```
+
+> **Note:** The `gemini-dispatch.yml` workflow is designed to call multiple
+> workflows. If you are only setting up `gemini-review.yml`, you should comment out or
+> remove the other jobs in your copy of `gemini-dispatch.yml`.
 
 ## Dependencies
 
