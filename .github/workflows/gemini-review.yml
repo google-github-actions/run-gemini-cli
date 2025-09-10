@@ -251,7 +251,7 @@ jobs:
                     {{SEVERITY}} {{COMMENT_TEXT}}
                     </COMMENT>
 
-            3. **Submit Final Review:** Call `mcp__github__submit_pending_pull_request_review` with a summary comment. **DO NOT** approve the pull request. **DO NOT** request changes. The summary comment **MUST** use this exact markdown format:
+            3. **Submit Final Review:** Call `mcp__github__submit_pending_pull_request_review` with a summary comment and event type "COMMENT". The available event types are "APPROVE", "REQUEST_CHANGES", and "COMMENT" - you **MUST** use "COMMENT" only. **DO NOT** use "APPROVE" or "REQUEST_CHANGES" event types. The summary comment **MUST** use this exact markdown format:
 
                 <SUMMARY>
                 ## 📋 Review Summary
