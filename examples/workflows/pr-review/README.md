@@ -28,6 +28,9 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
     - [Security-Focused Review](#security-focused-review)
     - [Performance Review](#performance-review)
     - [Breaking Changes Check](#breaking-changes-check)
+  - [Extending to Support Forks](#extending-to-support-forks)
+      - [1. Simple Fork Support](#1-simple-fork-support)
+      - [2. Using `pull_request_target` Event](#2-using-pull_request_target-event)
 
 ## Overview
 
@@ -237,3 +240,63 @@ The AI prompt can be customized to:
 ```
 @gemini-cli /review look for potential breaking changes and API compatibility
 ```
+
+## Extending to Support Forks
+
+By default, this workflow is configured to work with pull requests from branches
+within the same repository, and does not allow the `pr-review` workflow to be
+triggered for pull requests from branches from forks. This is done because forks
+can be created from bad actors, and enabling this workflow to run on branches
+from forks could enable bad actors to access secrets.
+
+This behavior may not be ideal for all use cases - such as private repositories.
+To enable the `pr-review` workflow to run on branches in forks, there are several
+approaches depending on your authentication setup and security requirements. 
+Please refer to the GitHub documentation links provided below for
+the security and access considerations of doing so.
+
+Depending on your security requirements and use case, you can choose from these
+approaches:
+
+#### 1. Simple Fork Support
+
+This could work for repositories where contributors can provide their own Google
+authentication in their forks.
+
+**How it works**: If forks have their own Google authentication configured, you
+can enable fork support by simply removing the fork restriction condition in the
+dispatch workflow.
+
+**Implementation**:
+1. Remove the fork restriction in `gemini-dispatch.yml`:
+   ```yaml
+   # Change this condition to remove the fork check
+   if: |-
+     (
+       github.event_name == 'pull_request'
+       # Remove this line: && github.event.pull_request.head.repo.fork == false
+     ) || (
+       # ... rest of conditions
+     )
+   ```
+
+2. Document for contributors that they need to configure Google authentication
+   in their fork as described in the
+   [Authentication documentation](../../../docs/authentication.md).
+
+
+#### 2. Using `pull_request_target` Event
+
+This could work for private repositories where you want to provide API access
+centrally.
+
+**Important Security Note**: Using `pull_request_target` can introduce security
+vulnerabilities if not handled with extreme care. Because it runs in the context
+of the base repository, it has access to secrets and other sensitive data.
+Always ensure you are following security best practices, such as those outlined
+in the linked resources, to prevent unauthorized access or code execution.
+
+- **Resources**:
+  - [GitHub Docs: Using pull_request_target](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target).
+  - [Security Best Practices for pull_request_target](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/).
+  - [Safe Workflows for Forked Repositories](https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/).
