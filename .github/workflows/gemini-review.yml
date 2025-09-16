@@ -64,7 +64,9 @@ jobs:
           gemini_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
           settings: |-
             {
-              "maxSessionTurns": 25,
+              "model": {
+                "maxSessionTurns": 25
+              },
               "telemetry": {
                 "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
                 "target": "gcp"
@@ -93,13 +95,15 @@ jobs:
                   }
                 }
               },
-              "coreTools": [
+              "tools": {
+                "core": [
                 "run_shell_command(cat)",
                 "run_shell_command(echo)",
                 "run_shell_command(grep)",
                 "run_shell_command(head)",
                 "run_shell_command(tail)"
-              ]
+                ]
+              }
             }
           prompt: |-
             ## Role

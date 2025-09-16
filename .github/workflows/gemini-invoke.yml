@@ -63,7 +63,9 @@ jobs:
           gemini_model: '${{ vars.GEMINI_MODEL }}'
           settings: |-
             {
-              "maxSessionTurns": 25,
+              "model": {
+                "maxSessionTurns": 25
+              },
               "telemetry": {
                 "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
                 "target": "gcp"
@@ -107,13 +109,15 @@ jobs:
                   }
                 }
               },
-              "coreTools": [
-                "run_shell_command(cat)",
-                "run_shell_command(echo)",
-                "run_shell_command(grep)",
-                "run_shell_command(head)",
-                "run_shell_command(tail)"
-              ]
+              "tools": {
+                "core": [
+                  "run_shell_command(cat)",
+                  "run_shell_command(echo)",
+                  "run_shell_command(grep)",
+                  "run_shell_command(head)",
+                  "run_shell_command(tail)"
+                ]
+              }
             }
           prompt: |-
             ## Persona and Guiding Principles

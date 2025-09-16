@@ -5,8 +5,8 @@ This guide covers how to customize and configure Gemini CLI workflows to meet yo
 - [Configuring Gemini CLI Workflows](#configuring-gemini-cli-workflows)
   - [How to Configure Gemini CLI](#how-to-configure-gemini-cli)
     - [Key Settings](#key-settings)
-      - [Conversation Length (`maxSessionTurns`)](#conversation-length-maxsessionturns)
-      - [Allowlist Tools (`coreTools`)](#allowlist-tools-coretools)
+      - [Conversation Length (`model.maxSessionTurns`)](#conversation-length-modelmaxsessionturns)
+      - [Allowlist Tools (`tools.core`)](#allowlist-tools-toolscore)
       - [MCP Servers (`mcpServers`)](#mcp-servers-mcpservers)
     - [Custom Context and Guidance (`GEMINI.md`)](#custom-context-and-guidance-geminimd)
   - [GitHub Actions Workflow Settings](#github-actions-workflow-settings)
@@ -21,17 +21,17 @@ Gemini CLI supports many settings that control how it operates. For a complete l
 
 ### Key Settings
 
-#### Conversation Length (`maxSessionTurns`)
+#### Conversation Length (`model.maxSessionTurns`)
 
 This setting controls the maximum number of conversational turns (messages exchanged) allowed during a workflow run.
 
 **Default values by workflow:**
 
-| Workflow                             | Default `maxSessionTurns` |
-| ------------------------------------ | ------------------------- |
-| [Issue Triage](./issue-triage)       | 25                        |
-| [Pull Request Review](./pr-review)   | 20                        |
-| [Gemini CLI Assistant](./gemini-cli) | 50                        |
+| Workflow                             | Default `model.maxSessionTurns` |
+| ------------------------------------ | ------------------------------- |
+| [Issue Triage](./issue-triage)       | 25                              |
+| [Pull Request Review](./pr-review)   | 20                              |
+| [Gemini CLI Assistant](./gemini-cli) | 50                              |
 
 **How to override:**
 
@@ -41,11 +41,13 @@ Add the following to your workflow YAML file to set a custom value:
 with:
   settings: |-
     {
-      "maxSessionTurns": 10
+      "model": {
+        "maxSessionTurns": 10
+      }
     }
 ```
 
-#### Allowlist Tools (`coreTools`)
+#### Allowlist Tools (`tools.core`)
 
 Allows you to specify a list of [built-in tools] that should be made available to the model. You can also use this to allowlist commands for shell tool.
 
@@ -59,11 +61,13 @@ Add the following to your workflow YAML file to specify core tools:
 with:
   settings: |-
     {
-      "coreTools": [
-        "read_file"
-        "run_shell_command(echo)",
-        "run_shell_command(gh label list)"
-      ]
+      "tools": {
+        "core": [
+          "read_file",
+          "run_shell_command(echo)",
+          "run_shell_command(gh label list)"
+        ]
+      }
     }
 ```
 
