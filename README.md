@@ -28,6 +28,7 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
     - [Google Authentication](#google-authentication)
     - [GitHub Authentication](#github-authentication)
   - [Observability](#observability)
+  - [Best Practices](#best-practices)
   - [Customization](#customization)
   - [Contributing](#contributing)
 

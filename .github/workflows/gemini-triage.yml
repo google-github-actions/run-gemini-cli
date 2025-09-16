@@ -74,14 +74,18 @@ jobs:
           gemini_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
           settings: |-
             {
-              "maxSessionTurns": 25,
+              "model": {
+                "maxSessionTurns": 25
+              },
               "telemetry": {
                 "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
                 "target": "gcp"
               },
-              "coreTools": [
-                "run_shell_command(echo)"
-              ]
+              "tools": {
+                "core": [
+                  "run_shell_command(echo)"
+                ]
+              }
             }
           # For reasons beyond my understanding, Gemini CLI cannot set the
           # GitHub Outputs, but it CAN set the GitHub Env.
