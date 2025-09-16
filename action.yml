@@ -158,11 +158,6 @@ runs:
       run: |-
         set -euo pipefail
 
-        # Unset GEMINI_API_KEY if empty
-        if [ -z "${GEMINI_API_KEY}" ]; then
-          unset GEMINI_API_KEY
-        fi
-
         # Create a temporary directory for storing the output, and ensure it's
         # cleaned up later
         TEMP_STDOUT="$(mktemp -p "${RUNNER_TEMP}" gemini-out.XXXXXXXXXX)"
