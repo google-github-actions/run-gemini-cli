@@ -19,27 +19,27 @@ if [[ "${google_api_key_present}" == "true" ]]; then ((auth_methods++)); fi
 if [[ "${gcp_workload_identity_provider_present}" == "true" ]]; then ((auth_methods++)); fi
 
 if [[ ${auth_methods} -eq 0 ]]; then
-  echo "::error title=Configuration error::No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'." >&2
+  echo "::error::No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
   exit 1
 fi
 
 if [[ ${auth_methods} -gt 1 ]]; then
-  echo "::error title=Configuration error::Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'." >&2
+  echo "::error::Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
   exit 1
 fi
 
 # WIF validation
 if [[ "${gcp_workload_identity_provider_present}" == "true" ]]; then
   if [[ "${gcp_project_id_present}" != "true" || "${gcp_service_account_present}" != "true" ]]; then
-    echo "::error title=Configuration error::When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id' and 'gcp_service_account'." >&2
+    echo "::error::When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id' and 'gcp_service_account'."
     exit 1
   fi
   if [[ "${use_vertex_ai}" != "true" && "${use_gemini_code_assist}" != "true" ]]; then
-    echo "::error title=Configuration error::When using Workload Identity Federation, you must set either 'use_vertex_ai' or 'use_gemini_code_assist' to 'true'." >&2
+    echo "::error::When using Workload Identity Federation, you must set either 'use_vertex_ai' or 'use_gemini_code_assist' to 'true'. Both are set to 'false', please choose one."
     exit 1
   fi
   if [[ "${use_vertex_ai}" == "true" && "${use_gemini_code_assist}" == "true" ]]; then
-    echo "::error title=Configuration error::'use_vertex_ai' and 'use_gemini_code_assist' cannot both be 'true'." >&2
+    echo "::error::When using Workload Identity Federation, 'use_vertex_ai' and 'use_gemini_code_assist' cannot both be 'true'. Both are set to 'true', please choose one."
     exit 1
   fi
 fi
@@ -47,11 +47,11 @@ fi
 # Vertex AI API Key validation
 if [[ "${google_api_key_present}" == "true" ]]; then
   if [[ "${use_vertex_ai}" != "true" ]]; then
-    echo "::error title=Configuration error::When using 'google_api_key', you must set 'use_vertex_ai' to 'true'." >&2
+    echo "::error::When using 'google_api_key', you must set 'use_vertex_ai' to 'true'."
     exit 1
   fi
   if [[ "${use_gemini_code_assist}" == "true" ]]; then
-    echo "::error title=Configuration error::'use_gemini_code_assist' cannot be 'true' when using 'google_api_key'." >&2
+    echo "::error::When using 'google_api_key', 'use_gemini_code_assist' cannot be 'true'."
     exit 1
   fi
 fi
@@ -59,7 +59,7 @@ fi
 # Gemini API Key validation
 if [[ "${gemini_api_key_present}" == "true" ]]; then
   if [[ "${use_vertex_ai}" == "true" || "${use_gemini_code_assist}" == "true" ]]; then
-    echo "::error title=Configuration error::When using 'gemini_api_key', both 'use_vertex_ai' and 'use_gemini_code_assist' must be 'false'." >&2
+    echo "::error::When using 'gemini_api_key', both 'use_vertex_ai' and 'use_gemini_code_assist' must be 'false'."
     exit 1
   fi
 fi
