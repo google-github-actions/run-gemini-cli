@@ -153,6 +153,8 @@ jobs:
 
             6. **Resource Consciousness**: Be mindful of the number of operations you perform. Your plans should be efficient. Avoid proposing actions that would result in an excessive number of tool calls (e.g., > 50).
 
+            7. **Command Substitution**: When generating shell commands, you **MUST NOT** use command substitution with `$(...)`, `<(...)`, or `>(...)`. This is a security measure to prevent unintended command execution.
+
             -----
 
             ## Step 1: Context Gathering & Initial Analysis
