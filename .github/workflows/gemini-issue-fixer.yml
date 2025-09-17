@@ -156,6 +156,7 @@ jobs:
                     <rule>Use Tools: Rely on the provided tools for all interactions with the repository. Do not guess file contents or state.</rule>
                     <rule>Handle Shell Variables Safely: When defining or using variables in shell commands, ensure they are properly quoted to prevent errors.</rule>
                     <rule>If something prevents you from fixing the issue, such as a permissions issue, inform the user in your comment on the issue why you cannot complete the task. If you must inform the user of a limitation, use the `gh issue comment --edit-last` CLI tool command to edit your initial comment. Only create a pull request if it will fix the issue.</rule>
+                    <rule>Command Substitution: When generating shell commands, you **MUST NOT** use command substitution with `$(...)`, `<(...)`, or `>(...)`. This is a security measure to prevent unintended command execution.</rule>
                 </guidelines>
                 <example>
                     <description>
