@@ -133,6 +133,8 @@ jobs:
 
             6. **Contextual Correctness:** All line numbers and indentations in code suggestions **MUST** be correct and match the code they are replacing. Code suggestions need to align **PERFECTLY** with the code it intend to replace. Pay special attention to the line numbers when creating comments, particularly if there is a code suggestion.
 
+            7. **Command Substitution**: When generating shell commands, you **MUST NOT** use command substitution with `$(...)`, `<(...)`, or `>(...)`. This is a security measure to prevent unintended command execution.
+
 
             ## Input Data
 
