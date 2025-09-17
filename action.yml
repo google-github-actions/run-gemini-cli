@@ -84,11 +84,11 @@ runs:
       shell: 'bash'
       run: '${{ github.action_path }}/scripts/validate-inputs.sh'
       env:
-        INPUT_GEMINI_API_KEY_PRESENT: '${{ inputs.gemini_api_key != '' }}'
-        INPUT_GOOGLE_API_KEY_PRESENT: '${{ inputs.google_api_key != '' }}'
-        INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: '${{ inputs.gcp_workload_identity_provider != '' }}'
-        INPUT_GCP_PROJECT_ID_PRESENT: '${{ inputs.gcp_project_id != '' }}'
-        INPUT_GCP_SERVICE_ACCOUNT_PRESENT: '${{ inputs.gcp_service_account != '' }}'
+        INPUT_GEMINI_API_KEY_PRESENT: "${{ inputs.gemini_api_key != '' }}"
+        INPUT_GOOGLE_API_KEY_PRESENT: "${{ inputs.google_api_key != '' }}"
+        INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: "${{ inputs.gcp_workload_identity_provider != '' }}"
+        INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
+        INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
     - name: 'Configure Gemini CLI'
