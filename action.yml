@@ -91,6 +91,7 @@ runs:
         INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
+
     - name: 'Configure Gemini CLI'
       if: |-
         ${{ inputs.settings != '' }}
