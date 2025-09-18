@@ -84,7 +84,7 @@ runs:
       id: 'validate_inputs'
       shell: 'bash'
       run: |-
-        set -euo pipefail
+        set -exuo pipefail
 
         # Emit a clear warning in three places without failing the step
         warn() {
@@ -102,9 +102,9 @@ runs:
 
         # Validate the count of authentication methods
         auth_methods=0
-        if [[ "${INPUT_GEMINI_API_KEY_PRESENT:-false}" == "true" ]]; then ((auth_methods++)); fi
-        if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then ((auth_methods++)); fi
-        if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then ((auth_methods++)); fi
+        if [[ "${INPUT_GEMINI_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+        if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+        if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
 
         if [[ ${auth_methods} -eq 0 ]]; then
           warn "No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
