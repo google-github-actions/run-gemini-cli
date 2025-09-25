@@ -198,8 +198,7 @@ runs:
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
-        EXTENSIONS: |
-          ${{ inputs.extensions }}
+        EXTENSIONS: '${{ inputs.extensions }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -225,10 +224,9 @@ runs:
           echo "Error: Gemini CLI not found in PATH"
           exit 1
         fi
-        if [[ -n '${{ inputs.extensions }}' ]]; then
+        if [[ -n "${EXTENSIONS}" ]]; then
           echo "Installing Gemini CLI extensions:"
           echo "${EXTENSIONS}" | jq -r '.[]' | while IFS= read -r extension; do
-            # Trim leading/trailing whitespace
             extension=$(echo "${extension}" | xargs)
             if [[ -n "${extension}" ]]; then
               echo "Installing ${extension}..."
