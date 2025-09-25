@@ -68,6 +68,9 @@ inputs:
       For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
     required: false
     default: 'false'
+  extensions:
+    description: 'A list of Gemini CLI extensions to install.'
+    required: false
 
 outputs:
   summary:
@@ -195,6 +198,7 @@ runs:
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
+        EXTENSIONS: '${{ inputs.extensions }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -219,6 +223,16 @@ runs:
         else
           echo "Error: Gemini CLI not found in PATH"
           exit 1
+        fi
+        if [[ -n "${EXTENSIONS}" ]]; then
+          echo "Installing Gemini CLI extensions:"
+          echo "${EXTENSIONS}" | jq -r '.[]' | while IFS= read -r extension; do
+            extension=$(echo "${extension}" | xargs)
+            if [[ -n "${extension}" ]]; then
+              echo "Installing ${extension}..."
+              echo "Y" | gemini extensions install --source "${extension}"
+            fi
+          done
         fi
 
     - name: 'Run Gemini CLI'
