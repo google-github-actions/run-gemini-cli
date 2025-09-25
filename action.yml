@@ -198,7 +198,8 @@ runs:
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
-        EXTENSIONS_JSON: '${{ toJSON(inputs.extensions) }}'
+        EXTENSIONS: |
+          ${{ inputs.extensions }}
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -226,7 +227,9 @@ runs:
         fi
         if [[ -n '${{ inputs.extensions }}' ]]; then
           echo "Installing Gemini CLI extensions:"
-          echo "${EXTENSIONS_JSON}" | jq -r '.[]' | while IFS= read -r extension; do
+          echo "${EXTENSIONS}" | jq -r '.[]' | while IFS= read -r extension; do
+            # Trim leading/trailing whitespace
+            extension=$(echo "${extension}" | xargs)
             if [[ -n "${extension}" ]]; then
               echo "Installing ${extension}..."
               echo "Y" | gemini extensions install --source "${extension}"
