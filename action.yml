@@ -68,8 +68,8 @@ inputs:
       For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
     required: false
     default: 'false'
-  enable_security_analysis:
-    description: 'A flag to indicate if security analysis should be enabled.'
+  extensions:
+    description: 'A newline-separated list of Gemini CLI extensions to install.'
     required: false
 
 outputs:
@@ -223,9 +223,14 @@ runs:
           echo "Error: Gemini CLI not found in PATH"
           exit 1
         fi
-        if [[ "${{ inputs.enable_security_analysis }}" == "true" ]]; then
-          echo "Installing Gemini Security Extension"
-          echo "Y" | gemini extensions install --source https://github.com/gemini-cli-extensions/security.git
+        if [[ -n "${{ inputs.extensions }}" ]]; then
+          echo "Installing Gemini CLI extensions:"
+          while IFS= read -r extension; do
+            if [[ -n "${extension}" ]]; then
+              echo "Installing ${extension}..."
+              echo "Y" | gemini extensions install --source "${extension}"
+            fi
+          done <<< "${{ inputs.extensions }}"
         fi
 
     - name: 'Run Gemini CLI'
