@@ -225,12 +225,12 @@ runs:
         fi
         if [[ -n "${{ inputs.extensions }}" ]]; then
           echo "Installing Gemini CLI extensions:"
-          echo "${{ inputs.extensions }}" | jq -r '.[]' | while IFS= read -r extension; do
+          while IFS= read -r extension; do
             if [[ -n "${extension}" ]]; then
               echo "Installing ${extension}..."
               echo "Y" | gemini extensions install --source "${extension}"
             fi
-          done
+          done <<< "${{ inputs.extensions }}"
         fi
 
     - name: 'Run Gemini CLI'
