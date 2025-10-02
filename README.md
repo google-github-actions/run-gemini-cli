@@ -188,9 +188,9 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
 
--   <a name="__output_summary"></a><a href="#user-content-__output_summary"><code>summary</code></a>: The summarized output from the Gemini CLI execution.
+-   `summary`: The summarized output from the Gemini CLI execution.
 
--   <a name="__output_error"></a><a href="#user-content-__output_error"><code>error</code></a>: The error output from the Gemini CLI execution, if any.
+-   `error`: The error output from the Gemini CLI execution, if any.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
