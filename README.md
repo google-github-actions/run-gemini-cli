@@ -20,6 +20,7 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
     - [Issue Triage](#issue-triage)
     - [Pull Request Review](#pull-request-review)
     - [Gemini CLI Assistant](#gemini-cli-assistant)
+  - [Configuration](#configuration)
     - [Inputs](#inputs)
     - [Outputs](#outputs)
     - [Repository Variables](#repository-variables)
@@ -28,6 +29,7 @@ Use it to perform GitHub pull request reviews, triage issues, perform code analy
     - [Google Authentication](#google-authentication)
     - [GitHub Authentication](#github-authentication)
   - [Observability](#observability)
+  - [Extensions](#extensions)
   - [Best Practices](#best-practices)
   - [Customization](#customization)
   - [Contributing](#contributing)
@@ -137,14 +139,14 @@ This action can be used to automatically review pull requests when they are
 opened. For a detailed guide on how to set up the pull request review system,
 go to the [GitHub PR Review workflow documentation](./examples/workflows/pr-review).
 
-
-
 ### Gemini CLI Assistant
 
 This type of action can be used to invoke a general-purpose, conversational Gemini
 AI assistant within the pull requests and issues to perform a wide range of
 tasks. For a detailed guide on how to set up the general-purpose Gemini CLI workflow,
 go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-assistant).
+
+## Configuration
 
 ### Inputs
 
@@ -270,6 +272,14 @@ for debugging and optimization.
 
 For detailed instructions on how to set up and configure observability, go to
 the [Observability documentation](./docs/observability.md).
+
+## Extensions
+
+The Gemini CLI can be extended with additional functionality through extensions.
+These extensions are installed from source from their GitHub repositories.
+
+For detailed instructions on how to set up and configure extensions, go to the
+[Extensions documentation](./docs/extensions.md).
 
 ## Best Practices
 
