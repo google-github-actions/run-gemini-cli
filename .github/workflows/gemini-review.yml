@@ -138,9 +138,9 @@ jobs:
 
             ## Input Data
 
-            - Retrieve the GitHub repository name from the environment variable "${REPOSITORY}".
-            - Retrieve the GitHub pull request number from the environment variable "${PULL_REQUEST_NUMBER}".
-            - Retrieve the additional user instructions and context from the environment variable "${ADDITIONAL_CONTEXT}".
+            - **GitHub Repository**: ${{ env.REPOSITORY }}
+            - **Pull Request Number**: ${{ env.PULL_REQUEST_NUMBER }}
+            - **Additional User Instructions**: ${{ env.ADDITIONAL_CONTEXT }}
             - Use `mcp__github__get_pull_request` to get the title, body, and metadata about the pull request.
             - Use `mcp__github__get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
             - Use `mcp__github__get_pull_request_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
