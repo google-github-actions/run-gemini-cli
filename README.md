@@ -179,6 +179,8 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 -   <a name="use_vertex_ai"></a><a href="#user-content-use_vertex_ai"><code>use_vertex_ai</code></a>: _(Optional, default: `false`)_ Whether to use Vertex AI for Gemini model access instead of the default Gemini API key.
     For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
 
+-   <a name="extensions"></a><a href="#user-content-extensions"><code>extensions</code></a>: _(Optional)_ A list of Gemini CLI extensions to install.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 
