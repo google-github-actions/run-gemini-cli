@@ -102,17 +102,14 @@ jobs:
                         <issue>
                             <repository>${{ env.REPOSITORY }}</repository>
                             <number>${{ env.ISSUE_NUMBER }}</number>
-                            <title>The title exists in the ISSUE_TITLE environment variable. Run `echo $ISSUE_TITLE` to fetch it.</title>
-                            <body>The title exists in the ISSUE_BODY environment variable. Run `echo $ISSUE_BODY` to fetch it.</body>
+                            <title>${{ env.ISSUE_TITLE }}</title>
+                            <body>${{ env.ISSUE_BODY }}</body>
                         </issue>
                     </github_event>
                 </context>
                 <instructions>
                     <description>Follow these steps sequentially to resolve the issue.</description>
                     <steps>
-                        <step id="0" name="Get Issue Title and Issue Body">
-                            The issue's title and body are stored in the ISSUE_TITLE and ISSUE_BODY environment variables. Read them with `echo $ISSUE_TITLE` and `echo $ISSUE_BODY`.
-                        </step>
                         <step id="1" name="Understand Project Standards">
                             The initial context provided to you includes a file tree. If you see a `GEMINI.md` or `CONTRIBUTING.md` file, use the GitHub MCP `get_file_contents` tool to read it first. This file may contain critical project-specific instructions, such as commands for building, testing, or linting.
                         </step>
