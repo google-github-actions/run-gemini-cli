@@ -23,3 +23,6 @@ jobs:
         uses: 'actions/publish-immutable-action@4bc8754ffc40f27910afb20287dbbbb675a4e978' # ratchet:actions/publish-immutable-action@v0.0.4
         with:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: 'Add job summary'
+        run: 'echo "Published action to the marketplace." >> "$GITHUB_STEP_SUMMARY"'

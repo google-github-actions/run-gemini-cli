@@ -123,6 +123,9 @@ jobs:
             --body "${MESSAGE}" \
             --repo "${REPOSITORY}"
 
+      - name: 'Add job summary'
+        run: 'echo "Dispatched command: **${{ steps.extract_command.outputs.command }}**" >> $GITHUB_STEP_SUMMARY'
+
   review:
     needs: 'dispatch'
     if: |-
@@ -202,3 +205,6 @@ jobs:
           gh issue comment "${ISSUE_NUMBER}" \
             --body "${MESSAGE}" \
             --repo "${REPOSITORY}"
+
+      - name: 'Add job summary'
+        run: 'echo "Failed to process request. See logs for details." >> $GITHUB_STEP_SUMMARY'
