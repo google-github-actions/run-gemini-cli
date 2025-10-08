@@ -230,7 +230,7 @@ runs:
             extension=$(echo "${extension}" | xargs)
             if [[ -n "${extension}" ]]; then
               echo "Installing ${extension}..."
-              echo "Y" | gemini extensions install --source "${extension}"
+              echo "Y" | gemini extensions install "${extension}"
             fi
           done
         fi
