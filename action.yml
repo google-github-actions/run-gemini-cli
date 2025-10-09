@@ -162,6 +162,15 @@ runs:
       env:
         SETTINGS: '${{ inputs.settings }}'
 
+    - name: 'Install Custom Commands'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+        mkdir -p .gemini/commands
+        cp -r "${GITHUB_ACTION_PATH}/gemini-cli-commands/"* .gemini/commands/
+      env:
+        GITHUB_ACTION_PATH: '${{ github.action_path }}'
+
     - name: 'Authenticate to Google Cloud'
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}
