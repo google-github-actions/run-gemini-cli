@@ -167,7 +167,7 @@ runs:
       run: |-
         set -euo pipefail
         mkdir -p .gemini/commands
-        cp -r "${GITHUB_ACTION_PATH}/gemini-cli-commands/"* .gemini/commands/
+        cp -r "${GITHUB_ACTION_PATH}/.github/commands/"* .gemini/commands/
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
 
