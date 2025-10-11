@@ -88,9 +88,7 @@ jobs:
                   "includeTools": [
                     "add_comment_to_pending_review",
                     "create_pending_pull_request_review",
-                    "get_pull_request_diff",
-                    "get_pull_request_files",
-                    "get_pull_request",
+                    "pull_request_read",
                     "submit_pending_pull_request_review"
                   ],
                   "env": {
