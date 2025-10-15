@@ -79,8 +79,10 @@ jobs:
                 "maxSessionTurns": 25
               },
               "telemetry": {
-                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
-                "target": "gcp"
+                "enabled": true,
+                "target": "local",
+                "otlpEndpoint": "",
+                "outfile": ".gemini/telemetry.log"
               },
               "tools": {
                 "core": [

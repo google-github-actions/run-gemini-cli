@@ -85,8 +85,10 @@ jobs:
                 }
               },
               "telemetry": {
-                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
-                "target": "gcp"
+                "enabled": true,
+                "target": "local",
+                "otlpEndpoint": "",
+                "outfile": ".gemini/telemetry.log"
               }
             }
           prompt: '/gemini-issue-fixer'
