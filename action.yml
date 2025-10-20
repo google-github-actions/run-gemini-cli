@@ -301,10 +301,10 @@ runs:
     - name: 'Upload Gemini CLI outputs'
       if: |-
         ${{ inputs.upload_artifacts }}
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v4' # ratchet:exclude
       with:
-        name: gemini-output
-        path: gemini-artifacts/
+        name: 'gemini-output'
+        path: 'gemini-artifacts/'
 
     - name: 'Upload Telemetry to Google Cloud'
       if: |-
@@ -348,7 +348,7 @@ runs:
             # Use -f to fail silently if the server isn't ready yet
             # Filter out the prometheus help/type comments before grabbing the value
             QUEUE_SIZE=$(curl -sf http://localhost:8888/metrics | grep otelcol_exporter_queue_size | grep -v '^#' | awk '{print $2}' || echo "-1")
-            
+
             if [ "$QUEUE_SIZE" == "0" ]; then
                 echo "Exporter queue is empty, all data processed."
                 break
