@@ -20,7 +20,7 @@ exporters:
   googlecloud:
     project: "OTLP_GOOGLE_CLOUD_PROJECT"
     log:
-      default_log_name: "gemini-cli-telemetry"
+      default_log_name: "gemini-cli"
 
 service:
   pipelines:

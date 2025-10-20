@@ -71,6 +71,10 @@ inputs:
   extensions:
     description: 'A list of Gemini CLI extensions to install.'
     required: false
+  upload_artifacts:
+    description: 'Whether or not to upload artifacts to the github action.'
+    required: false
+    default: 'false'
 
 outputs:
   summary:
@@ -295,6 +299,8 @@ runs:
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
 
     - name: 'Upload Gemini CLI outputs'
+      if: |-
+        ${{ inputs.upload_artifacts }}
       uses: 'actions/upload-artifact@v4'
       with:
         name: gemini-output
@@ -302,7 +308,7 @@ runs:
 
     - name: 'Upload Telemetry to Google Cloud'
       if: |-
-        ${{ inputs.gcp_workload_identity_provider != '' && runner.os == 'Linux' }}
+        ${{ inputs.gcp_workload_identity_provider != '' }}
       shell: 'bash'
       run: |-
         set -euo pipefail

@@ -62,6 +62,7 @@ jobs:
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           settings: |-
             {
               "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
@@ -87,7 +88,6 @@ jobs:
               "telemetry": {
                 "enabled": true,
                 "target": "local",
-                "otlpEndpoint": "",
                 "outfile": ".gemini/telemetry.log"
               }
             }
