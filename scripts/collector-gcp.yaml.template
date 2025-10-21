@@ -1,34 +1,33 @@
 receivers:
-  otlp:
-    protocols:
-      grpc:
-        endpoint: 'localhost:4317'
+  filelog:
+    include: ['.gemini/telemetry.log']
+    start_at: 'beginning'
+
 processors:
+  resource:
+    attributes:
+      - key: 'github.repository'
+        value: 'GITHUB_REPOSITORY_PLACEHOLDER'
+        action: 'upsert'
+      - key: 'github.run_id'
+        value: 'GITHUB_RUN_ID_PLACEHOLDER'
+        action: 'upsert'
   batch:
-    timeout: '1s'
+    send_batch_size: 100
+    timeout: '10s'
+
 exporters:
   googlecloud:
     project: 'OTLP_GOOGLE_CLOUD_PROJECT'
-    metric:
-      prefix: 'custom.googleapis.com/gemini_cli'
     log:
-      default_log_name: 'gemini_cli'
+      default_log_name: 'gemini-cli'
+
 service:
-  telemetry:
-    logs:
-      level: 'debug'
-    metrics:
-      level: 'none'
   pipelines:
-    traces:
-      receivers: ['otlp']
-      processors: ['batch']
-      exporters: ['googlecloud']
-    metrics:
-      receivers: ['otlp']
-      processors: ['batch']
-      exporters: ['googlecloud']
     logs:
-      receivers: ['otlp']
-      processors: ['batch']
+      receivers: ['filelog']
+      processors: ['batch', 'resource']
       exporters: ['googlecloud']
+  telemetry:
+    metrics:
+      address: '0.0.0.0:8888'

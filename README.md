@@ -183,6 +183,8 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_extensions"></a><a href="#user-content-__input_extensions"><code>extensions</code></a>: _(Optional)_ A list of Gemini CLI extensions to install.
 
+-   <a name="__input_upload_artifacts"></a><a href="#user-content-__input_upload_artifacts"><code>upload_artifacts</code></a>: _(Optional, default: `false`)_ Whether or not to upload artifacts to the github action.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 

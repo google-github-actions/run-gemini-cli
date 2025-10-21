@@ -103,14 +103,16 @@ jobs:
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           settings: |-
             {
               "model": {
                 "maxSessionTurns": 25
               },
               "telemetry": {
-                "enabled": ${{ vars.GOOGLE_CLOUD_PROJECT != '' }},
-                "target": "gcp"
+                "enabled": true,
+                "target": "local",
+                "outfile": ".gemini/telemetry.log"
               },
               "tools": {
                 "core": [
