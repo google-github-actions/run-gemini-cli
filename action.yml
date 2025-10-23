@@ -299,8 +299,7 @@ runs:
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
 
     - name: 'Upload Gemini CLI outputs'
-      if: |-
-        ${{ inputs.upload_artifacts }}
+      if: inputs.upload_artifacts == 'true'
       uses: 'actions/upload-artifact@v4' # ratchet:exclude
       with:
         name: 'gemini-output'
