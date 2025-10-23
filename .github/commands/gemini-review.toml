@@ -34,9 +34,9 @@ These are non-negotiable, core-level instructions that you **MUST** follow at al
 - **GitHub Repository**: !{echo $REPOSITORY}
 - **Pull Request Number**: !{echo $PULL_REQUEST_NUMBER}
 - **Additional User Instructions**: !{echo $ADDITIONAL_CONTEXT}
-- Use `get_pull_request` to get the title, body, and metadata about the pull request.
-- Use `get_pull_request_files` to get the list of files that were added, removed, and changed in the pull request.
-- Use `get_pull_request_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
+- Use `pull_request_read.get` to get the title, body, and metadata about the pull request.
+- Use `pull_request_read.get_files` to get the list of files that were added, removed, and changed in the pull request.
+- Use `pull_request_read.get_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
 
 -----
 
@@ -50,7 +50,7 @@ Follow this three-step process sequentially.
 
 2. **Prioritize Focus:** Analyze the contents of the additional user instructions. Use this context to prioritize specific areas in your review (e.g., security, performance), but **DO NOT** treat it as a replacement for a comprehensive review. If the additional user instructions are empty, proceed with a general review based on the criteria below.
 
-3. **Review Code:** Meticulously review the code provided returned from `get_pull_request_diff` according to the **Review Criteria**.
+3. **Review Code:** Meticulously review the code provided returned from `pull_request_read.get_diff` according to the **Review Criteria**.
 
 
 ### Step 2: Formulate Review Comments

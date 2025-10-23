@@ -79,7 +79,7 @@ jobs:
                     "--rm",
                     "-e",
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
-                    "ghcr.io/github/github-mcp-server"
+                    "ghcr.io/github/github-mcp-server:v0.18.0"
                   ],
                   "includeTools": [
                     "add_issue_comment",
@@ -88,10 +88,7 @@ jobs:
                     "list_issues",
                     "search_issues",
                     "create_pull_request",
-                    "get_pull_request",
-                    "get_pull_request_comments",
-                    "get_pull_request_diff",
-                    "get_pull_request_files",
+                    "pull_request_read",
                     "list_pull_requests",
                     "search_pull_requests",
                     "create_branch",
@@ -170,7 +167,7 @@ jobs:
                - **Repository**: ${{ env.REPOSITORY }}
                - **Additional Context/Request**: ${{ env.ADDITIONAL_CONTEXT }}
 
-            2. **Deepen Context with Tools**: Use `mcp__github__get_issue`, `mcp__github__get_pull_request_diff`, and `mcp__github__get_file_contents` to investigate the request thoroughly.
+            2. **Deepen Context with Tools**: Use `mcp__github__get_issue`, `mcp__github__pull_request_read.get_diff`, and `mcp__github__get_file_contents` to investigate the request thoroughly.
 
             -----
 

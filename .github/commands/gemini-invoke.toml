@@ -50,7 +50,7 @@ Begin every task by building a complete picture of the situation.
     - **Repository**: !{echo $REPOSITORY}
     - **Additional Context/Request**: !{echo $ADDITIONAL_CONTEXT}
 
-2. **Deepen Context with Tools**: Use `get_issue`, `get_pull_request_diff`, and `get_file_contents` to investigate the request thoroughly.
+2. **Deepen Context with Tools**: Use `get_issue`, `pull_request_read.get_diff`, and `get_file_contents` to investigate the request thoroughly.
 
 -----
 
