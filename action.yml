@@ -30,6 +30,14 @@ inputs:
   gcp_workload_identity_provider:
     description: 'The Google Cloud Workload Identity Provider.'
     required: false
+  gcp_token_format:
+    description: 'The token format for authentication. Set to "access_token" to generate access tokens (requires service account), or set to empty string for direct WIF. Can be "access_token" or "id_token".'
+    required: false
+    default: 'access_token'
+  gcp_access_token_scopes:
+    description: 'The access token scopes when using token_format "access_token". Comma-separated list of OAuth 2.0 scopes.'
+    required: false
+    default: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
   gemini_api_key:
     description: 'The API key for the Gemini API.'
     required: false
@@ -123,8 +131,13 @@ runs:
 
         # Validate Workload Identity Federation inputs
         if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then
-          if [[ "${INPUT_GCP_PROJECT_ID_PRESENT:-false}" != "true" || "${INPUT_GCP_SERVICE_ACCOUNT_PRESENT:-false}" != "true" ]]; then
-            warn "When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id' and 'gcp_service_account'."
+          if [[ "${INPUT_GCP_PROJECT_ID_PRESENT:-false}" != "true" ]]; then
+            warn "When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id'."
+          fi
+          # Service account is required when using token_format (default behavior)
+          # Only optional when explicitly set to empty for direct WIF
+          if [[ "${INPUT_GCP_TOKEN_FORMAT}" != "" && "${INPUT_GCP_SERVICE_ACCOUNT_PRESENT:-false}" != "true" ]]; then
+            warn "When using Workload Identity Federation with token generation ('gcp_token_format'), you must also provide 'gcp_service_account'. To use direct WIF without a service account, explicitly set 'gcp_token_format' to an empty string."
           fi
           if [[ "${INPUT_USE_VERTEX_AI:-false}" == "${INPUT_USE_GEMINI_CODE_ASSIST:-false}" ]]; then
             warn "When using Workload Identity Federation, you must set exactly one of 'use_vertex_ai' or 'use_gemini_code_assist' to 'true'."
@@ -153,6 +166,7 @@ runs:
         INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: "${{ inputs.gcp_workload_identity_provider != '' }}"
         INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
         INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
+        INPUT_GCP_TOKEN_FORMAT: '${{ inputs.gcp_token_format }}'
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
 
@@ -184,8 +198,8 @@ runs:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
         service_account: '${{ inputs.gcp_service_account }}'
-        token_format: 'access_token'
-        access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+        token_format: '${{ inputs.gcp_token_format }}'
+        access_token_scopes: '${{ inputs.gcp_access_token_scopes }}'
 
     - name: 'Install Gemini CLI'
       id: 'install'
