@@ -196,6 +196,9 @@ After running the `setup_workload_identity.sh` script, add the following variabl
       Explain this code
 ```
 
+> [!NOTE]
+> You can use direct Workload Identity Federation without a service account by setting `gcp_token_format: ''` and omitting `gcp_service_account`.
+
 #### Connecting to Gemini Code Assist
 
 If you have a **Gemini Code Assist** subscription, you can configure the action to use it for authentication.
@@ -229,6 +232,9 @@ After running the `setup_workload_identity.sh` script, add the following variabl
     prompt: |-
       Explain this code
 ```
+
+> [!NOTE]
+> You can use direct Workload Identity Federation without a service account by setting `gcp_token_format: ''` and omitting `gcp_service_account`.
 
 ## GitHub Authentication
 
