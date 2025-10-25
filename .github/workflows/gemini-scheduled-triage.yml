@@ -46,10 +46,14 @@ jobs:
           # GITHUB_TOKEN provided by the action has enough permissions to read
           # the labels.
           script: |-
-            const { data: labels } = await github.rest.issues.listLabelsForRepo({
+            const labels = [];
+            for await (const response of github.paginate.iterator(github.rest.issues.listLabelsForRepo, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-            });
+              per_page: 100, // Maximum per page to reduce API calls
+            })) {
+              labels.push(...response.data);
+            }
 
             if (!labels || labels.length === 0) {
               core.setFailed('There are no issue labels in this repository.')
