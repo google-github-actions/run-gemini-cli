@@ -185,6 +185,8 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_upload_artifacts"></a><a href="#user-content-__input_upload_artifacts"><code>upload_artifacts</code></a>: _(Optional, default: `false`)_ Whether to upload artifacts to the github action.
 
+-   <a name="__input_use_pnpm"></a><a href="#user-content-__input_use_pnpm"><code>use_pnpm</code></a>: _(Optional, default: `false`)_ Whether or not to use pnpm instead of npm to install gemini-cli
+
 
 <!-- END_AUTOGEN_INPUTS -->
 
