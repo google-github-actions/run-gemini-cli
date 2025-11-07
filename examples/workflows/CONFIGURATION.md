@@ -4,6 +4,7 @@ This guide covers how to customize and configure Gemini CLI workflows to meet yo
 
 - [Configuring Gemini CLI Workflows](#configuring-gemini-cli-workflows)
   - [How to Configure Gemini CLI](#how-to-configure-gemini-cli)
+    - [Custom Commands (TOML Files)](#custom-commands-toml-files)
     - [Key Settings](#key-settings)
       - [Conversation Length (`model.maxSessionTurns`)](#conversation-length-modelmaxsessionturns)
       - [Allowlist Tools (`tools.core`)](#allowlist-tools-toolscore)
@@ -18,6 +19,43 @@ This guide covers how to customize and configure Gemini CLI workflows to meet yo
 Gemini CLI workflows are highly configurable. You can adjust their behavior by editing the corresponding `.yml` files in your repository.
 
 Gemini CLI supports many settings that control how it operates. For a complete list, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md#available-settings-in-settingsjson).
+
+### Custom Commands (TOML Files)
+
+The example workflows use custom commands defined in TOML files to provide specialized prompts for different tasks. These TOML files are automatically installed from the action's `.github/commands/` directory to `.gemini/commands/` when the workflow runs.
+
+**Available custom commands:**
+
+- `/gemini-invoke` - General-purpose AI assistant for code changes and analysis
+- `/gemini-review` - Pull request code review
+- `/gemini-triage` - Single issue triage
+- `/gemini-scheduled-triage` - Batch issue triage
+
+**How it works:**
+
+1. The action copies TOML files from `.github/commands/` to `.gemini/commands/` during workflow execution
+2. Workflows reference these commands using the `prompt` input (e.g., `prompt: '/gemini-invoke'`)
+3. The Gemini CLI loads the command's prompt from the TOML file
+
+**Customizing commands:**
+
+To customize the prompts for your repository:
+
+1. Copy the TOML file(s) from `examples/workflows/<workflow-name>` to your repository's `.gemini/commands/` directory
+2. Modify the `prompt` field in the TOML file to match your needs
+3. Commit the TOML files to your repository
+
+For example, to customize the PR review prompt:
+
+```bash
+mkdir -p .gemini/commands
+cp examples/workflows/pr-review/gemini-review.toml .gemini/commands/
+# Edit .gemini/commands/gemini-review.toml as needed
+git add .gemini/commands/gemini-review.toml
+git commit -m "feat: customize PR review prompt"
+```
+
+The workflow will use your custom TOML file instead of the default one from the action.
 
 ### Key Settings
 

@@ -137,11 +137,31 @@ flowchart TD
 
 ## Configuration
 
-The Gemini CLI system prompt, located in the `prompt` input, defines the Gemini AI's role and instructions. You can edit this prompt to, for example:
+The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml` file. The action automatically copies this file from `.github/commands/` to `.gemini/commands/` during execution.
 
-- Change its persona or primary function.
-- Add project-specific guidelines or context.
-- Instruct it to format its output in a specific way.
+**To customize the assistant prompt:**
+
+1. Copy the TOML file to your repository:
+   ```bash
+   mkdir -p .gemini/commands
+   curl -o .gemini/commands/gemini-invoke.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.toml
+   ```
+
+2. Edit `.gemini/commands/gemini-invoke.toml` to customize:
+   - Change its persona or primary function
+   - Add project-specific guidelines or context
+   - Instruct it to format its output in a specific way
+   - Modify security constraints or workflow steps
+
+3. Commit the file to your repository:
+   ```bash
+   git add .gemini/commands/gemini-invoke.toml
+   git commit -m "feat: customize Gemini assistant prompt"
+   ```
+
+The workflow will use your custom TOML file instead of the default one from the action.
+
+For more details on workflow configuration, see the [Configuration Guide](../CONFIGURATION.md#custom-commands-toml-files).
 
 ## Examples
 
