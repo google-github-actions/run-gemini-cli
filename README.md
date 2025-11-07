@@ -160,6 +160,10 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_gcp_workload_identity_provider"></a><a href="#user-content-__input_gcp_workload_identity_provider"><code>gcp_workload_identity_provider</code></a>: _(Optional)_ The Google Cloud Workload Identity Provider.
 
+-   <a name="__input_gcp_token_format"></a><a href="#user-content-__input_gcp_token_format"><code>gcp_token_format</code></a>: _(Optional, default: `access_token`)_ The token format for authentication. Set to "access_token" to generate access tokens (requires service account), or set to empty string for direct WIF. Can be "access_token" or "id_token".
+
+-   <a name="__input_gcp_access_token_scopes"></a><a href="#user-content-__input_gcp_access_token_scopes"><code>gcp_access_token_scopes</code></a>: _(Optional, default: `https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile`)_ The access token scopes when using token_format "access_token". Comma-separated list of OAuth 2.0 scopes.
+
 -   <a name="__input_gemini_api_key"></a><a href="#user-content-__input_gemini_api_key"><code>gemini_api_key</code></a>: _(Optional)_ The API key for the Gemini API.
 
 -   <a name="__input_gemini_cli_version"></a><a href="#user-content-__input_gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install. Can be "latest", "preview", "nightly", a specific version number, or a git branch, tag, or commit. For more information, see [Gemini CLI releases](https://github.com/google-gemini/gemini-cli/blob/main/docs/releases.md).
@@ -211,7 +215,7 @@ We recommend setting the following values as repository variables so they can be
 | `GEMINI_CLI_VERSION`        | Controls which version of the Gemini CLI is installed. | Variable | No       | Pinning the CLI version   |
 | `GCP_WIF_PROVIDER`          | Full resource name of the Workload Identity Provider.  | Variable | No       | Using Google Cloud        |
 | `GOOGLE_CLOUD_PROJECT`      | Google Cloud project for inference and observability.  | Variable | No       | Using Google Cloud        |
-| `SERVICE_ACCOUNT_EMAIL`     | Google Cloud service account email address.            | Variable | No       | Using Google Cloud        |
+| `SERVICE_ACCOUNT_EMAIL`     | Google Cloud service account email address. Optional - only needed for WIF with service account (not required for direct WIF). | Variable | No       | Using WIF with service account |
 | `GOOGLE_CLOUD_LOCATION`     | Region of the Google Cloud project.                    | Variable | No       | Using Google Cloud        |
 | `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to use Vertex AI                         | Variable | No       | Using Vertex AI           |
 | `GOOGLE_GENAI_USE_GCA`      | Set to `true` to use Gemini Code Assist                | Variable | No       | Using Gemini Code Assist  |

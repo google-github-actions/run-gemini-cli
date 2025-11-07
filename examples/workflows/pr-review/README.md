@@ -213,11 +213,31 @@ You can customize the workflow by modifying:
 
 ### Review Prompt Customization
 
-The AI prompt can be customized to:
-- Focus on specific technologies or frameworks
-- Emphasize particular coding standards
-- Include project-specific guidelines
-- Adjust review depth and focus areas
+The review prompt is defined in the `gemini-review.toml` file. The action automatically copies this file from `.github/commands/` to `.gemini/commands/` during execution.
+
+**To customize the review prompt:**
+
+1. Copy the TOML file to your repository:
+   ```bash
+   mkdir -p .gemini/commands
+   curl -o .gemini/commands/gemini-review.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-review.toml
+   ```
+
+2. Edit `.gemini/commands/gemini-review.toml` to customize:
+   - Focus on specific technologies or frameworks
+   - Emphasize particular coding standards
+   - Include project-specific guidelines
+   - Adjust review depth and focus areas
+
+3. Commit the file to your repository:
+   ```bash
+   git add .gemini/commands/gemini-review.toml
+   git commit -m "feat: customize PR review prompt"
+   ```
+
+The workflow will use your custom TOML file instead of the default one from the action.
+
+For more details on workflow configuration, see the [Configuration Guide](../CONFIGURATION.md#custom-commands-toml-files).
 
 ## Examples
 
