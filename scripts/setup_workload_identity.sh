@@ -474,6 +474,10 @@ else
     echo "☁️ Variable Name: SERVICE_ACCOUNT_EMAIL"
     echo "   Variable Value: ${SERVICE_ACCOUNT_EMAIL}"
     echo ""
+    echo "🤖 Variable Name: GOOGLE_GENAI_USE_VERTEXAI"
+    echo "   Variable Value: true"
+    echo "   (Set to 'true' to use Vertex AI, or use GOOGLE_GENAI_USE_GCA for Code Assist)"
+    echo ""
 fi
 
 print_success "Setup completed successfully! 🚀"
