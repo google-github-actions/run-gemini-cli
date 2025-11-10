@@ -83,6 +83,10 @@ inputs:
     description: 'Whether to upload artifacts to the github action.'
     required: false
     default: 'false'
+  use_pnpm:
+    description: 'Whether or not to use pnpm instead of npm to install gemini-cli'
+    required: false
+    default: 'false'
 
 outputs:
   summary:
@@ -201,11 +205,19 @@ runs:
         token_format: '${{ inputs.gcp_token_format }}'
         access_token_scopes: '${{ inputs.gcp_access_token_scopes }}'
 
+    - name: 'Install pnpm'
+      if: |-
+        ${{ inputs.use_pnpm == 'true' }}
+      uses: 'pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061' # ratchet:pnpm/action-setup@v4
+      with:
+        version: 10
+
     - name: 'Install Gemini CLI'
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
+        USE_PNPM: '${{ inputs.use_pnpm }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -214,7 +226,11 @@ runs:
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" == "preview" || "${VERSION_INPUT}" == "nightly" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
           echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
-          npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+          if [[ "${USE_PNPM}" == "true" ]]; then
+            pnpm add --silent --global @google/gemini-cli@"${VERSION_INPUT}"
+          else
+            npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+          fi
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
           git clone https://github.com/google-gemini/gemini-cli.git
