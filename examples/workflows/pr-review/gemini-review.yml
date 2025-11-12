@@ -43,7 +43,7 @@ jobs:
 
       - name: 'Run Gemini pull request review'
         # uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
-        uses: './action.yaml'
+        uses: './action.yml'
         id: 'gemini_pr_review'
         env:
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
