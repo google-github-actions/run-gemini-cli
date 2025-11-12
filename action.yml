@@ -165,6 +165,11 @@ runs:
       env:
         RAW_WORKFLOW_NAME: '${{ github.workflow }}'
 
+    - name: 'Print workflow name'
+      shell: 'bash'
+      run: |
+        echo "Sanitized workflow name: ${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}"
+
     - name: 'Configure Gemini CLI'
       if: |-
         ${{ inputs.settings != '' }}
