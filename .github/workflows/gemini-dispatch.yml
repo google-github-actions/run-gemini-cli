@@ -1,6 +1,7 @@
 name: '🔀 Gemini Dispatch'
 
 on:
+  workflow_dispatch:
   pull_request_review_comment:
     types:
       - 'created'
@@ -69,6 +70,9 @@ jobs:
       additional_context: '${{ steps.extract_command.outputs.additional_context }}'
       issue_number: '${{ github.event.pull_request.number || github.event.issue.number }}'
     steps:
+      - name: 'Checkout repository'
+        uses: 'actions/checkout@v4' # ratchet:actions/checkout@v4
+
       - name: 'Mint identity token'
         id: 'mint_identity_token'
         if: |-
