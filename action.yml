@@ -160,15 +160,11 @@ runs:
       id: 'sanitize_workflow_name'
       shell: 'bash'
       run: |
-        SANITIZED=$(echo "${RAW_WORKFLOW_NAME}" | sed 's/[^ a-zA-Z0-9]//g' | xargs | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
+        SANITIZED=$(echo "${RAW_WORKFLOW_NAME}" | sed 's/[^ a-zA-Z0-9-]//g' | xargs | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
         echo "gh_workflow_name=$SANITIZED" >> $GITHUB_OUTPUT
       env:
         RAW_WORKFLOW_NAME: '${{ github.workflow }}'
 
-    - name: 'Print workflow name'
-      shell: 'bash'
-      run: |
-        echo "Sanitized workflow name: ${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}"
 
     - name: 'Configure Gemini CLI'
       if: |-
