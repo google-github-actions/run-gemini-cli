@@ -87,6 +87,10 @@ inputs:
     description: 'Whether or not to use pnpm instead of npm to install gemini-cli'
     required: false
     default: 'false'
+  raw_workflow_name:
+    description: 'The raw GitHub workflow name, used for telemetry purposes.'
+    required: false
+    default: '${{ github.workflow }}'
 
 outputs:
   summary:
@@ -181,8 +185,7 @@ runs:
         SANITIZED=$(echo "${RAW_WORKFLOW_NAME}" | sed 's/[^ a-zA-Z0-9-]//g' | xargs | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
         echo "gh_workflow_name=$SANITIZED" >> $GITHUB_OUTPUT
       env:
-        RAW_WORKFLOW_NAME: '${{ github.workflow }}'
-
+        RAW_WORKFLOW_NAME: '${{ inputs.raw_workflow_name }}'
 
     - name: 'Configure Gemini CLI'
       if: |-
