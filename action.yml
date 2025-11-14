@@ -87,6 +87,10 @@ inputs:
     description: 'Whether or not to use pnpm instead of npm to install gemini-cli'
     required: false
     default: 'false'
+  workflow_name:
+    description: 'The GitHub workflow name, used for telemetry purposes.'
+    required: false
+    default: '${{ github.workflow }}'
 
 outputs:
   summary:
@@ -173,6 +177,15 @@ runs:
         INPUT_GCP_TOKEN_FORMAT: '${{ inputs.gcp_token_format }}'
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
+
+    - name: 'Sanitize workflow name'
+      id: 'sanitize_workflow_name'
+      shell: 'bash'
+      run: |
+        SANITIZED=$(echo "${WORKFLOW_NAME}" | sed 's/[^ a-zA-Z0-9-]//g' | xargs | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
+        echo "gh_workflow_name=$SANITIZED" >> $GITHUB_OUTPUT
+      env:
+        WORKFLOW_NAME: '${{ inputs.workflow_name }}'
 
     - name: 'Configure Gemini CLI'
       if: |-
@@ -327,6 +340,7 @@ runs:
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
+        GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-
