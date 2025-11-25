@@ -5,7 +5,8 @@
   "scripts": {
     "build": "echo \"No build required for composite action\"",
     "docs": "./node_modules/.bin/actions-gen-readme",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "evaluate": "node scripts/evaluate-workspace.js"
   },
   "engines": {
     "node": ">= 20.x",

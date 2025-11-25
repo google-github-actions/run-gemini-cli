@@ -68,3 +68,6 @@ gha-creds-*.json
 
 # Ignore local secrets file for act
 .secrets
+
+# Evaluation framework output
+evaluation-results.json
