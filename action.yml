@@ -289,16 +289,14 @@ runs:
         # Keep track of whether we've failed
         FAILED=false
 
-        # Run Gemini CLI with the provided prompt, streaming responses in debug
+        # Run Gemini CLI with the provided prompt, using JSON output format
         if [[ "${DEBUG}" = true ]]; then
           echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
-          if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then
-            FAILED=true
-          fi
-        else
-          if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
-            FAILED=true
-          fi
+        fi
+
+        # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
+        if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+          FAILED=true
         fi
 
         # Create the artifacts directory and copy full logs
@@ -312,19 +310,44 @@ runs:
           touch gemini-artifacts/telemetry.log
         fi
 
+        # Parse JSON output to extract response and errors
+        # If output is not valid JSON, RESPONSE will be empty and we'll rely on stderr for errors
+        if jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
+           RESPONSE=$(jq -r '.response // ""' "${TEMP_STDOUT}")
+           ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDOUT}")
+        else
+           RESPONSE=""
+           ERROR_JSON=""
+           # If FAILED is false but JSON is invalid, something is wrong
+           if [[ "${FAILED}" = false ]]; then
+              echo "::warning::Gemini CLI output was not valid JSON"
+           fi
+        fi
+
+
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
-        cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
+        echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         # Set the captured errors as a step output, supporting multiline
         echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
-        cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+        if [[ -n "${ERROR_JSON}" ]]; then
+          echo "${ERROR_JSON}" >> "${GITHUB_OUTPUT}"
+        else
+          cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+        fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         if [[ "${FAILED}" = true ]]; then
-          LAST_LINE="$(tail -n1 "${TEMP_STDERR}")"
-          echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
+          # If we have a structured error from JSON, use it for the error message
+          if [[ -n "${ERROR_JSON}" ]]; then
+             ERROR_MSG=$(echo "${ERROR_JSON}" | jq -r '.message // .')
+             echo "::error title=Gemini CLI execution failed::${ERROR_MSG}"
+          else
+             LAST_LINE="$(tail -n1 "${TEMP_STDERR}")"
+             echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
+          fi
           echo "See logs for more details"
           exit 1
         fi
