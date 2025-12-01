@@ -299,6 +299,11 @@ runs:
           FAILED=true
         fi
 
+        if [[ "${DEBUG}" = true ]]; then
+          cat "${TEMP_STDOUT}"
+          cat "${TEMP_STDERR}"
+        fi
+
         # Create the artifacts directory and copy full logs
         mkdir -p gemini-artifacts
         cp "${TEMP_STDOUT}" gemini-artifacts/stdout.log
