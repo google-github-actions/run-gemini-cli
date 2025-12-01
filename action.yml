@@ -342,11 +342,11 @@ runs:
         if [[ "${FAILED}" = true ]]; then
           # If we have a structured error from JSON, use it for the error message
           if [[ -n "${ERROR_JSON}" ]]; then
-             ERROR_MSG=$(echo "${ERROR_JSON}" | jq -r '.message // .')
+             ERROR_MSG=$(jq -r '.message // .' <<< "${ERROR_JSON}")
              echo "::error title=Gemini CLI execution failed::${ERROR_MSG}"
           else
              LAST_LINE="$(tail -n1 "${TEMP_STDERR}")"
-             echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
+             printf "::error title=Gemini CLI execution failed::%s\n" "${LAST_LINE}"
           fi
           echo "See logs for more details"
           exit 1
