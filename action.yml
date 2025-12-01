@@ -300,8 +300,12 @@ runs:
         fi
 
         if [[ "${DEBUG}" = true ]]; then
+          echo "::start-group::Gemini CLI STDOUT"
           cat "${TEMP_STDOUT}"
+          echo "::end-group::"
+          echo "::start-group::Gemini CLI STDERR"
           cat "${TEMP_STDERR}"
+          echo "::end-group::"
         fi
 
         # Create the artifacts directory and copy full logs
@@ -323,10 +327,7 @@ runs:
         else
            RESPONSE=""
            ERROR_JSON=""
-           # If FAILED is false but JSON is invalid, something is wrong
-           if [[ "${FAILED}" = false ]]; then
-              echo "::warning::Gemini CLI output was not valid JSON"
-           fi
+           echo "::warning::Gemini CLI output was not valid JSON"
         fi
 
 
@@ -349,11 +350,10 @@ runs:
           if [[ -n "${ERROR_JSON}" ]]; then
              ERROR_MSG=$(jq -r '.message // .' <<< "${ERROR_JSON}")
              echo "::error title=Gemini CLI execution failed::${ERROR_MSG}"
-          else
-             LAST_LINE="$(tail -n1 "${TEMP_STDERR}")"
-             printf "::error title=Gemini CLI execution failed::%s\n" "${LAST_LINE}"
           fi
-          echo "See logs for more details"
+          echo "::start-group::Gemini CLI STDERR"
+          cat "${TEMP_STDERR}"
+          echo "::end-group::"
           exit 1
         fi
       env:
