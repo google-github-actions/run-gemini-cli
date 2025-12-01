@@ -300,12 +300,9 @@ runs:
         fi
 
         if [[ "${DEBUG}" = true ]]; then
-          echo "::start-group::Gemini CLI STDOUT"
+          echo "::: Start Gemini CLI STDOUT :::"
           cat "${TEMP_STDOUT}"
-          echo "::end-group::"
-          echo "::start-group::Gemini CLI STDERR"
-          cat "${TEMP_STDERR}"
-          echo "::end-group::"
+          echo "::: End Gemini CLI STDOUT :::"s 
         fi
 
         # Create the artifacts directory and copy full logs
@@ -321,19 +318,26 @@ runs:
 
         # Parse JSON output to extract response and errors
         # If output is not valid JSON, RESPONSE will be empty and we'll rely on stderr for errors
+        RESPONSE=""
+        ERROR_JSON=""
         if jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
            RESPONSE=$(jq -r '.response // ""' "${TEMP_STDOUT}")
-           ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDOUT}")
-        else
-           RESPONSE=""
-           ERROR_JSON=""
+        fi
+        if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
+           ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
+        fi
+        if [[ -z "${RESPONSE}" && -z "${ERROR_JSON}" ]]; then
            echo "::warning::Gemini CLI output was not valid JSON"
         fi
 
 
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
-        echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
+        if [[ -n "${RESPONSE}" ]]; then
+          echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
+        else
+          cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
+        fi  
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         # Set the captured errors as a step output, supporting multiline
@@ -351,9 +355,9 @@ runs:
              ERROR_MSG=$(jq -r '.message // .' <<< "${ERROR_JSON}")
              echo "::error title=Gemini CLI execution failed::${ERROR_MSG}"
           fi
-          echo "::start-group::Gemini CLI STDERR"
+          echo "::: Start Gemini CLI STDERR :::"
           cat "${TEMP_STDERR}"
-          echo "::end-group::"
+          echo "::: End Gemini CLI STDERR :::"
           exit 1
         fi
       env:
