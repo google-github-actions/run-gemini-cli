@@ -302,7 +302,7 @@ runs:
         if [[ "${DEBUG}" = true ]]; then
           echo "::: Start Gemini CLI STDOUT :::"
           cat "${TEMP_STDOUT}"
-          echo "::: End Gemini CLI STDOUT :::"s 
+          echo "::: End Gemini CLI STDOUT :::"
         fi
 
         # Create the artifacts directory and copy full logs
@@ -326,8 +326,8 @@ runs:
         if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
            ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
         fi
-        if [[ -z "${RESPONSE}" && -z "${ERROR_JSON}" ]]; then
-           echo "::warning::Gemini CLI output was not valid JSON"
+        if ! { jq -e . "${TEMP_STDERR}" >/dev/null 2>&1 && jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI output was not valid JSON"
         fi
 
 
