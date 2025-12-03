@@ -337,7 +337,7 @@ runs:
           echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
         else
           cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
-        fi  
+        fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         # Set the captured errors as a step output, supporting multiline
