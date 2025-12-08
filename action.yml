@@ -367,7 +367,7 @@ runs:
           exit 1
         fi
       env:
-        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
