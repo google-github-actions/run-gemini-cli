@@ -27,7 +27,7 @@ Browse workflows by category to find exactly what you're looking for.
 
 Workflows that help maintain code quality, perform analysis, or enforce standards.
 
-*No workflows yet. Be the first to contribute!*
+_No workflows yet. Be the first to contribute!_
 
 ### 📋 Project Management
 
@@ -70,19 +70,19 @@ Workflows that help manage GitHub issues, projects, or team collaboration.
 
 Workflows that generate, update, or maintain documentation automatically.
 
-*No workflows yet. Be the first to contribute!*
+_No workflows yet. Be the first to contribute!_
 
 ### 🛡️ Security
 
 Workflows focused on security analysis, vulnerability detection, or compliance.
 
-*No workflows yet. Be the first to contribute!*
+_No workflows yet. Be the first to contribute!_
 
 ### 🧪 Testing
 
 Workflows that enhance testing processes, generate test cases, or analyze test results.
 
-*No workflows yet. Be the first to contribute!*
+_No workflows yet. Be the first to contribute!_
 
 ### 🚀 Deployment & Release
 
@@ -90,12 +90,13 @@ Workflows that handle deployment, release management, or publishing tasks.
 
 #### Generate Release Notes
 
-**Repository:** [conforma/policy](https://github.com/conforma/policy)  
+**Repository:** [conforma/policy](https://github.com/conforma/policy)
 
 Make release notes based on all notable changes since a given tag.
 It categorizes the release notes nicely with emojis, output as Markdown.
 
 **Key Features:**
+
 - Categorize changes in release notes
 - Include relevant links in release notes
 - Add fun emojis in release notes
@@ -106,12 +107,12 @@ It categorizes the release notes nicely with emojis, output as Markdown.
 
 Unique or domain-specific workflows that showcase creative uses of Gemini CLI.
 
-*No workflows yet. Be the first to contribute!*
+_No workflows yet. Be the first to contribute!_
 
 ## Featured Workflows
 
-*Coming soon!* This section will highlight particularly innovative or popular community workflows.
+_Coming soon!_ This section will highlight particularly innovative or popular community workflows.
 
 ---
 
-*Want to see your workflow featured here? Check out our [submission guidelines](./README.md#share-your-workflow)!*
+_Want to see your workflow featured here? Check out our [submission guidelines](./README.md#share-your-workflow)!_

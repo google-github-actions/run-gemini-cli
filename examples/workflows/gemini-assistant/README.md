@@ -50,6 +50,7 @@ gha-creds-*.json
 ### Setup Methods
 
 To use this workflow, you can utilize either of the following methods:
+
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
 2. Copy the workflow files into your repository's `.github/workflows` directory:
 
@@ -77,7 +78,7 @@ The Gemini CLI Assistant workflow is triggered by new comments in:
 - GitHub Pull Request review comments
 - GitHub Issues
 
-The Gemini CLI Assistant workflow is intentionally configured *not* to respond to comments containing `/review` or `/triage` to avoid conflicts with other dedicated workflows (such as [the Gemini CLI Pull Request workflow](../pr-review) or [the issue triage workflow](../issue-triage)).
+The Gemini CLI Assistant workflow is intentionally configured _not_ to respond to comments containing `/review` or `/triage` to avoid conflicts with other dedicated workflows (such as [the Gemini CLI Pull Request workflow](../pr-review) or [the issue triage workflow](../issue-triage)).
 
 ### How to Invoke the Gemini CLI Workflow
 
@@ -142,6 +143,7 @@ The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml` file. The
 **To customize the assistant prompt:**
 
 1. Copy the TOML file to your repository:
+
    ```bash
    mkdir -p .gemini/commands
    curl -o .gemini/commands/gemini-invoke.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.toml

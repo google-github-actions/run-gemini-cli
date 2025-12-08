@@ -29,8 +29,8 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
     - [Performance Review](#performance-review)
     - [Breaking Changes Check](#breaking-changes-check)
   - [Extending to Support Forks](#extending-to-support-forks)
-      - [1. Simple Fork Support](#1-simple-fork-support)
-      - [2. Using `pull_request_target` Event](#2-using-pull_request_target-event)
+    - [1. Simple Fork Support](#1-simple-fork-support)
+    - [2. Using `pull_request_target` Event](#2-using-pull_request_target-event)
 
 ## Overview
 
@@ -65,6 +65,7 @@ gha-creds-*.json
 ### Setup Methods
 
 To use this workflow, you can use either of the following methods:
+
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
 2. Copy the workflow files into your repository's `.github/workflows` directory:
 
@@ -130,6 +131,7 @@ flowchart TD
 ### Automatic Reviews
 
 The workflow automatically triggers on:
+
 - **New PRs**: When a pull request is opened
 
 ### Manual Reviews
@@ -146,7 +148,7 @@ You can provide specific focus areas by adding instructions after the trigger:
 
 ```
 @gemini-cli /review focus on security
-@gemini-cli /review check performance and memory usage  
+@gemini-cli /review check performance and memory usage
 @gemini-cli /review please review error handling
 @gemini-cli /review look for breaking changes
 ```
@@ -154,6 +156,7 @@ You can provide specific focus areas by adding instructions after the trigger:
 ### Manual Workflow Dispatch
 
 You can also trigger reviews through the GitHub Actions UI:
+
 1. Go to Actions tab in your repository
 2. Select "Gemini PR Review" workflow
 3. Click "Run workflow"
@@ -167,25 +170,25 @@ The AI review follows a structured format, providing both a high-level summary a
 
 After posting all inline comments, the action submits the review with a final summary comment that includes:
 
--   **Review Summary**: A brief 2-3 sentence overview of the pull request and the overall assessment.
--   **General Feedback**: High-level observations about code quality, architectural patterns, positive implementation aspects, or recurring themes that were not addressed in inline comments.
-
+- **Review Summary**: A brief 2-3 sentence overview of the pull request and the overall assessment.
+- **General Feedback**: High-level observations about code quality, architectural patterns, positive implementation aspects, or recurring themes that were not addressed in inline comments.
 
 ### Specific Feedback (Inline Comments)
 
 The action provides specific, actionable feedback directly on the relevant lines of code in the pull request. Each comment includes:
 
--   **Priority**: An emoji indicating the severity of the feedback.
-    -   🔴 **Critical**: Must be fixed before merging (e.g., security vulnerabilities, breaking changes).
-    -   🟠 **High**: Should be addressed (e.g., performance issues, design flaws).
-    -   🟡 **Medium**: Recommended improvements (e.g., code quality, style).
-    -   🟢 **Low**: Nice-to-have suggestions (e.g., documentation, minor refactoring).
-    -   🔵 **Unclear**: Priority is not determined.
--   **Suggestion**: A code block with a suggested change, where applicable.
+- **Priority**: An emoji indicating the severity of the feedback.
+  - 🔴 **Critical**: Must be fixed before merging (e.g., security vulnerabilities, breaking changes).
+  - 🟠 **High**: Should be addressed (e.g., performance issues, design flaws).
+  - 🟡 **Medium**: Recommended improvements (e.g., code quality, style).
+  - 🟢 **Low**: Nice-to-have suggestions (e.g., documentation, minor refactoring).
+  - 🔵 **Unclear**: Priority is not determined.
+- **Suggestion**: A code block with a suggested change, where applicable.
 
 **Example Inline Comment:**
 
 > 🟢 Use camelCase for function names
+>
 > ```suggestion
 > myFunction
 > ```
@@ -218,6 +221,7 @@ The review prompt is defined in the `gemini-review.toml` file. The action automa
 **To customize the review prompt:**
 
 1. Copy the TOML file to your repository:
+
    ```bash
    mkdir -p .gemini/commands
    curl -o .gemini/commands/gemini-review.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-review.toml
@@ -242,21 +246,25 @@ For more details on workflow configuration, see the [Configuration Guide](../CON
 ## Examples
 
 ### Basic Review Request
+
 ```
 @gemini-cli /review
 ```
 
 ### Security-Focused Review
+
 ```
 @gemini-cli /review focus on security vulnerabilities and authentication
 ```
 
 ### Performance Review
+
 ```
 @gemini-cli /review check for performance issues and optimization opportunities
 ```
 
 ### Breaking Changes Check
+
 ```
 @gemini-cli /review look for potential breaking changes and API compatibility
 ```
@@ -271,7 +279,7 @@ from forks could enable bad actors to access secrets.
 
 This behavior may not be ideal for all use cases - such as private repositories.
 To enable the `pr-review` workflow to run on branches in forks, there are several
-approaches depending on your authentication setup and security requirements. 
+approaches depending on your authentication setup and security requirements.
 Please refer to the GitHub documentation links provided below for
 the security and access considerations of doing so.
 
@@ -288,7 +296,9 @@ can enable fork support by simply removing the fork restriction condition in the
 dispatch workflow.
 
 **Implementation**:
+
 1. Remove the fork restriction in `gemini-dispatch.yml`:
+
    ```yaml
    # Change this condition to remove the fork check
    if: |-
@@ -303,7 +313,6 @@ dispatch workflow.
 2. Document for contributors that they need to configure Google authentication
    in their fork as described in the
    [Authentication documentation](../../../docs/authentication.md).
-
 
 #### 2. Using `pull_request_target` Event
 

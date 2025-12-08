@@ -5,7 +5,13 @@
   "scripts": {
     "build": "echo \"No build required for composite action\"",
     "docs": "./node_modules/.bin/actions-gen-readme",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   },
   "engines": {
     "node": ">= 20.x",
@@ -26,6 +32,9 @@
   },
   "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
   "devDependencies": {
-    "@google-github-actions/actions-utils": "^0.8.10"
+    "@google-github-actions/actions-utils": "^0.8.10",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4"
   }
 }

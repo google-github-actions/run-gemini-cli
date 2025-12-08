@@ -33,7 +33,6 @@ The Issue Triage workflows provide an automated system for analyzing and categor
 - **Error Handling**: Posts helpful comments when triage fails with links to logs
 - **Manual Override**: Support for manual triage requests via comments
 
-
 ## Setup
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
@@ -53,6 +52,7 @@ gha-creds-*.json
 ### Setup Methods
 
 To implement this issue triage system, you can utilize either of the following methods:
+
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
 2. Copy the workflow files into your repository's `.github/workflows` directory:
 
@@ -140,6 +140,7 @@ The triage prompts are defined in TOML files (`gemini-triage.toml` for real-time
 **To customize the triage prompts:**
 
 1. Copy the TOML files to your repository:
+
    ```bash
    mkdir -p .gemini/commands
    curl -o .gemini/commands/gemini-triage.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/issue-triage/gemini-triage.toml
@@ -161,6 +162,7 @@ The triage prompts are defined in TOML files (`gemini-triage.toml` for real-time
 **Additional workflow customization:**
 
 You can also modify the workflow files themselves to adjust:
+
 - **Schedule Frequency**: Modify the cron schedule for batch triage
 - **Timeout Settings**: Adjust `timeout-minutes` for complex repositories
 - **Custom Filters**: Set criteria for which issues need triage
@@ -172,15 +174,17 @@ For more details on workflow configuration, see the [Configuration Guide](../CON
 ## Examples
 
 ### Basic Triage Request
+
 ```
 @gemini-cli /triage
 ```
 
 ### Automatic Labeling
+
 The AI will analyze issues and apply labels such as:
+
 - `bug` - for reported bugs and errors
 - `enhancement` - for feature requests
 - `documentation` - for docs-related issues
 - `priority/high` - for urgent issues
 - `good first issue` - for beginner-friendly tasks
-
