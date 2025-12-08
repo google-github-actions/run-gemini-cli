@@ -16,9 +16,9 @@ jobs:
     timeout-minutes: 30
     runs-on: 'ubuntu-latest'
     permissions:
-      contents: 'write'      # Enable reading and modifying code
-      id-token: 'write'      # Enable minting an identity token
-      issues: 'write'        # Enable updating issues, such as posting a comment
+      contents: 'write' # Enable reading and modifying code
+      id-token: 'write' # Enable minting an identity token
+      issues: 'write' # Enable updating issues, such as posting a comment
       pull-requests: 'write' # Enable creating pull requests
 
     steps:

@@ -54,64 +54,65 @@ Before contributing, ensure you have:
 ## Contribution Workflow
 
 1. **Create a Branch**
-    - Create a new branch for your changes. Use a descriptive name:
-      ```sh
-      git checkout -b feature/your-descriptive-branch-name
-      ```
+   - Create a new branch for your changes. Use a descriptive name:
+     ```sh
+     git checkout -b feature/your-descriptive-branch-name
+     ```
 
 2. **Make Your Changes**
-    - Implement your changes following the [development guidelines](#development-guidelines)
-    - If you modify `action.yml` inputs or outputs, update the documentation:
-      ```sh
-      npm run docs
-      ```
-    - If you update workflow files in `/.gemini/workflows/`, run `./scripts/generate-examples.sh` to auto-generate the examples.
+   - Implement your changes following the [development guidelines](#development-guidelines)
+   - If you modify `action.yml` inputs or outputs, update the documentation:
+     ```sh
+     npm run docs
+     ```
+   - If you update workflow files in `/.gemini/workflows/`, run `./scripts/generate-examples.sh` to auto-generate the examples.
 
 3. **Commit Your Changes**
-    - Commit with a descriptive message following [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-    
-    **Example of a detailed commit message:**
-    ```sh
-    git commit -m "feat: add custom timeout support for workflow execution
+   - Commit with a descriptive message following [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
-    Users reported workflow failures in large repositories where Gemini CLI
-    operations exceed the default GitHub Actions timeout limit. This causes
-    incomplete analysis and frustrating failures for complex codebases.
+   **Example of a detailed commit message:**
 
-    Add configurable timeout support to prevent workflow timeouts:
-    - Enable users to set custom timeout values based on repository size
-    - Provide graceful handling when operations approach time limits  
-    - Include clear error messages when timeouts occur
-    - Document timeout configuration for different use cases
-    
-    This resolves timeout issues for enterprise users with large repositories
-    and improves the overall reliability of the action.
-    
-    Closes #123"
-    ```
+   ```sh
+   git commit -m "feat: add custom timeout support for workflow execution
+
+   Users reported workflow failures in large repositories where Gemini CLI
+   operations exceed the default GitHub Actions timeout limit. This causes
+   incomplete analysis and frustrating failures for complex codebases.
+
+   Add configurable timeout support to prevent workflow timeouts:
+   - Enable users to set custom timeout values based on repository size
+   - Provide graceful handling when operations approach time limits
+   - Include clear error messages when timeouts occur
+   - Document timeout configuration for different use cases
+
+   This resolves timeout issues for enterprise users with large repositories
+   and improves the overall reliability of the action.
+
+   Closes #123"
+   ```
 
 4. **Keep Your Fork Synced**
-    - Sync your `main` branch with the `upstream` repository:
-      ```sh
-      git checkout main
-      git pull upstream main
-      ```
+   - Sync your `main` branch with the `upstream` repository:
+     ```sh
+     git checkout main
+     git pull upstream main
+     ```
 
 5. **Rebase Your Branch**
-    - Rebase your feature branch on top of the latest `main`:
-      ```sh
-      git checkout feature/your-descriptive-branch-name
-      git rebase main
-      ```
+   - Rebase your feature branch on top of the latest `main`:
+     ```sh
+     git checkout feature/your-descriptive-branch-name
+     git rebase main
+     ```
 
 6. **Push Your Changes**
-    - Push your changes to your forked repository:
-      ```sh
-      git push --force-with-lease origin feature/your-descriptive-branch-name
-      ```
+   - Push your changes to your forked repository:
+     ```sh
+     git push --force-with-lease origin feature/your-descriptive-branch-name
+     ```
 
 7. **Create a Pull Request**
-    - Go to your forked repository on GitHub and create a pull request
+   - Go to your forked repository on GitHub and create a pull request
 
 ## Development Guidelines
 
@@ -122,17 +123,20 @@ When contributing to this composite GitHub Action:
 Follow these principles when contributing to this composite GitHub Action:
 
 #### Security
+
 - **Principle of least privilege**: Request only necessary permissions
 - **Validate inputs**: Sanitize user inputs to prevent security issues
 - **Secure defaults**: Choose the most secure configuration options
 
 #### Code Quality
+
 - **Clear naming**: Use descriptive variable and function names
 - **Error handling**: Provide meaningful error messages with context
 - **Shell best practices**: Write portable, robust shell scripts
 - **Documentation**: Keep code and documentation synchronized
 
 #### Action Standards
+
 - **YAML consistency**: Use consistent formatting and structure
 - **Input/output documentation**: Clearly describe all parameters
 - **Version management**: Pin dependencies to specific versions
@@ -141,10 +145,10 @@ Follow these principles when contributing to this composite GitHub Action:
 
 Before submitting your PR:
 
--  **Validate action.yml**: Ensure the manifest is valid YAML
--  **Test workflows**: Verify example workflows work as expected
--  **Check documentation**: Ensure all examples and references are accurate
--  **Lint shell scripts**: Use tools like `shellcheck` for script validation
+- **Validate action.yml**: Ensure the manifest is valid YAML
+- **Test workflows**: Verify example workflows work as expected
+- **Check documentation**: Ensure all examples and references are accurate
+- **Lint shell scripts**: Use tools like `shellcheck` for script validation
 
 ## Documentation
 
@@ -161,6 +165,7 @@ When making changes:
 The inputs and outputs documentation in `README.md` is automatically generated from `action.yml`. After modifying `action.yml`:
 
 1. Run the documentation update script:
+
    ```sh
    npm run docs
    ```

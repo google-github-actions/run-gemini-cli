@@ -23,10 +23,10 @@ Protecting your branches and tags is critical to preventing unauthorized changes
 
 We recommend the following at a minimum for your `main` branch:
 
-*   **Require a pull request before merging**
-*   **Require a minimum number of approvals**
-*   **Dismiss stale approvals**
-*   **Require status checks to pass before merging**
+- **Require a pull request before merging**
+- **Require a minimum number of approvals**
+- **Dismiss stale approvals**
+- **Require status checks to pass before merging**
 
 For more information, see the GitHub documentation on [managing branch protections].
 
@@ -34,8 +34,8 @@ For more information, see the GitHub documentation on [managing branch protectio
 
 To prevent fraudulent or accidental approvals, you can restrict who can approve pull requests.
 
-*   **CODEOWNERS**: Use a [`CODEOWNERS` file] to define individuals or teams that are responsible for code in your repository.
-*   **Code review limits**: [Limit code review approvals] to specific users or teams.
+- **CODEOWNERS**: Use a [`CODEOWNERS` file] to define individuals or teams that are responsible for code in your repository.
+- **Code review limits**: [Limit code review approvals] to specific users or teams.
 
 ## Workflow Configuration
 

@@ -121,6 +121,7 @@ Basic setup for your repository:
 ```
 
 **Required Parameters:**
+
 - `OWNER/REPO`: Your GitHub repository in the format `owner/repo`. Here, `OWNER` means your GitHub organization (for organization-owned repos) or username (for user-owned repos).
 - `GOOGLE_CLOUD_PROJECT`: Your Google Cloud project ID.
 
@@ -248,7 +249,7 @@ If the `APP_ID` and `APP_PRIVATE_KEY` secrets are not configured in your reposit
 
 **Limitations:**
 
-*   **Limited Permissions:** The `GITHUB_TOKEN` has a restricted set of permissions. You may need to grant additional permissions directly within your workflow file to enable specific functionalities, such as:
+- **Limited Permissions:** The `GITHUB_TOKEN` has a restricted set of permissions. You may need to grant additional permissions directly within your workflow file to enable specific functionalities, such as:
 
 ```yaml
 permissions:
@@ -257,7 +258,7 @@ permissions:
   pull-requests: 'write'
 ```
 
-*   **Job-Scoped:** The token's access is limited to the repository where the workflow is running and expires when the job is complete.
+- **Job-Scoped:** The token's access is limited to the repository where the workflow is running and expires when the job is complete.
 
 ### Method 2: Using a GitHub App (Recommended)
 
@@ -267,14 +268,14 @@ For optimal security and control, we strongly recommend creating a custom GitHub
 
 1.  Navigate to **GitHub Settings** > **[Developer settings](https://github.com/settings/developers)** > **[GitHub Apps](https://github.com/settings/apps)** and click **New GitHub App**.
 2.  **Complete the app registration:**
-    *   **GitHub App name:** Give your app a unique and descriptive name (e.g., `MyOrg-Gemini-Assistant`).
-    *   **Homepage URL:** Enter your organization's website or the URL of the repository where you'll use the action.
+    - **GitHub App name:** Give your app a unique and descriptive name (e.g., `MyOrg-Gemini-Assistant`).
+    - **Homepage URL:** Enter your organization's website or the URL of the repository where you'll use the action.
 3.  **Disable Webhooks:** Uncheck the **Active** checkbox under the "Webhooks" section. This action does not require webhook notifications.
 4.  **Set Repository Permissions:** Under the "Repository permissions" section, grant the following permissions required for the example workflows:
-    *   **Contents:** `Read & write`
-    *   **Issues:** `Read & write`
-    *   **Pull requests:** `Read & write`
-    > **Note:** Always adhere to the principle of least privilege. If your custom workflows require fewer permissions, adjust these settings accordingly.
+    - **Contents:** `Read & write`
+    - **Issues:** `Read & write`
+    - **Pull requests:** `Read & write`
+      > **Note:** Always adhere to the principle of least privilege. If your custom workflows require fewer permissions, adjust these settings accordingly.
 5.  Click **Create GitHub App**.
 
 An example manifest is also available at [`examples/github-app/custom_app_manifest.yml`](../examples/github-app/custom_app_manifest.yml). For details on registering a GitHub App from a manifest, see the [GitHub documentation](https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest).
@@ -296,11 +297,11 @@ An example manifest is also available at [`examples/github-app/custom_app_manife
 
 1.  Navigate to your repository's **Settings** > **Secrets and variables** > **Actions**.
 2.  Select the **Variables** tab and click **New repository variable**.
-    *   **Name:** `APP_ID`
-    *   **Value:** Enter the App ID you noted earlier.
+    - **Name:** `APP_ID`
+    - **Value:** Enter the App ID you noted earlier.
 3.  Select the **Secrets** tab and click **New repository secret**.
-    *   **Name:** `APP_PRIVATE_KEY`
-    *   **Secret:** Paste the entire contents of the `.pem` file you downloaded.
+    - **Name:** `APP_PRIVATE_KEY`
+    - **Secret:** Paste the entire contents of the `.pem` file you downloaded.
 
 ## Additional Resources
 
