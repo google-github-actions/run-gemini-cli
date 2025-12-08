@@ -290,19 +290,20 @@ runs:
         FAILED=false
 
         # Run Gemini CLI with the provided prompt, using JSON output format
-        if [[ "${DEBUG}" = true ]]; then
-          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
-        fi
-
         # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
-        if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
-          FAILED=true
-        fi
-
-        if [[ "${DEBUG}" = true ]]; then
+        if [[ "${GEMINI_DEBUG}" = true ]]; then
+          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
           echo "::: Start Gemini CLI STDOUT :::"
-          cat "${TEMP_STDOUT}"
+          if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
+          # Wait for async stderr logging to complete. This is because process substitution in Bash is async so let tee finish writing to ${TEMP_STDERR}
+          sleep 1
           echo "::: End Gemini CLI STDOUT :::"
+        else
+          if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
         fi
 
         # Create the artifacts directory and copy full logs
@@ -366,7 +367,7 @@ runs:
           exit 1
         fi
       env:
-        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'

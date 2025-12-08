@@ -213,7 +213,7 @@ We recommend setting the following values as repository variables so they can be
 
 | Name                        | Description                                                                                                                    | Type     | Required | When Required                  |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | -------- | ------------------------------ |
-| `DEBUG`                     | Enables debug logging for the Gemini CLI.                                                                                      | Variable | No       | Never                          |
+| `GEMINI_DEBUG`              | Enables debug logging for the Gemini CLI.                                                                                      | Variable | No       | Never                          |
 | `GEMINI_CLI_VERSION`        | Controls which version of the Gemini CLI is installed.                                                                         | Variable | No       | Pinning the CLI version        |
 | `GCP_WIF_PROVIDER`          | Full resource name of the Workload Identity Provider.                                                                          | Variable | No       | Using Google Cloud             |
 | `GOOGLE_CLOUD_PROJECT`      | Google Cloud project for inference and observability.                                                                          | Variable | No       | Using Google Cloud             |
@@ -222,6 +222,8 @@ We recommend setting the following values as repository variables so they can be
 | `GOOGLE_GENAI_USE_VERTEXAI` | Set to `true` to use Vertex AI                                                                                                 | Variable | No       | Using Vertex AI                |
 | `GOOGLE_GENAI_USE_GCA`      | Set to `true` to use Gemini Code Assist                                                                                        | Variable | No       | Using Gemini Code Assist       |
 | `APP_ID`                    | GitHub App ID for custom authentication.                                                                                       | Variable | No       | Using a custom GitHub App      |
+
+[!WARNING] Do not use the `DEBUG` environment variable as it causes the Gemini CLI to hang waiting for node debugger to attach.
 
 To add a repository variable:
 
