@@ -294,10 +294,10 @@ runs:
         if [[ "${GEMINI_DEBUG}" = true ]]; then
           echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
           echo "::: Start Gemini CLI STDOUT :::"
-          if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
+          if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
             FAILED=true
           fi
-          # Wait for async stderr logging to complete. This is because process substitution in Bash is async so let tee finish writing to ${TEMP_STDERR} 
+          # Wait for async stderr logging to complete. This is because process substitution in Bash is async so let tee finish writing to ${TEMP_STDERR}
           sleep 1
           echo "::: End Gemini CLI STDOUT :::"
         else
