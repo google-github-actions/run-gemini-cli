@@ -210,7 +210,7 @@ runs:
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}
       id: 'auth'
-      uses: 'google-github-actions/auth@v2' # ratchet:exclude
+      uses: 'google-github-actions/auth@v3' # ratchet:exclude
       with:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
