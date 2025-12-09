@@ -383,7 +383,7 @@ runs:
     - name: 'Upload Gemini CLI outputs'
       if: |-
         ${{ inputs.upload_artifacts == 'true' }}
-      uses: 'actions/upload-artifact@v4' # ratchet:exclude
+      uses: 'actions/upload-artifact@v5' # ratchet:exclude
       with:
         name: 'gemini-output'
         path: 'gemini-artifacts/'
