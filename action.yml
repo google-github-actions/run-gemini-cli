@@ -355,6 +355,41 @@ runs:
         fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
+        # Generate Job Summary
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          {
+            echo "### Gemini CLI Execution"
+            echo
+            echo "#### Prompt"
+            echo
+            echo "\`\`\`"
+            echo "${PROMPT}"
+            echo "\`\`\`"
+            echo
+            if [[ -n "${RESPONSE}" ]]; then
+               echo "#### Response"
+               echo
+               echo "${RESPONSE}"
+               echo
+            fi
+            if [[ -n "${ERROR_JSON}" ]]; then
+               echo "#### Error"
+               echo
+               echo "\`\`\`json"
+               echo "${ERROR_JSON}"
+               echo "\`\`\`"
+               echo
+            elif [[ "${FAILED}" == "true" ]]; then
+               echo "#### Error Output"
+               echo
+               echo "\`\`\`"
+               cat "${TEMP_STDERR}"
+               echo "\`\`\`"
+               echo
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+        fi
+
         if [[ "${FAILED}" = true ]]; then
           # If we have a structured error from JSON, use it for the error message
           if [[ -n "${ERROR_JSON}" ]]; then
