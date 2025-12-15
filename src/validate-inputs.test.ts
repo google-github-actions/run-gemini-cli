@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as core from '@actions/core';
-import { validateInputs } from './validate_inputs';
+import { validateInputs } from './validate-inputs';
 
 vi.mock('@actions/core', () => {
   return {
