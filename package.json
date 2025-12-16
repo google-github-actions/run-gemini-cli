@@ -1,6 +1,6 @@
 {
   "name": "run-gemini-cli",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "This works with our versioning tools, this is NOT an NPM repo",
   "scripts": {
     "build": "echo \"No build required for composite action\"",
