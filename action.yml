@@ -327,13 +327,8 @@ runs:
         if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
            ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
         fi
-        if ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
+        if ! { jq -e . "${TEMP_STDERR}" >/dev/null 2>&1 && jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
           echo "::warning::Gemini CLI output was not valid JSON"
-          # If we failed to parse JSON and the command didn't fail, this is likely a silent failure (e.g. resource limit)
-          if [[ "${FAILED}" == "false" ]]; then
-             echo "::error title=Gemini CLI execution failed::Gemini CLI produced invalid or empty JSON output, which usually indicates a silent failure."
-             FAILED=true
-          fi
         fi
 
 
