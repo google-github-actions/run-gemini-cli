@@ -152,6 +152,7 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 <!-- prettier-ignore-start -->
 <!-- BEGIN_AUTOGEN_INPUTS -->
+
 -   <a name="__input_gcp_location"></a><a href="#user-content-__input_gcp_location"><code>gcp_location</code></a>: _(Optional)_ The Google Cloud location.
 
 -   <a name="__input_gcp_project_id"></a><a href="#user-content-__input_gcp_project_id"><code>gcp_project_id</code></a>: _(Optional)_ The Google Cloud project ID.
@@ -193,6 +194,7 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_workflow_name"></a><a href="#user-content-__input_workflow_name"><code>workflow_name</code></a>: _(Optional, default: `${{ github.workflow }}`)_ The GitHub workflow name, used for telemetry purposes.
 
+
 <!-- END_AUTOGEN_INPUTS -->
 <!-- prettier-ignore-end -->
 
@@ -200,9 +202,11 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 <!-- prettier-ignore-start -->
 <!-- BEGIN_AUTOGEN_OUTPUTS -->
+
 -   <a name="__output_summary"></a><a href="#user-content-__output_summary"><code>summary</code></a>: The summarized output from the Gemini CLI execution.
 
 -   <a name="__output_error"></a><a href="#user-content-__output_error"><code>error</code></a>: The error output from the Gemini CLI execution, if any.
+
 
 <!-- END_AUTOGEN_OUTPUTS -->
 <!-- prettier-ignore-end -->
