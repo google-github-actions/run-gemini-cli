@@ -33,7 +33,6 @@ The Issue Triage workflows provide an automated system for analyzing and categor
 - **Error Handling**: Posts helpful comments when triage fails with links to logs
 - **Manual Override**: Support for manual triage requests via comments
 
-
 ## Setup
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Getting Started](../../../README.md#quick-start) section and [Authentication documentation](../../../docs/authentication.md).
@@ -53,6 +52,7 @@ gha-creds-*.json
 ### Setup Methods
 
 To implement this issue triage system, you can utilize either of the following methods:
+
 1. Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
 2. Copy the workflow files into your repository's `.github/workflows` directory:
 
@@ -135,26 +135,56 @@ The two workflows work together to ensure that all new and existing issues are t
 
 ## Configuration
 
-You can customize the triage workflows by modifying:
+The triage prompts are defined in TOML files (`gemini-triage.toml` for real-time triage and `gemini-scheduled-triage.toml` for batch triage). The action automatically copies these files from `.github/commands/` to `.gemini/commands/` during execution.
 
-- **Triage Logic**: Adjust the AI prompts to change how issues are analyzed
-- **Label Assignment**: Configure which labels are applied based on issue content
+**To customize the triage prompts:**
+
+1. Copy the TOML files to your repository:
+
+   ```bash
+   mkdir -p .gemini/commands
+   curl -o .gemini/commands/gemini-triage.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/issue-triage/gemini-triage.toml
+   curl -o .gemini/commands/gemini-scheduled-triage.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/issue-triage/gemini-scheduled-triage.toml
+   ```
+
+2. Edit the TOML files to customize:
+   - **Triage Logic**: Adjust how issues are analyzed
+   - **Label Assignment**: Configure which labels are applied based on issue content
+   - **Priority Heuristics**: Modify severity and priority determination
+   - **Output Format**: Customize the structure of triage results
+
+3. Commit the files to your repository:
+   ```bash
+   git add .gemini/commands/gemini-triage.toml .gemini/commands/gemini-scheduled-triage.toml
+   git commit -m "feat: customize issue triage prompts"
+   ```
+
+**Additional workflow customization:**
+
+You can also modify the workflow files themselves to adjust:
+
 - **Schedule Frequency**: Modify the cron schedule for batch triage
 - **Timeout Settings**: Adjust `timeout-minutes` for complex repositories
 - **Custom Filters**: Set criteria for which issues need triage
 
+The workflows will use your custom TOML files instead of the default ones from the action.
+
+For more details on workflow configuration, see the [Configuration Guide](../CONFIGURATION.md#custom-commands-toml-files).
+
 ## Examples
 
 ### Basic Triage Request
+
 ```
 @gemini-cli /triage
 ```
 
 ### Automatic Labeling
+
 The AI will analyze issues and apply labels such as:
+
 - `bug` - for reported bugs and errors
 - `enhancement` - for feature requests
 - `documentation` - for docs-related issues
 - `priority/high` - for urgent issues
 - `good first issue` - for beginner-friendly tasks
-

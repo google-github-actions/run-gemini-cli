@@ -211,6 +211,7 @@ print_header "Step 1: Enabling required Google Cloud APIs"
 required_apis=(
     "aiplatform.googleapis.com"
     "cloudaicompanion.googleapis.com"
+    "cloudcode-pa.googleapis.com"
     "cloudresourcemanager.googleapis.com"
     "cloudtrace.googleapis.com"
     "iam.googleapis.com"

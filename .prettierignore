@@ -1,0 +1,17 @@
+**/bundle
+**/coverage
+**/dist
+**/.git
+**/node_modules
+.docker
+.DS_Store
+.env
+.gemini/
+.idea
+.integration-tests/
+*.iml
+*.tsbuildinfo
+*.vsix
+**/generated
+junit.xml
+Thumbs.db

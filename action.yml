@@ -30,6 +30,14 @@ inputs:
   gcp_workload_identity_provider:
     description: 'The Google Cloud Workload Identity Provider.'
     required: false
+  gcp_token_format:
+    description: 'The token format for authentication. Set to "access_token" to generate access tokens (requires service account), or set to empty string for direct WIF. Can be "access_token" or "id_token".'
+    required: false
+    default: 'access_token'
+  gcp_access_token_scopes:
+    description: 'The access token scopes when using token_format "access_token". Comma-separated list of OAuth 2.0 scopes.'
+    required: false
+    default: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
   gemini_api_key:
     description: 'The API key for the Gemini API.'
     required: false
@@ -75,6 +83,14 @@ inputs:
     description: 'Whether to upload artifacts to the github action.'
     required: false
     default: 'false'
+  use_pnpm:
+    description: 'Whether or not to use pnpm instead of npm to install gemini-cli'
+    required: false
+    default: 'false'
+  workflow_name:
+    description: 'The GitHub workflow name, used for telemetry purposes.'
+    required: false
+    default: '${{ github.workflow }}'
 
 outputs:
   summary:
@@ -123,8 +139,13 @@ runs:
 
         # Validate Workload Identity Federation inputs
         if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then
-          if [[ "${INPUT_GCP_PROJECT_ID_PRESENT:-false}" != "true" || "${INPUT_GCP_SERVICE_ACCOUNT_PRESENT:-false}" != "true" ]]; then
-            warn "When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id' and 'gcp_service_account'."
+          if [[ "${INPUT_GCP_PROJECT_ID_PRESENT:-false}" != "true" ]]; then
+            warn "When using Workload Identity Federation ('gcp_workload_identity_provider'), you must also provide 'gcp_project_id'."
+          fi
+          # Service account is required when using token_format (default behavior)
+          # Only optional when explicitly set to empty for direct WIF
+          if [[ "${INPUT_GCP_TOKEN_FORMAT}" != "" && "${INPUT_GCP_SERVICE_ACCOUNT_PRESENT:-false}" != "true" ]]; then
+            warn "When using Workload Identity Federation with token generation ('gcp_token_format'), you must also provide 'gcp_service_account'. To use direct WIF without a service account, explicitly set 'gcp_token_format' to an empty string."
           fi
           if [[ "${INPUT_USE_VERTEX_AI:-false}" == "${INPUT_USE_GEMINI_CODE_ASSIST:-false}" ]]; then
             warn "When using Workload Identity Federation, you must set exactly one of 'use_vertex_ai' or 'use_gemini_code_assist' to 'true'."
@@ -153,8 +174,18 @@ runs:
         INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: "${{ inputs.gcp_workload_identity_provider != '' }}"
         INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
         INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
+        INPUT_GCP_TOKEN_FORMAT: '${{ inputs.gcp_token_format }}'
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
+
+    - name: 'Sanitize workflow name'
+      id: 'sanitize_workflow_name'
+      shell: 'bash'
+      run: |
+        SANITIZED=$(echo "${WORKFLOW_NAME}" | sed 's/[^ a-zA-Z0-9-]//g' | xargs | tr ' ' '_' | tr '[:upper:]' '[:lower:]')
+        echo "gh_workflow_name=$SANITIZED" >> $GITHUB_OUTPUT
+      env:
+        WORKFLOW_NAME: '${{ inputs.workflow_name }}'
 
     - name: 'Configure Gemini CLI'
       if: |-
@@ -184,14 +215,22 @@ runs:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
         service_account: '${{ inputs.gcp_service_account }}'
-        token_format: 'access_token'
-        access_token_scopes: 'https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile'
+        token_format: '${{ inputs.gcp_token_format }}'
+        access_token_scopes: '${{ inputs.gcp_access_token_scopes }}'
+
+    - name: 'Install pnpm'
+      if: |-
+        ${{ inputs.use_pnpm == 'true' }}
+      uses: 'pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061' # ratchet:pnpm/action-setup@v4
+      with:
+        version: 10
 
     - name: 'Install Gemini CLI'
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
+        USE_PNPM: '${{ inputs.use_pnpm }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -200,7 +239,11 @@ runs:
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" == "preview" || "${VERSION_INPUT}" == "nightly" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
           echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
-          npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+          if [[ "${USE_PNPM}" == "true" ]]; then
+            pnpm add --silent --global @google/gemini-cli@"${VERSION_INPUT}"
+          else
+            npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+          fi
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
           git clone https://github.com/google-gemini/gemini-cli.git
@@ -246,14 +289,19 @@ runs:
         # Keep track of whether we've failed
         FAILED=false
 
-        # Run Gemini CLI with the provided prompt, streaming responses in debug
-        if [[ "${DEBUG}" = true ]]; then
+        # Run Gemini CLI with the provided prompt, using JSON output format
+        # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
+        if [[ "${GEMINI_DEBUG}" = true ]]; then
           echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
-          if ! { gemini --yolo --prompt "${PROMPT}" 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; }; then
+          echo "::: Start Gemini CLI STDOUT :::"
+          if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
             FAILED=true
           fi
+          # Wait for async stderr logging to complete. This is because process substitution in Bash is async so let tee finish writing to ${TEMP_STDERR}
+          sleep 1
+          echo "::: End Gemini CLI STDOUT :::"
         else
-          if ! gemini --yolo --prompt "${PROMPT}" 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+          if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
             FAILED=true
           fi
         fi
@@ -269,24 +317,92 @@ runs:
           touch gemini-artifacts/telemetry.log
         fi
 
+        # Parse JSON output to extract response and errors
+        # If output is not valid JSON, RESPONSE will be empty and we'll rely on stderr for errors
+        RESPONSE=""
+        ERROR_JSON=""
+        if jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
+           RESPONSE=$(jq -r '.response // ""' "${TEMP_STDOUT}")
+        fi
+        if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
+           ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
+        fi
+
+        if { [[ -s "${TEMP_STDERR}" ]] && ! jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stderr was not valid JSON"
+        fi
+
+        if { [[ -s "${TEMP_STDOUT}" ]] && ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stdout was not valid JSON"
+        fi
+
+
         # Set the captured response as a step output, supporting multiline
         echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
-        cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
+        if [[ -n "${RESPONSE}" ]]; then
+          echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
+        else
+          cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
+        fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
         # Set the captured errors as a step output, supporting multiline
         echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
-        cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+        if [[ -n "${ERROR_JSON}" ]]; then
+          echo "${ERROR_JSON}" >> "${GITHUB_OUTPUT}"
+        else
+          cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+        fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
+        # Generate Job Summary
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          {
+            echo "### Gemini CLI Execution"
+            echo
+            echo "#### Prompt"
+            echo
+            echo "\`\`\`"
+            echo "${PROMPT}"
+            echo "\`\`\`"
+            echo
+            if [[ -n "${RESPONSE}" ]]; then
+               echo "#### Response"
+               echo
+               echo "${RESPONSE}"
+               echo
+            fi
+            if [[ -n "${ERROR_JSON}" ]]; then
+               echo "#### Error"
+               echo
+               echo "\`\`\`json"
+               echo "${ERROR_JSON}"
+               echo "\`\`\`"
+               echo
+            elif [[ "${FAILED}" == "true" ]]; then
+               echo "#### Error Output"
+               echo
+               echo "\`\`\`"
+               cat "${TEMP_STDERR}"
+               echo "\`\`\`"
+               echo
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+        fi
+
         if [[ "${FAILED}" = true ]]; then
-          LAST_LINE="$(tail -n1 "${TEMP_STDERR}")"
-          echo "::error title=Gemini CLI execution failed::${LAST_LINE}"
-          echo "See logs for more details"
+          # If we have a structured error from JSON, use it for the error message
+          if [[ -n "${ERROR_JSON}" ]]; then
+             ERROR_MSG=$(jq -r '.message // .' <<< "${ERROR_JSON}")
+             echo "::error title=Gemini CLI execution failed::${ERROR_MSG}"
+          fi
+          echo "::: Start Gemini CLI STDERR :::"
+          cat "${TEMP_STDERR}"
+          echo "::: End Gemini CLI STDERR :::"
           exit 1
         fi
       env:
-        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
@@ -297,6 +413,7 @@ runs:
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
         PROMPT: '${{ inputs.prompt }}'
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
+        GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-

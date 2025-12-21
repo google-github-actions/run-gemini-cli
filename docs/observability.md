@@ -66,6 +66,7 @@ After running the setup script, configure your GitHub Actions workflow with the 
 ```
 
 **Important**: To enable telemetry, you must include the `settings` configuration as shown above. This tells the Gemini CLI to:
+
 - Enable telemetry collection
 - Send data to the local OpenTelemetry collector which forwards to your GCP project
 
@@ -142,12 +143,14 @@ Alternatively, you can omit the `telemetry` settings entirely, as telemetry is d
 ## Troubleshooting
 
 **Telemetry not appearing in Google Cloud Console:**
+
 1. Verify that authentication is properly configured
 2. Check that the required APIs are enabled in your GCP project
 3. Ensure the service account has the necessary IAM permissions
 4. Confirm telemetry is enabled in your workflow settings
 
 **Permission errors:**
+
 - Verify your service account has these roles:
   - `roles/logging.logWriter`
   - `roles/monitoring.editor`

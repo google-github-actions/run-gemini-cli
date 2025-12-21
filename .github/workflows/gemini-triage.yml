@@ -37,10 +37,14 @@ jobs:
           # GITHUB_TOKEN provided by the action has enough permissions to read
           # the labels.
           script: |-
-            const { data: labels } = await github.rest.issues.listLabelsForRepo({
+            const labels = [];
+            for await (const response of github.paginate.iterator(github.rest.issues.listLabelsForRepo, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-            });
+              per_page: 100, // Maximum per page to reduce API calls
+            })) {
+              labels.push(...response.data);
+            }
 
             if (!labels || labels.length === 0) {
               core.setFailed('There are no issue labels in this repository.')
@@ -68,12 +72,13 @@ jobs:
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
-          gemini_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
+          gemini_debug: '${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
           gemini_model: '${{ vars.GEMINI_MODEL }}'
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
+          workflow_name: 'gemini-triage'
           settings: |-
             {
               "model": {

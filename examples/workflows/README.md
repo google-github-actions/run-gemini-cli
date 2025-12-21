@@ -11,16 +11,17 @@ This directory contains a collection of example workflows that demonstrate how t
 
 ## Available Workflows
 
-*   **[Gemini Dispatch](./gemini-dispatch)**: A central dispatcher that routes requests to the appropriate workflow based on the triggering event and the command provided in the comment.
-*   **[Issue Triage](./issue-triage)**: Automatically triage GitHub issues using Gemini. This workflow can be configured to run on a schedule or be triggered by issue events.
-*   **[Pull Request Review](./pr-review)**: Automatically review pull requests using Gemini. This workflow can be triggered by pull request events and provides a comprehensive review of the changes.
-*   **[Gemini CLI Assistant](./gemini-assistant)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
+- **[Gemini Dispatch](./gemini-dispatch)**: A central dispatcher that routes requests to the appropriate workflow based on the triggering event and the command provided in the comment.
+- **[Issue Triage](./issue-triage)**: Automatically triage GitHub issues using Gemini. This workflow can be configured to run on a schedule or be triggered by issue events.
+- **[Pull Request Review](./pr-review)**: Automatically review pull requests using Gemini. This workflow can be triggered by pull request events and provides a comprehensive review of the changes.
+- **[Gemini CLI Assistant](./gemini-assistant)**: A general-purpose, conversational AI assistant that can be invoked within pull requests and issues to perform a wide range of tasks.
 
 ## Setup
 
 For detailed setup instructions, including prerequisites and authentication, please refer to the main [Authentication documentation](../../docs/authentication.md).
 
 To use a workflow, you can utilize either of the following steps:
+
 - Run the `/setup-github` command in Gemini CLI on your terminal to set up workflows for your repository.
 - Copy the workflow files into your repository's `.github/workflows` directory.
 
@@ -38,9 +39,10 @@ Discover awesome workflows created by the community! These are publicly availabl
 
 ### Share Your Workflow
 
-Have you created an awesome workflow using Gemini CLI? We'd love to feature it in our [Awesome Workflows](./AWESOME.md) page! 
+Have you created an awesome workflow using Gemini CLI? We'd love to feature it in our [Awesome Workflows](./AWESOME.md) page!
 
 **Submission Process:**
+
 1. **Ensure your workflow is public** and well-documented
 2. **Fork this repository** and create a new branch
 3. **Add your workflow** to the appropriate category section in [AWESOME.md](./AWESOME.md) using the [workflow template](./AWESOME.md#workflow-template)
@@ -49,6 +51,7 @@ Have you created an awesome workflow using Gemini CLI? We'd love to feature it i
 5. **Include a brief summary** in your PR description of what your workflow does and why it's awesome
 
 **What makes a workflow "awesome"?**
+
 - Solves a real problem or provides significant value
 - Is well-documented with clear setup instructions
 - Follows best practices for security and performance
@@ -64,20 +67,23 @@ When adding your workflow to [AWESOME.md](./AWESOME.md), use this format:
 ```markdown
 #### <Workflow Name>
 
-**Repository:** [<owner>/<repo>](https://github.com/<owner>/<repo>)  
+**Repository:** [<owner>/<repo>](https://github.com/<owner>/<repo>)
 
 Brief description of what the workflow does and its key features.
 
 **Key Features:**
+
 - Feature 1
 - Feature 2
 - Feature 3
 
 **Setup Requirements:**
+
 - Requirement 1
 - Requirement 2 (if any)
 
 **Example Use Cases:**
+
 - Use case 1
 - Use case 2
 

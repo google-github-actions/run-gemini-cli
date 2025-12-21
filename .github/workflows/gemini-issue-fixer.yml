@@ -16,9 +16,9 @@ jobs:
     timeout-minutes: 30
     runs-on: 'ubuntu-latest'
     permissions:
-      contents: 'write'      # Enable reading and modifying code
-      id-token: 'write'      # Enable minting an identity token
-      issues: 'write'        # Enable updating issues, such as posting a comment
+      contents: 'write' # Enable reading and modifying code
+      id-token: 'write' # Enable minting an identity token
+      issues: 'write' # Enable updating issues, such as posting a comment
       pull-requests: 'write' # Enable creating pull requests
 
     steps:
@@ -57,7 +57,7 @@ jobs:
           gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
-          gemini_debug: '${{ fromJSON(vars.DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
+          gemini_debug: '${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
           gemini_model: '${{ vars.GEMINI_MODEL }}'
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
@@ -65,7 +65,7 @@ jobs:
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           settings: |-
             {
-              "debug": ${{ fromJSON(env.DEBUG || env.ACTIONS_STEP_DEBUG || false) }},
+              "debug": ${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }},
               "model": {
                 "maxSessionTurns": 200
               },
