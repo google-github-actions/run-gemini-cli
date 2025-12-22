@@ -327,8 +327,13 @@ runs:
         if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
            ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
         fi
-        if ! { jq -e . "${TEMP_STDERR}" >/dev/null 2>&1 && jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
-          echo "::warning::Gemini CLI output was not valid JSON"
+
+        if { [[ -s "${TEMP_STDERR}" ]] && ! jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stderr was not valid JSON"
+        fi
+
+        if { [[ -s "${TEMP_STDOUT}" ]] && ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stdout was not valid JSON"
         fi
 
 
