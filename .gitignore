@@ -68,3 +68,8 @@ gha-creds-*.json
 
 # Ignore local secrets file for act
 .secrets
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
