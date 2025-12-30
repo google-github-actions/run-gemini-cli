@@ -227,7 +227,8 @@ We recommend setting the following values as repository variables so they can be
 | `GOOGLE_GENAI_USE_GCA`      | Set to `true` to use Gemini Code Assist                                                                                        | Variable | No       | Using Gemini Code Assist       |
 | `APP_ID`                    | GitHub App ID for custom authentication.                                                                                       | Variable | No       | Using a custom GitHub App      |
 
-[!WARNING] Do not use the `DEBUG` environment variable as it causes the Gemini CLI to hang waiting for node debugger to attach.
+> [!WARNING]
+> Do not use the `DEBUG` environment variable as it causes the Gemini CLI to hang waiting for node debugger to attach.
 
 To add a repository variable:
 
