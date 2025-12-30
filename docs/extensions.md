@@ -25,7 +25,7 @@ jobs:
         uses: google-github-actions/run-gemini-cli@v0
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          prompt: "/security:analyze"
+          prompt: '/security:analyze'
           extensions: |
             [
               "https://github.com/gemini-cli-extensions/security",

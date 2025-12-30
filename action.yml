@@ -290,19 +290,20 @@ runs:
         FAILED=false
 
         # Run Gemini CLI with the provided prompt, using JSON output format
-        if [[ "${DEBUG}" = true ]]; then
-          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
-        fi
-
         # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
-        if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
-          FAILED=true
-        fi
-
-        if [[ "${DEBUG}" = true ]]; then
+        if [[ "${GEMINI_DEBUG}" = true ]]; then
+          echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
           echo "::: Start Gemini CLI STDOUT :::"
-          cat "${TEMP_STDOUT}"
+          if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
+          # Wait for async stderr logging to complete. This is because process substitution in Bash is async so let tee finish writing to ${TEMP_STDERR}
+          sleep 1
           echo "::: End Gemini CLI STDOUT :::"
+        else
+          if ! gemini --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
         fi
 
         # Create the artifacts directory and copy full logs
@@ -326,13 +327,13 @@ runs:
         if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
            ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
         fi
-        if ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
-          echo "::warning::Gemini CLI output was not valid JSON"
-          # If we failed to parse JSON and the command didn't fail, this is likely a silent failure (e.g. resource limit)
-          if [[ "${FAILED}" == "false" ]]; then
-             echo "::error title=Gemini CLI execution failed::Gemini CLI produced invalid or empty JSON output, which usually indicates a silent failure."
-             FAILED=true
-          fi
+
+        if { [[ -s "${TEMP_STDERR}" ]] && ! jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stderr was not valid JSON"
+        fi
+
+        if { [[ -s "${TEMP_STDOUT}" ]] && ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
+          echo "::warning::Gemini CLI stdout was not valid JSON"
         fi
 
 
@@ -354,6 +355,41 @@ runs:
         fi
         echo "EOF" >> "${GITHUB_OUTPUT}"
 
+        # Generate Job Summary
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          {
+            echo "### Gemini CLI Execution"
+            echo
+            echo "#### Prompt"
+            echo
+            echo "\`\`\`"
+            echo "${PROMPT}"
+            echo "\`\`\`"
+            echo
+            if [[ -n "${RESPONSE}" ]]; then
+               echo "#### Response"
+               echo
+               echo "${RESPONSE}"
+               echo
+            fi
+            if [[ -n "${ERROR_JSON}" ]]; then
+               echo "#### Error"
+               echo
+               echo "\`\`\`json"
+               echo "${ERROR_JSON}"
+               echo "\`\`\`"
+               echo
+            elif [[ "${FAILED}" == "true" ]]; then
+               echo "#### Error Output"
+               echo
+               echo "\`\`\`"
+               cat "${TEMP_STDERR}"
+               echo "\`\`\`"
+               echo
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+        fi
+
         if [[ "${FAILED}" = true ]]; then
           # If we have a structured error from JSON, use it for the error message
           if [[ -n "${ERROR_JSON}" ]]; then
@@ -366,7 +402,7 @@ runs:
           exit 1
         fi
       env:
-        DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
@@ -382,7 +418,7 @@ runs:
     - name: 'Upload Gemini CLI outputs'
       if: |-
         ${{ inputs.upload_artifacts == 'true' }}
-      uses: 'actions/upload-artifact@v4' # ratchet:exclude
+      uses: 'actions/upload-artifact@v6' # ratchet:exclude
       with:
         name: 'gemini-output'
         path: 'gemini-artifacts/'
