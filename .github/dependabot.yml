@@ -1,4 +1,6 @@
-version: 2
+'daily'
+
+: 2
 updates:
   - package-ecosystem: 'npm'
     directory: '/'
@@ -16,3 +18,5 @@ updates:
     rebase-strategy: 'disabled'
     schedule:
       interval: 'daily'
+- name: Run Gemini CLI
+  uses: google-github-actions/run-gemini-cli@v0.1.18
