@@ -201,10 +201,36 @@ runs:
       shell: 'bash'
       run: |-
         set -euo pipefail
-        mkdir -p .gemini/commands
-        cp -r "${GITHUB_ACTION_PATH}/.github/commands/"* .gemini/commands/
+        DEST_DIR=".gemini/commands"
+        mkdir -p "$DEST_DIR"
+
+        ACTION_SRC="${GITHUB_ACTION_PATH}/.github/commands"
+        USER_SRC="${GITHUB_WORKSPACE}/.github/commands"
+
+        install_commands() {
+          local src="$1"
+          local source_name="$2"
+
+          if [[ -d "$src" ]]; then
+            if [ "$(ls -A "$src")" ]; then
+              echo "Installing ${source_name}..."
+              cp -r "$src/." "$DEST_DIR/"
+            else
+              echo "Found ${source_name} directory but it is empty. Skipping."
+            fi
+          else
+            echo "No ${source_name} found at $src. Skipping."
+          fi
+        }
+
+        install_commands "$ACTION_SRC" "Default commands (from Action)"
+        install_commands "$USER_SRC" "Custom commands (from User Repository)"
+
+        echo "Final list of installed commands:"
+        ls -la "$DEST_DIR"
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
+        GITHUB_WORKSPACE: '${{ github.workspace }}'
 
     - name: 'Authenticate to Google Cloud'
       if: |-
