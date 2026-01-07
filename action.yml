@@ -106,7 +106,8 @@ runs:
     - name: 'Validate Inputs'
       id: 'validate_inputs'
       shell: 'bash'
-      run: "$GITHUB_ACTION_PATH/scripts/validate_inputs.sh"
+      run: |-
+        $GITHUB_ACTION_PATH/scripts/validate_inputs.sh
       env:
         INPUT_GEMINI_API_KEY_PRESENT: "${{ inputs.gemini_api_key != '' }}"
         INPUT_GOOGLE_API_KEY_PRESENT: "${{ inputs.google_api_key != '' }}"
@@ -171,12 +172,14 @@ runs:
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
       shell: 'bash'
-      run: "$GITHUB_ACTION_PATH/scripts/install_gemini_cli.sh"
+      run: |-
+        $GITHUB_ACTION_PATH/scripts/install_gemini_cli.sh
 
     - name: 'Run Gemini CLI'
       id: 'gemini_run'
       shell: 'bash'
-      run: "$GITHUB_ACTION_PATH/scripts/run_gemini_cli.sh"
+      run: |-
+        $GITHUB_ACTION_PATH/scripts/run_gemini_cli.sh
       env:
         GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
@@ -203,7 +206,8 @@ runs:
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}
       shell: 'bash'
-      run: "$GITHUB_ACTION_PATH/scripts/upload_telemetry.sh"
+      run: |-
+        $GITHUB_ACTION_PATH/scripts/upload_telemetry.sh
       env:
         OTLP_GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
