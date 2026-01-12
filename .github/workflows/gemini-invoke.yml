@@ -82,12 +82,11 @@ jobs:
                     "--rm",
                     "-e",
                     "GITHUB_PERSONAL_ACCESS_TOKEN",
-                    "ghcr.io/github/github-mcp-server:v0.18.0"
+                    "ghcr.io/github/github-mcp-server:v0.27.0"
                   ],
                   "includeTools": [
                     "add_issue_comment",
-                    "get_issue",
-                    "get_issue_comments",
+                    "issue_read",
                     "list_issues",
                     "search_issues",
                     "create_pull_request",
