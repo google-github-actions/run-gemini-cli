@@ -389,9 +389,9 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --condition=None
 
 # Grant monitoring permissions to the service account
-print_info "Granting 'Monitoring Editor' role to Service Account..."
+print_info "Granting 'Monitoring Metric Writer' role to Service Account..."
 gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/monitoring.editor" \
+    --role="roles/monitoring.metricWriter" \
     --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
     --condition=None
 
@@ -437,7 +437,7 @@ print_header "Permissions Granted"
 echo ""
 print_success "The following permissions have been automatically granted to your repository:"
 echo "• roles/logging.logWriter - Write logs to Cloud Logging"
-echo "• roles/monitoring.editor - Create and update metrics in Cloud Monitoring"
+echo "• roles/monitoring.metricWriter - Create and update metrics in Cloud Monitoring"
 echo "• roles/cloudtrace.agent - Send traces to Cloud Trace"
 echo "• roles/aiplatform.user - Use Vertex AI for model inference"
 
