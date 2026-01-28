@@ -211,7 +211,6 @@ print_header "Step 1: Enabling required Google Cloud APIs"
 required_apis=(
     "aiplatform.googleapis.com"
     "cloudaicompanion.googleapis.com"
-    "cloudcode-pa.googleapis.com"
     "cloudresourcemanager.googleapis.com"
     "cloudtrace.googleapis.com"
     "iam.googleapis.com"
@@ -222,6 +221,7 @@ required_apis=(
 )
 
 gcloud services enable "${required_apis[@]}" --project="${GOOGLE_CLOUD_PROJECT}"
+gcloud services enable "cloudcode-pa.googleapis.com" --project="${GOOGLE_CLOUD_PROJECT}" || true
 print_success "APIs enabled successfully."
 
 # Step 2: Create Workload Identity Pool
