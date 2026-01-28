@@ -219,7 +219,9 @@ required_apis=(
     "monitoring.googleapis.com"
     "sts.googleapis.com"
 )
-
+# Separately enable the internal-only Cloud Code API, ignoring errors
+# for public users who may not have access.
+gcloud services enable "cloudcode-pa.googleapis.com" --project="${GOOGLE_CLOUD_PROJECT}" || true
 gcloud services enable "${required_apis[@]}" --project="${GOOGLE_CLOUD_PROJECT}"
 gcloud services enable "cloudcode-pa.googleapis.com" --project="${GOOGLE_CLOUD_PROJECT}" || true
 print_success "APIs enabled successfully."
