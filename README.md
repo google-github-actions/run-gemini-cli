@@ -178,7 +178,7 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 -   <a name="__input_prompt"></a><a href="#user-content-__input_prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/configuration.md#command-line-arguments).
 
 -   <a name="__input_settings"></a><a href="#user-content-__input_settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
-    For more details, see the documentation on [settings files][settings_json].
+    For more details, see the documentation on [settings files](https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/configuration.md#settings-files).
 
 -   <a name="__input_use_gemini_code_assist"></a><a href="#user-content-__input_use_gemini_code_assist"><code>use_gemini_code_assist</code></a>: _(Optional, default: `false`)_ Whether to use Code Assist for Gemini model access instead of the default Gemini API key.
     For more information, see the [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/authentication.md).
