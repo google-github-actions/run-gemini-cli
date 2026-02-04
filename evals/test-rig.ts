@@ -1,5 +1,12 @@
 import { execSync, spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync, realpathSync } from 'node:fs';
+import {
+  mkdirSync,
+  writeFileSync,
+  readFileSync,
+  existsSync,
+  rmSync,
+  realpathSync,
+} from 'node:fs';
 import { join, dirname } from 'node:path';
 import * as os from 'node:os';
 import { env } from 'node:process';
@@ -16,10 +23,10 @@ export class TestRig {
     const sanitizedName = testName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     this.testDir = join(os.tmpdir(), 'gemini-evals', sanitizedName);
     this.homeDir = join(os.tmpdir(), 'gemini-evals', sanitizedName + '-home');
-    
+
     mkdirSync(this.testDir, { recursive: true });
     mkdirSync(this.homeDir, { recursive: true });
-    
+
     this.telemetryLog = join(this.homeDir, 'telemetry.log');
     this._setupSettings();
   }
@@ -28,30 +35,39 @@ export class TestRig {
     const settings = {
       general: { disableAutoUpdate: true, previewFeatures: false },
       telemetry: { enabled: true, target: 'local', outfile: this.telemetryLog },
-      security: { auth: { selectedType: 'gemini-api-key' }, folderTrust: { enabled: false } },
+      security: {
+        auth: { selectedType: 'gemini-api-key' },
+        folderTrust: { enabled: false },
+      },
       model: { name: env['GEMINI_MODEL'] || 'gemini-2.5-pro' },
       mcpServers: this.mcpServers,
       tools: {
         core: [
-          "run_shell_command",
-          "read_file",
-          "list_directory",
-          "glob",
-          "grep",
-          "edit",
-          "write_file",
-          "replace"
-        ]
-      }
+          'run_shell_command',
+          'read_file',
+          'list_directory',
+          'glob',
+          'grep',
+          'edit',
+          'write_file',
+          'replace',
+        ],
+      },
     };
-    
+
     const projectGeminiDir = join(this.testDir, '.gemini');
     const userGeminiDir = join(this.homeDir, '.gemini');
     mkdirSync(projectGeminiDir, { recursive: true });
     mkdirSync(userGeminiDir, { recursive: true });
-    
-    writeFileSync(join(projectGeminiDir, 'settings.json'), JSON.stringify(settings, null, 2));
-    writeFileSync(join(userGeminiDir, 'settings.json'), JSON.stringify(settings, null, 2));
+
+    writeFileSync(
+      join(projectGeminiDir, 'settings.json'),
+      JSON.stringify(settings, null, 2),
+    );
+    writeFileSync(
+      join(userGeminiDir, 'settings.json'),
+      JSON.stringify(settings, null, 2),
+    );
   }
 
   setupMockMcp() {
@@ -59,7 +75,7 @@ export class TestRig {
     this.mcpServers['github'] = {
       command: 'npx',
       args: ['tsx', mockServerPath],
-      trust: true
+      trust: true,
     };
     this._setupSettings(); // Re-write with MCP config
   }
@@ -74,7 +90,9 @@ export class TestRig {
     return readFileSync(join(this.testDir, path), 'utf-8');
   }
 
-  private _getCleanEnv(extraEnv?: Record<string, string>): Record<string, string | undefined> {
+  private _getCleanEnv(
+    extraEnv?: Record<string, string>,
+  ): Record<string, string | undefined> {
     const cleanEnv: Record<string, string | undefined> = { ...process.env };
 
     for (const key of Object.keys(cleanEnv)) {
@@ -98,13 +116,19 @@ export class TestRig {
     };
   }
 
-  async run(args: string[], extraEnv?: Record<string, string>): Promise<string> {
+  async run(
+    args: string[],
+    extraEnv?: Record<string, string>,
+  ): Promise<string> {
     const runArgs = [...args];
     const isSubcommand = args.length > 0 && !args[0].startsWith('-');
-    
+
     if (!isSubcommand) {
       if (Object.keys(this.mcpServers).length > 0) {
-        runArgs.push('--allowed-mcp-server-names', Object.keys(this.mcpServers).join(','));
+        runArgs.push(
+          '--allowed-mcp-server-names',
+          Object.keys(this.mcpServers).join(','),
+        );
       }
       runArgs.push('--allowed-tools', 'run_shell_command');
     }
@@ -113,13 +137,13 @@ export class TestRig {
       const child = spawn('gemini', runArgs, {
         cwd: this.testDir,
         env: this._getCleanEnv(extraEnv),
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       let stdout = '';
       let stderr = '';
-      child.stdout.on('data', (data) => stdout += data);
-      child.stderr.on('data', (data) => stderr += data);
+      child.stdout.on('data', (data) => (stdout += data));
+      child.stderr.on('data', (data) => (stderr += data));
 
       child.on('close', (code) => {
         this.lastRunStdout = stdout;
@@ -131,7 +155,10 @@ export class TestRig {
   }
 
   git(args: string[]) {
-    return execSync(`git ${args.join(' ')}`, { cwd: this.testDir, encoding: 'utf-8' });
+    return execSync(`git ${args.join(' ')}`, {
+      cwd: this.testDir,
+      encoding: 'utf-8',
+    });
   }
 
   initGit() {
@@ -143,14 +170,21 @@ export class TestRig {
   readToolLogs() {
     if (!existsSync(this.telemetryLog)) return [];
     const content = readFileSync(this.telemetryLog, 'utf-8');
-    return content.split(/(?<=})\s*(?={)/).map((obj) => {
-      try { return JSON.parse(obj.trim()); } catch { return null; }
-    }).filter(o => o?.attributes?.['event.name'] === 'gemini_cli.tool_call')
-      .map(o => ({
+    return content
+      .split(/(?<=})\s*(?={)/)
+      .map((obj) => {
+        try {
+          return JSON.parse(obj.trim());
+        } catch {
+          return null;
+        }
+      })
+      .filter((o) => o?.attributes?.['event.name'] === 'gemini_cli.tool_call')
+      .map((o) => ({
         name: o.attributes.function_name,
         args: o.attributes.function_args,
         success: o.attributes.success,
-        duration_ms: o.attributes.duration_ms
+        duration_ms: o.attributes.duration_ms,
       }));
   }
 

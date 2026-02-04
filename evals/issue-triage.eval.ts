@@ -23,26 +23,36 @@ describe('Issue Triage Workflow', () => {
       try {
         // Setup the command
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
-        copyFileSync('.github/commands/gemini-triage.toml', join(rig.testDir, '.gemini/commands/gemini-triage.toml'));
-        
+        copyFileSync(
+          '.github/commands/gemini-triage.toml',
+          join(rig.testDir, '.gemini/commands/gemini-triage.toml'),
+        );
+
         const envFile = join(rig.testDir, 'github.env');
         const env = {
           ISSUE_TITLE: item.inputs.ISSUE_TITLE,
           ISSUE_BODY: item.inputs.ISSUE_BODY,
           AVAILABLE_LABELS: item.inputs.AVAILABLE_LABELS,
-          GITHUB_ENV: envFile
+          GITHUB_ENV: envFile,
         };
 
         await rig.run(['--prompt', '/gemini-triage', '--yolo'], env);
 
         // Check the output in GITHUB_ENV
         const content = readFileSync(envFile, 'utf-8');
-        const labelsLine = content.split('\n').find(l => l.startsWith('SELECTED_LABELS='));
+        const labelsLine = content
+          .split('\n')
+          .find((l) => l.startsWith('SELECTED_LABELS='));
         expect(labelsLine).toBeDefined();
-        
-        const actualLabels = labelsLine!.split('=')[1].split(',').map(l => l.trim()).filter(l => l).sort();
+
+        const actualLabels = labelsLine!
+          .split('=')[1]
+          .split(',')
+          .map((l) => l.trim())
+          .filter((l) => l)
+          .sort();
         const expectedLabels = [...item.expected].sort();
-        
+
         expect(actualLabels).toEqual(expectedLabels);
       } finally {
         rig.cleanup();

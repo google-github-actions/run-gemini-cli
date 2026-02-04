@@ -10,15 +10,15 @@ This directory contains resources for evaluating and improving the example workf
 
 ## Structure
 
-*   `evals/`:
-    *   `test-rig.ts`: Utility to setup a temporary environment for the CLI.
-    *   `issue-triage.eval.ts`: Benchmark for the Issue Triage workflow.
-    *   `pr-review.eval.ts`: Benchmark for the PR Review workflow.
-    *   `issue-fixer.eval.ts`: Benchmark for the autonomous Issue Fixer.
-    *   `gemini-assistant.eval.ts`: Benchmark for the interactive Assistant.
-    *   `gemini-scheduled-triage.eval.ts`: Benchmark for batch triage.
-    *   `data/*.jsonl`: Gold-standard datasets for each workflow.
-    *   `vitest.config.ts`: Configuration for the evaluation runner.
+- `evals/`:
+  - `test-rig.ts`: Utility to setup a temporary environment for the CLI.
+  - `issue-triage.eval.ts`: Benchmark for the Issue Triage workflow.
+  - `pr-review.eval.ts`: Benchmark for the PR Review workflow.
+  - `issue-fixer.eval.ts`: Benchmark for the autonomous Issue Fixer.
+  - `gemini-assistant.eval.ts`: Benchmark for the interactive Assistant.
+  - `gemini-scheduled-triage.eval.ts`: Benchmark for batch triage.
+  - `data/*.jsonl`: Gold-standard datasets for each workflow.
+  - `vitest.config.ts`: Configuration for the evaluation runner.
 
 ## How to Run
 

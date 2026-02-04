@@ -15,12 +15,14 @@ interface VitestReport {
 function main() {
   const reportPath = process.argv[2];
   if (!reportPath || !fs.existsSync(reportPath)) {
-    console.error('Usage: ts-node aggregate_evals.ts <path-to-vitest-report.json>');
+    console.error(
+      'Usage: ts-node aggregate_evals.ts <path-to-vitest-report.json>',
+    );
     process.exit(1);
   }
 
   const report: VitestReport = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
-  
+
   let total = 0;
   let passed = 0;
   let totalDuration = 0;
@@ -35,13 +37,13 @@ function main() {
       } else if (assertion.status === 'failed') {
         failures.push({
           title: assertion.title,
-          message: assertion.failureMessages.join('\n')
+          message: assertion.failureMessages.join('\n'),
         });
       }
     }
   }
 
-  const passRate = total > 0 ? (passed / total * 100).toFixed(1) : 0;
+  const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
   const avgDuration = total > 0 ? (totalDuration / total / 1000).toFixed(2) : 0;
 
   console.log(`## 📊 Gemini CLI Quality Report`);

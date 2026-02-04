@@ -25,6 +25,12 @@
       "ADDITIONAL_CONTEXT": "Make it pretty."
     },
     "expected_actions": ["AI Assistant: Plan of Action"],
-    "expected_plan_keywords": ["create", "component", "structure", "design", "implement"]
+    "expected_plan_keywords": [
+      "create",
+      "component",
+      "structure",
+      "design",
+      "implement"
+    ]
   }
 ]
