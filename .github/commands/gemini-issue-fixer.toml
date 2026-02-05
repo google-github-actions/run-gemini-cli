@@ -28,7 +28,7 @@ prompt = """
             <step id="1.5" name="Validate Issue">
                 Critically evaluate the issue title and body.
                 - If the issue is too vague to understand or reproduce (e.g., "it's broken"), DO NOT attempt to fix it. Instead, skip to the final step and post a comment asking for specific details, logs, or reproduction steps.
-                - If the issue is clearly out of scope or impossible (e.g., "support IE6" for a modern app), DO NOT attempt to fix it. Post a comment explaining the limitation.
+                - If the issue is clearly out of scope or impossible (e.g., "support IE6" for a modern app), DO NOT attempt to fix it. Post a comment explicitly stating that this request is out of scope or citing the technical limitation.
             </step>
             <step id="2" name="Acknowledge and Plan">
                 1. Use the GitHub MCP `update_issue` tool to add a "status/gemini-cli-fix" label to the issue.
