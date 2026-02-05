@@ -34,8 +34,11 @@
   "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
   "devDependencies": {
     "@google-github-actions/actions-utils": "^0.8.10",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "tsx": "^4.21.0",
+    "vitest": "^4.0.18"
   }
 }

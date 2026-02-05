@@ -25,6 +25,11 @@ prompt = """
             <step id="1" name="Understand Project Standards">
                 The initial context provided to you includes a file tree. If you see a `GEMINI.md` or `CONTRIBUTING.md` file, use the GitHub MCP `get_file_contents` tool to read it first. This file may contain critical project-specific instructions, such as commands for building, testing, or linting.
             </step>
+            <step id="1.5" name="Validate Issue">
+                Critically evaluate the issue title and body.
+                - If the issue is too vague to understand or reproduce (e.g., "it's broken"), DO NOT attempt to fix it. Instead, skip to the final step and post a comment asking for specific details, logs, or reproduction steps.
+                - If the issue is clearly out of scope or impossible (e.g., "support IE6" for a modern app), DO NOT attempt to fix it. Post a comment explaining the limitation.
+            </step>
             <step id="2" name="Acknowledge and Plan">
                 1. Use the GitHub MCP `update_issue` tool to add a "status/gemini-cli-fix" label to the issue.
                 2. Use the `gh issue comment` CLI tool command to post an initial comment. In this comment, you must:

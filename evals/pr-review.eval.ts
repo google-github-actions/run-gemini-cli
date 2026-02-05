@@ -38,8 +38,9 @@ describe('PR Review Workflow', () => {
 
           // 1. Structural check (tools)
           const hasSpecificReviewTool =
-            toolNames.includes('add_comment_to_pending_review') ||
-            toolNames.includes('pull_request_review_write') ||
+            toolNames.some((n) => n.includes('add_comment_to_pending_review')) ||
+            toolNames.some((n) => n.includes('pull_request_review_write')) ||
+            toolNames.some((n) => n.includes('submit_pending_pull_request_review')) ||
             toolCalls.some(
               (c) =>
                 c.name === 'run_shell_command' &&
@@ -47,7 +48,8 @@ describe('PR Review Workflow', () => {
             );
 
           const hasGithubExt =
-            toolNames.includes('get_diff') || toolNames.includes('get_files');
+            toolNames.some((n) => n.includes('get_diff')) ||
+            toolNames.some((n) => n.includes('get_files'));
           const hasExploration =
             toolNames.includes('read_file') ||
             toolNames.includes('list_directory') ||
