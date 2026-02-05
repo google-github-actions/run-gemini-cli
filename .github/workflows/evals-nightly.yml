@@ -13,6 +13,8 @@ on:
 jobs:
   evaluate:
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
     strategy:
       matrix:
         model:
