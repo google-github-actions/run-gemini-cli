@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4'
+        uses: 'actions/checkout@v4' # ratchet:exclude
 
       - name: 'Set up Node.js'
-        uses: 'actions/setup-node@v4'
+        uses: 'actions/setup-node@v4' # ratchet:exclude
         with:
           node-version: '20'
           cache: 'npm'
@@ -42,17 +42,17 @@ jobs:
 
       - name: 'Run Evaluations'
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ matrix.model }}
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GEMINI_MODEL: '${{ matrix.model }}'
         run: |
           npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json
 
       - name: 'Upload Results'
-        uses: 'actions/upload-artifact@v4'
+        uses: 'actions/upload-artifact@v4' # ratchet:exclude
         with:
           name: 'eval-results-${{ matrix.model }}'
           path: 'eval-results-${{ matrix.model }}.json'
 
       - name: 'Job Summary'
         run: |
-          npx tsx scripts/aggregate_evals.ts eval-results-${{ matrix.model }}.json >> $GITHUB_STEP_SUMMARY
+          npx tsx scripts/aggregate_evals.ts "eval-results-${{ matrix.model }}.json" >> "$GITHUB_STEP_SUMMARY"
