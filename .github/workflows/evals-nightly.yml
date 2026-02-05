@@ -40,7 +40,6 @@ jobs:
       - name: 'Install dependencies'
         run: |
           npm ci
-          npm install -g @google/gemini-cli
 
       - name: 'Run Evaluations'
         env:
