@@ -35,171 +35,131 @@
       "ISSUE_TITLE": "Update lodash to the latest version",
       "ISSUE_BODY": "We need to update lodash to address a known security vulnerability in older versions."
     },
-        "expected_actions": [
-          "update_issue",
-          "gh issue comment"
-        ],
-        "expected_plan_keywords": [
-          "npm",
-          "install",
-          "update",
-          "package.json",
-          "verify"
-        ]
-      },
-      {
-        "id": "impossible-request",
-        "inputs": {
-          "REPOSITORY": "owner/repo",
-          "ISSUE_NUMBER": "10",
-          "ISSUE_TITLE": "Fix the bug",
-          "ISSUE_BODY": "It's broken. Fix it now."
-        },
-        "expected_actions": [
-          "gh issue comment"
-        ],
-        "expected_plan_keywords": [
-          "details",
-          "information",
-          "reproduce"
-        ]
-      },
-      {
-        "id": "out-of-scope",
-        "inputs": {
-          "REPOSITORY": "owner/repo",
-          "ISSUE_NUMBER": "11",
-          "ISSUE_TITLE": "Support Internet Explorer 6",
-          "ISSUE_BODY": "Our users are still on IE6, please make this modern React app work on it."
-        },
-        "expected_actions": [
-          "gh issue comment"
-        ],
-        "expected_plan_keywords": [
-          "unsupported",
-          "limitation",
-          "scope"
-        ]
-      },
-      {
-        "id": "security-vulnerability",
-        "inputs": {
-          "REPOSITORY": "owner/repo",
-          "ISSUE_NUMBER": "12",
-          "ISSUE_TITLE": "Fix potential SQL injection in user search",
-          "ISSUE_BODY": "The user search query is constructed using string concatenation."
-        },
-        "expected_actions": [
-          "update_issue",
-          "gh issue comment"
-        ],
-            "expected_plan_keywords": [
-              "security",
-              "injection",
-              "parameterized",
-              "sanitize"
-            ]
-          },
-          {
-            "id": "cross-file-refactor",
-            "inputs": {
-              "REPOSITORY": "owner/repo",
-              "ISSUE_NUMBER": "20",
-              "ISSUE_TITLE": "Refactor validation logic into a separate utility",
-              "ISSUE_BODY": "The validation logic in `UserForm.tsx` and `OrderForm.tsx` is identical. Move it to `src/utils/validation.ts` and update both forms."
-            },
-            "expected_actions": [
-              "update_issue",
-              "gh issue comment"
-            ],
-            "expected_plan_keywords": [
-              "refactor",
-              "move",
-              "utility",
-              "update",
-              "UserForm",
-              "OrderForm"
-            ]
-          },
-          {
-            "id": "complex-state-fix",
-            "inputs": {
-              "REPOSITORY": "owner/repo",
-              "ISSUE_NUMBER": "21",
-              "ISSUE_TITLE": "Fix race condition in multi-step wizard",
-              "ISSUE_BODY": "In the multi-step checkout, if a user clicks 'Next' twice very quickly, they skip a step and end up in an invalid state. We need to disable the button during transition."
-            },
-            "expected_actions": [
-              "update_issue",
-              "gh issue comment"
-            ],
-                "expected_plan_keywords": [
-                  "race condition",
-                  "disable",
-                  "button",
-                  "transition",
-                  "state"
-                ]
-              },
-              {
-                "id": "fix-flaky-test",
-                "inputs": {
-                  "REPOSITORY": "owner/repo",
-                  "ISSUE_NUMBER": "30",
-                  "ISSUE_TITLE": "Flaky test: UserProfile should load data",
-                  "ISSUE_BODY": "The test `UserProfile should load data` fails about 10% of the time on CI. It seems to be timing out waiting for the network."
-                },
-                "expected_actions": [
-                  "update_issue",
-                  "gh issue comment"
-                ],
-                "expected_plan_keywords": [
-                  "flaky",
-                  "wait",
-                  "timeout",
-                  "mock",
-                  "network"
-                ]
-              },
-              {
-                "id": "migrate-deprecated-api",
-                "inputs": {
-                  "REPOSITORY": "owner/repo",
-                  "ISSUE_NUMBER": "31",
-                  "ISSUE_TITLE": "Migrate usage of deprecated 'fs.exists'",
-                  "ISSUE_BODY": "`fs.exists` is deprecated. We should replace all occurrences with `fs.stat` or `fs.access`."
-                },
-                "expected_actions": [
-                  "update_issue",
-                  "gh issue comment"
-                ],
-                "expected_plan_keywords": [
-                  "deprecated",
-                  "replace",
-                  "fs.exists",
-                  "fs.stat",
-                  "fs.access"
-                ]
-              },
-              {
-                "id": "add-ci-workflow",
-                "inputs": {
-                  "REPOSITORY": "owner/repo",
-                  "ISSUE_NUMBER": "32",
-                  "ISSUE_TITLE": "Add CI workflow for linting",
-                  "ISSUE_BODY": "We need a GitHub Actions workflow that runs `npm run lint` on every push to main."
-                },
-                "expected_actions": [
-                  "update_issue",
-                  "gh issue comment"
-                ],
-                "expected_plan_keywords": [
-                  "workflow",
-                  "github/workflows",
-                  "lint",
-                  "push",
-                  "main"
-                ]
-              }
-            ]
-            
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "npm",
+      "install",
+      "update",
+      "package.json",
+      "verify"
+    ]
+  },
+  {
+    "id": "impossible-request",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "10",
+      "ISSUE_TITLE": "Fix the bug",
+      "ISSUE_BODY": "It's broken. Fix it now."
+    },
+    "expected_actions": ["gh issue comment"],
+    "expected_plan_keywords": ["details", "information", "reproduce"]
+  },
+  {
+    "id": "out-of-scope",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "11",
+      "ISSUE_TITLE": "Support Internet Explorer 6",
+      "ISSUE_BODY": "Our users are still on IE6, please make this modern React app work on it."
+    },
+    "expected_actions": ["gh issue comment"],
+    "expected_plan_keywords": ["unsupported", "limitation", "scope"]
+  },
+  {
+    "id": "security-vulnerability",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "12",
+      "ISSUE_TITLE": "Fix potential SQL injection in user search",
+      "ISSUE_BODY": "The user search query is constructed using string concatenation."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "security",
+      "injection",
+      "parameterized",
+      "sanitize"
+    ]
+  },
+  {
+    "id": "cross-file-refactor",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "20",
+      "ISSUE_TITLE": "Refactor validation logic into a separate utility",
+      "ISSUE_BODY": "The validation logic in `UserForm.tsx` and `OrderForm.tsx` is identical. Move it to `src/utils/validation.ts` and update both forms."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "refactor",
+      "move",
+      "utility",
+      "update",
+      "UserForm",
+      "OrderForm"
+    ]
+  },
+  {
+    "id": "complex-state-fix",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "21",
+      "ISSUE_TITLE": "Fix race condition in multi-step wizard",
+      "ISSUE_BODY": "In the multi-step checkout, if a user clicks 'Next' twice very quickly, they skip a step and end up in an invalid state. We need to disable the button during transition."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "race condition",
+      "disable",
+      "button",
+      "transition",
+      "state"
+    ]
+  },
+  {
+    "id": "fix-flaky-test",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "30",
+      "ISSUE_TITLE": "Flaky test: UserProfile should load data",
+      "ISSUE_BODY": "The test `UserProfile should load data` fails about 10% of the time on CI. It seems to be timing out waiting for the network."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": ["flaky", "wait", "timeout", "mock", "network"]
+  },
+  {
+    "id": "migrate-deprecated-api",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "31",
+      "ISSUE_TITLE": "Migrate usage of deprecated 'fs.exists'",
+      "ISSUE_BODY": "`fs.exists` is deprecated. We should replace all occurrences with `fs.stat` or `fs.access`."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "deprecated",
+      "replace",
+      "fs.exists",
+      "fs.stat",
+      "fs.access"
+    ]
+  },
+  {
+    "id": "add-ci-workflow",
+    "inputs": {
+      "REPOSITORY": "owner/repo",
+      "ISSUE_NUMBER": "32",
+      "ISSUE_TITLE": "Add CI workflow for linting",
+      "ISSUE_BODY": "We need a GitHub Actions workflow that runs `npm run lint` on every push to main."
+    },
+    "expected_actions": ["update_issue", "gh issue comment"],
+    "expected_plan_keywords": [
+      "workflow",
+      "github/workflows",
+      "lint",
+      "push",
+      "main"
+    ]
+  }
+]
