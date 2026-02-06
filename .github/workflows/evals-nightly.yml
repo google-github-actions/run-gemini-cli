@@ -41,6 +41,9 @@ jobs:
         run: |
           npm ci
 
+      - name: 'Install Gemini CLI'
+        run: npm install -g @google/gemini-cli@latest
+
       - name: 'Run Evaluations'
         env:
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
@@ -49,11 +52,13 @@ jobs:
           npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json
 
       - name: 'Upload Results'
+        if: always()
         uses: 'actions/upload-artifact@v4' # ratchet:exclude
         with:
           name: 'eval-results-${{ matrix.model }}'
           path: 'eval-results-${{ matrix.model }}.json'
 
       - name: 'Job Summary'
+        if: always()
         run: |
           npx tsx scripts/aggregate_evals.ts "eval-results-${{ matrix.model }}.json" >> "$GITHUB_STEP_SUMMARY"
