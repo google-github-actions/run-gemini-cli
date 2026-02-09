@@ -1,0 +1,41 @@
+[
+  {
+    "id": "logic-error",
+    "inputs": {
+      "REPOSITORY": "google-github-actions/run-gemini-cli",
+      "PULL_REQUEST_NUMBER": "454",
+      "ADDITIONAL_CONTEXT": "Focus on logic errors and edge cases."
+    },
+    "expected_tools": [
+      "pull_request_read.get_diff",
+      "add_comment_to_pending_review"
+    ],
+    "expected_findings": ["eval", "untrusted", "calculation", "input"]
+  },
+  {
+    "id": "security-vulnerability",
+    "inputs": {
+      "REPOSITORY": "google-github-actions/run-gemini-cli",
+      "PULL_REQUEST_NUMBER": "454",
+      "ADDITIONAL_CONTEXT": "Security review requested. Check for injection and data exposure."
+    },
+    "expected_tools": [
+      "pull_request_read.get_diff",
+      "add_comment_to_pending_review"
+    ],
+    "expected_findings": ["eval", "injection", "arbitrary", "execution"]
+  },
+  {
+    "id": "performance-optimization",
+    "inputs": {
+      "REPOSITORY": "google-github-actions/run-gemini-cli",
+      "PULL_REQUEST_NUMBER": "454",
+      "ADDITIONAL_CONTEXT": "The current implementation is slow on large datasets. Look for performance bottlenecks."
+    },
+    "expected_tools": [
+      "pull_request_read.get_diff",
+      "add_comment_to_pending_review"
+    ],
+    "expected_findings": ["nested", "loop", "quadratic", "n^2"]
+  }
+]
