@@ -53,7 +53,7 @@ jobs:
 
       - name: 'Upload Results'
         if: 'always()'
-        uses: 'actions/upload-artifact@v4' # ratchet:exclude
+        uses: 'actions/upload-artifact@v6' # ratchet:exclude
         with:
           name: 'eval-results-${{ matrix.model }}'
           path: 'eval-results-${{ matrix.model }}.json'
