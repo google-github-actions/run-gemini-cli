@@ -1,0 +1,36 @@
+[
+  {
+    "id": "fix-typo",
+    "inputs": {
+      "TITLE": "Fix typo in utils.js",
+      "DESCRIPTION": "There is a typo in the helper function name.",
+      "EVENT_NAME": "issues",
+      "IS_PULL_REQUEST": "false",
+      "ISSUE_NUMBER": "10",
+      "REPOSITORY": "owner/repo",
+      "ADDITIONAL_CONTEXT": "Please fix it."
+    },
+    "expected_actions": ["AI Assistant: Plan of Action"],
+    "expected_plan_keywords": ["search", "grep", "read", "replace", "utils.js"]
+  },
+  {
+    "id": "add-feature",
+    "inputs": {
+      "TITLE": "Add login page",
+      "DESCRIPTION": "We need a login page.",
+      "EVENT_NAME": "issues",
+      "IS_PULL_REQUEST": "false",
+      "ISSUE_NUMBER": "11",
+      "REPOSITORY": "owner/repo",
+      "ADDITIONAL_CONTEXT": "Make it pretty."
+    },
+    "expected_actions": ["AI Assistant: Plan of Action"],
+    "expected_plan_keywords": [
+      "create",
+      "component",
+      "structure",
+      "design",
+      "implement"
+    ]
+  }
+]

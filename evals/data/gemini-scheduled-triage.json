@@ -1,0 +1,19 @@
+[
+  {
+    "id": "batch-1",
+    "inputs": {
+      "AVAILABLE_LABELS": "bug,enhancement,priority/p0",
+      "ISSUES_TO_TRIAGE": "[{\"number\": 1, \"title\": \"Crash on start\", \"body\": \"It crashes immediately.\"}, {\"number\": 2, \"title\": \"Add help button\", \"body\": \"Users need help.\"}]"
+    },
+    "expected": [
+      {
+        "issue_number": 1,
+        "labels_to_set": ["bug", "priority/p0"]
+      },
+      {
+        "issue_number": 2,
+        "labels_to_set": ["enhancement"]
+      }
+    ]
+  }
+]

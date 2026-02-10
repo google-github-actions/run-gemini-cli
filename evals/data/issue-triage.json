@@ -1,0 +1,72 @@
+[
+  {
+    "id": "bug-1",
+    "inputs": {
+      "ISSUE_TITLE": "Application crashes on startup",
+      "ISSUE_BODY": "When I launch the app, it immediately closes with a segfault.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Explicit mention of crash and segfault."
+  },
+  {
+    "id": "feature-1",
+    "inputs": {
+      "ISSUE_TITLE": "Add dark mode",
+      "ISSUE_BODY": "It would be great to have a dark mode for better visibility at night.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["enhancement"],
+    "reason": "Request for a new feature (dark mode)."
+  },
+  {
+    "id": "question-1",
+    "inputs": {
+      "ISSUE_TITLE": "How to run tests?",
+      "ISSUE_BODY": "I cannot find instructions on running the unit tests.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["question", "documentation"],
+    "reason": "Asking for information/instructions regarding documentation."
+  },
+  {
+    "id": "security-1",
+    "inputs": {
+      "ISSUE_TITLE": "SQL Injection vulnerability in login form",
+      "ISSUE_BODY": "I found a way to bypass login using SQL injection on the username field.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug", "security"],
+    "reason": "Specific security vulnerability mentioned."
+  },
+  {
+    "id": "empty-body",
+    "inputs": {
+      "ISSUE_TITLE": "Feature request: support pnpm",
+      "ISSUE_BODY": "",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["enhancement"],
+    "reason": "Title clearly indicates a feature request despite empty body."
+  },
+  {
+    "id": "vague-bug",
+    "inputs": {
+      "ISSUE_TITLE": "It broke",
+      "ISSUE_BODY": "I was using it and then it just stopped working. No error message.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Functional failure reported."
+  },
+  {
+    "id": "translation-req",
+    "inputs": {
+      "ISSUE_TITLE": "Traducción al español",
+      "ISSUE_BODY": "Necesitamos traducir la documentación al español.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["documentation", "enhancement"],
+    "reason": "Request for documentation work in another language."
+  }
+]
