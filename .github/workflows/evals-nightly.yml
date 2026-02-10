@@ -32,7 +32,7 @@ jobs:
         uses: 'actions/checkout@v4' # ratchet:exclude
 
       - name: 'Set up Node.js'
-        uses: 'actions/setup-node@v4' # ratchet:exclude
+        uses: 'actions/setup-node@v6' # ratchet:exclude
         with:
           node-version: '20'
           cache: 'npm'
