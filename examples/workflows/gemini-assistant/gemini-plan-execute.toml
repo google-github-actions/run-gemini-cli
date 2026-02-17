@@ -58,7 +58,7 @@ Before taking any action, you must locate the latest plan of action in the issue
 
 1. **Search for Plan**: Use `issue_read` and `issue_read.get_comments` to find a latest plan titled with "AI Assistant: Plan of Action".
 2. **Conditional Branching**:
-    - **If no plan is found**: Use `add_issue_comment` to state that no plan was found. **Do not look at Step 3. Do not fullfill user request. Your response must end after this comment is posted.**
+    - **If no plan is found**: Use `add_issue_comment` to state that no plan was found. **Do not look at Step 3. Do not fulfill user request. Your response must end after this comment is posted.**
     - **If plan is found**: Proceed to Step 3.
 
 ## Step 3: Plan Execution
