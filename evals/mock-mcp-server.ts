@@ -89,6 +89,36 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: 'Submit review',
         inputSchema: { type: 'object' },
       },
+      {
+        name: 'add_issue_comment',
+        description: 'Add comments to issue',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'issue_read',
+        description: 'Get issue info',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'issue_read.get_comments',
+        description: 'Get issue comments',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'create_branch',
+        description: 'Create a branch',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'create_or_update_file',
+        description: 'Create or update files',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'create_pull_request',
+        description: 'Create a pull request',
+        inputSchema: { type: 'object' },
+      },
     ],
   };
 });
@@ -116,6 +146,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: 'text',
             text: JSON.stringify([{ filename: 'src/index.js' }]),
+          },
+        ],
+      };
+    case 'issue_read.get_comments':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([{ comments: '' }]),
+          },
+        ],
+      };
+    case 'create_branch':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([{ comments: 'Branch created' }]),
+          },
+        ],
+      };
+    case 'create_or_update_file':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([{ comments: 'File created or updated' }]),
+          },
+        ],
+      };
+    case 'create_pull_request':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([{ comments: 'Pull request created' }]),
           },
         ],
       };

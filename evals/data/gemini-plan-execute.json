@@ -1,0 +1,36 @@
+[
+  {
+    "id": "plan without approval",
+    "inputs": {
+      "TITLE": "Add a readme",
+      "DESCRIPTION": "There is no readme",
+      "EVENT_NAME": "issues",
+      "IS_PULL_REQUEST": "false",
+      "ISSUE_NUMBER": "10",
+      "REPOSITORY": "owner/repo",
+      "ADDITIONAL_CONTEXT": ""
+    },
+    "expected_tools": ["add_issue_comment", "issue_read.get_comments"],
+    "expected_plan_keywords": ["no", "cannot"]
+  },
+  {
+    "id": "plan with approval",
+    "inputs": {
+      "TITLE": "Add a readme",
+      "DESCRIPTION": "AI Assistant: Plan of Action\nStep 1: Create a readme with \"Hello\"",
+      "EVENT_NAME": "issues",
+      "IS_PULL_REQUEST": "false",
+      "ISSUE_NUMBER": "10",
+      "REPOSITORY": "owner/repo",
+      "ADDITIONAL_CONTEXT": ""
+    },
+    "expected_tools": [
+      "add_issue_comment",
+      "issue_read.get_comments",
+      "create_branch",
+      "create_or_update_file",
+      "create_pull_request"
+    ],
+    "expected_plan_keywords": ["complete", "success"]
+  }
+]

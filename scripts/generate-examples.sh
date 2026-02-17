@@ -21,6 +21,10 @@ for workflow_file in "${WORKFLOWS_DIR}"/*.yml; do
       example_dir="${EXAMPLES_DIR}/gemini-assistant"
       example_filename="gemini-invoke.yml"
       ;; 
+    "gemini-plan-execute.yml")
+      example_dir="${EXAMPLES_DIR}/gemini-assistant"
+      example_filename="gemini-plan-execute.yml"
+      ;; 
     "gemini-triage.yml")
       example_dir="${EXAMPLES_DIR}/issue-triage"
       example_filename="gemini-triage.yml"
@@ -59,6 +63,9 @@ for toml_file in "${COMMANDS_DIR}"/*.toml; do
   # Map each TOML file to its example directory
   case "${toml_name}" in
     "gemini-invoke.toml")
+      example_dir="${EXAMPLES_DIR}/gemini-assistant"
+      ;;
+    "gemini-plan-execute.toml")
       example_dir="${EXAMPLES_DIR}/gemini-assistant"
       ;;
     "gemini-triage.toml")
