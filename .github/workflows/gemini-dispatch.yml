@@ -105,6 +105,8 @@ jobs:
               core.setOutput('command', 'triage');
             } else if (request.startsWith("@gemini-cli /approve")) {
               core.setOutput('command', 'approve');
+              const additionalContext = request.replace(/^@gemini-cli \/approve/, '').trim();
+              core.setOutput('additional_context', additionalContext);
             } else if (request.startsWith("@gemini-cli /fix")) {
               core.setOutput('command', 'fix');
             } else if (request.startsWith("@gemini-cli")) {
