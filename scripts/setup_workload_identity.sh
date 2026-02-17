@@ -458,6 +458,7 @@ if command -v gh &> /dev/null; then
     gh variable set GOOGLE_CLOUD_PROJECT --body "${GOOGLE_CLOUD_PROJECT}" --repo "${GITHUB_REPO}"
     gh variable set GOOGLE_CLOUD_LOCATION --body "${GOOGLE_CLOUD_LOCATION}" --repo "${GITHUB_REPO}"
     gh variable set SERVICE_ACCOUNT_EMAIL --body "${SERVICE_ACCOUNT_EMAIL}" --repo "${GITHUB_REPO}"
+    gh variable set GOOGLE_GENAI_USE_VERTEXAI --body "true" --repo "${GITHUB_REPO}"
 
     print_success "GitHub variables have been set automatically!"
 else
@@ -475,6 +476,10 @@ else
     echo ""
     echo "☁️ Variable Name: SERVICE_ACCOUNT_EMAIL"
     echo "   Variable Value: ${SERVICE_ACCOUNT_EMAIL}"
+    echo ""
+    echo "🤖 Variable Name: GOOGLE_GENAI_USE_VERTEXAI"
+    echo "   Variable Value: true"
+    echo "   (Set to 'true' to use Vertex AI, or use GOOGLE_GENAI_USE_GCA for Code Assist)"
     echo ""
 fi
 
