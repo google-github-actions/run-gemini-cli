@@ -12,10 +12,11 @@ on:
 
 jobs:
   evaluate:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'ubuntu-22.04'
     permissions:
       contents: 'read'
     strategy:
+      fail-fast: false
       matrix:
         model:
           [
@@ -39,10 +40,11 @@ jobs:
 
       - name: 'Install dependencies'
         run: |
-          npm ci
+          npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 
       - name: 'Install Gemini CLI'
-        run: 'npm install -g @google/gemini-cli@0.29.7'
+        run: |
+          npm install -g @google/gemini-cli@0.29.7 || (sleep 10 && npm install -g @google/gemini-cli@0.29.7) || (sleep 30 && npm install -g @google/gemini-cli@0.29.7)
 
       - name: 'Run Evaluations'
         env:
