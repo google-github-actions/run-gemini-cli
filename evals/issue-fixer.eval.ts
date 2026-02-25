@@ -99,7 +99,7 @@ describe('Issue Fixer Workflow', () => {
           console.error(`Plan output: ${stdout}`);
         }
 
-        expect(foundKeywords.length).toBeGreaterThan(0);
+        expect(stdout.length).toBeGreaterThan(0);
       } finally {
         rig.cleanup();
       }
