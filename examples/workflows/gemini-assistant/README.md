@@ -58,10 +58,11 @@ To use this workflow, you can utilize either of the following methods:
 mkdir -p .github/workflows
 curl -o .github/workflows/gemini-dispatch.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-dispatch/gemini-dispatch.yml
 curl -o .github/workflows/gemini-invoke.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.yml
+curl -o .github/workflows/gemini-plan-execute.yml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-plan-execute.yml
 ```
 
 > **Note:** The `gemini-dispatch.yml` workflow is designed to call multiple
-> workflows. If you are only setting up `gemini-invoke.yml`, you should comment out or
+> workflows. If you are only setting up `gemini-invoke.yml` and `gemini-plan-execute.yml`, you should comment out or
 > remove the other jobs in your copy of `gemini-dispatch.yml`.
 
 ## Dependencies
@@ -131,14 +132,14 @@ flowchart TD
 ```
 
 1.  **Acknowledge**: The action first posts a brief comment to let the user know the request has been received.
-2.  **Plan (if needed)**: For requests that may involve code changes or complex actions, the AI will first create a step-by-step plan. It will post this plan as a comment and wait for the user to approve it by replying with `@gemini-cli plan#123 approved`. This ensures the user has full control before any changes are made.
+2.  **Plan (if needed)**: For requests that may involve code changes or complex actions, the AI will first create a step-by-step plan. It will post this plan as a comment and wait for the user to approve it by replying with `@gemini-cli /approve`. This ensures the user has full control before any changes are made.
 3.  **Execute**: Once the plan is approved (or if no plan was needed), it runs the Gemini model, providing it with the user's request, repository context, and a set of tools.
 4.  **Commit (if needed)**: If the AI uses tools to modify files, it will automatically commit and push the changes to the branch.
 5.  **Respond**: The AI posts a final, comprehensive response as a comment on the issue or pull request.
 
 ## Configuration
 
-The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml` file. The action automatically copies this file from `.github/commands/` to `.gemini/commands/` during execution.
+The Gemini CLI assistant prompts are defined in the `gemini-invoke.toml` and `gemini-plan-execute.toml` files. The action automatically copies these files from `.github/commands/` to `.gemini/commands/` during execution.
 
 **To customize the assistant prompt:**
 
@@ -147,9 +148,10 @@ The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml` file. The
    ```bash
    mkdir -p .gemini/commands
    curl -o .gemini/commands/gemini-invoke.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.toml
+   curl -o .gemini/commands/gemini-plan-execute.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-plan-execute.toml
    ```
 
-2. Edit `.gemini/commands/gemini-invoke.toml` to customize:
+2. Edit `.gemini/commands/gemini-invoke.toml` and `.gemini/commands/gemini-plan-execute.toml` to customize:
    - Change its persona or primary function
    - Add project-specific guidelines or context
    - Instruct it to format its output in a specific way
