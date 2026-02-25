@@ -41,6 +41,9 @@ jobs:
         run: |
           npm ci
 
+      - name: 'Install Gemini CLI'
+        run: 'npm install -g @google/gemini-cli@0.29.7'
+
       - name: 'Run Evaluations'
         env:
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
