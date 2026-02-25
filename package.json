@@ -34,6 +34,7 @@
   "homepage": "https://github.com/google-github-actions/run-gemini-cli#readme",
   "devDependencies": {
     "@google-github-actions/actions-utils": "^0.8.10",
+    "@google/gemini-cli": "^0.30.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/node": "^25.2.1",
     "husky": "^9.1.7",
