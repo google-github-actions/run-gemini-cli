@@ -6,16 +6,9 @@ export default defineConfig({
     testTimeout: 600000,
     hookTimeout: 600000,
     globals: true,
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        minThreads: 4,
-        maxThreads: 8,
-      },
-    },
     sequence: {
       concurrent: true,
     },
-    maxConcurrency: 10,
+    maxConcurrency: 1,
   },
 });
