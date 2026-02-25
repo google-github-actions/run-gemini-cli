@@ -139,7 +139,7 @@ flowchart TD
 
 ## Configuration
 
-The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml`, and `gemini-plan-execute.toml` file. The action automatically copies this file from `.github/commands/` to `.gemini/commands/` during execution.
+The Gemini CLI assistant prompts are defined in the `gemini-invoke.toml` and `gemini-plan-execute.toml` files. The action automatically copies these files from `.github/commands/` to `.gemini/commands/` during execution.
 
 **To customize the assistant prompt:**
 
@@ -148,7 +148,7 @@ The Gemini CLI assistant prompt is defined in the `gemini-invoke.toml`, and `gem
    ```bash
    mkdir -p .gemini/commands
    curl -o .gemini/commands/gemini-invoke.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-invoke.toml
-   curl -o .gemini/commands/gemini-invoke.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-plan-execute.toml
+   curl -o .gemini/commands/gemini-plan-execute.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/gemini-assistant/gemini-plan-execute.toml
    ```
 
 2. Edit `.gemini/commands/gemini-invoke.toml` and `.gemini/commands/gemini-plan-execute.toml` to customize:
