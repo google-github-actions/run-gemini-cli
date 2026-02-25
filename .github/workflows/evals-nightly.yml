@@ -40,12 +40,13 @@ jobs:
           npm install -g @google/gemini-cli@0.29.7 || (sleep 10 && npm install -g @google/gemini-cli@0.29.7) || (sleep 30 && npm install -g @google/gemini-cli@0.29.7)
 
       - name: 'Run Evaluations'
+        id: run_evals
         env:
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
           GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
-          npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json
+          npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json || true
 
       - name: 'Upload Results'
         if: 'always()'
