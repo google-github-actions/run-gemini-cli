@@ -32,11 +32,15 @@ export class TestRig {
   }
 
   private _setupSettings() {
+    const authType =
+      env['GOOGLE_API_KEY'] && !env['GEMINI_API_KEY']
+        ? 'vertex-ai'
+        : 'gemini-api-key';
     const settings = {
       general: { disableAutoUpdate: true, previewFeatures: false },
       telemetry: { enabled: true, target: 'local', outfile: this.telemetryLog },
       security: {
-        auth: { selectedType: 'gemini-api-key' },
+        auth: { selectedType: authType },
         folderTrust: { enabled: false },
       },
       model: { name: env['GEMINI_MODEL'] || 'gemini-2.5-pro' },
