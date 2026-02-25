@@ -12,7 +12,7 @@ on:
 
 jobs:
   evaluate:
-    runs-on: 'gemini-cli-ubuntu-16-core'
+    runs-on: 'ubuntu-22.04'
     permissions:
       contents: 'read'
     strategy:
