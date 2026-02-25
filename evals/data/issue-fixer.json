@@ -64,7 +64,13 @@
       "ISSUE_BODY": "Our users are still on IE6, please make this modern React app work on it."
     },
     "expected_actions": ["gh issue comment"],
-    "expected_plan_keywords": ["unsupported", "limitation", "scope"]
+    "expected_plan_keywords": [
+      "unsupported",
+      "not supported",
+      "scope",
+      "limitation",
+      "ie6"
+    ]
   },
   {
     "id": "security-vulnerability",

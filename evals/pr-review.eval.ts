@@ -38,9 +38,13 @@ describe('PR Review Workflow', () => {
 
           // 1. Structural check (tools)
           const hasSpecificReviewTool =
-            toolNames.some((n) => n.includes('add_comment_to_pending_review')) ||
+            toolNames.some((n) =>
+              n.includes('add_comment_to_pending_review'),
+            ) ||
             toolNames.some((n) => n.includes('pull_request_review_write')) ||
-            toolNames.some((n) => n.includes('submit_pending_pull_request_review')) ||
+            toolNames.some((n) =>
+              n.includes('submit_pending_pull_request_review'),
+            ) ||
             toolCalls.some(
               (c) =>
                 c.name === 'run_shell_command' &&

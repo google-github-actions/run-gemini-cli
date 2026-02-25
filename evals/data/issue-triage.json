@@ -76,10 +76,7 @@
       "ISSUE_BODY": "The search results take 10 seconds to load (bug). Also, the results should be displayed in a grid instead of a list.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug",
-      "enhancement"
-    ],
+    "expected": ["bug", "enhancement"],
     "reason": "Identifies both a performance bug and a UI enhancement."
   },
   {
@@ -99,9 +96,7 @@
       "ISSUE_BODY": "I am still using Windows 95 and I want this CLI to work on it. I know you said you only support modern OSs but please.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "wontfix"
-    ],
+    "expected": ["wontfix"],
     "reason": "User acknowledges it's outside supported scope."
   },
   {
@@ -111,10 +106,7 @@
       "ISSUE_BODY": "I am seeing the same crash as reported in #45. Here are my logs just in case.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug",
-      "duplicate"
-    ],
+    "expected": ["bug", "duplicate"],
     "reason": "Reported as a bug but also explicitly mentions it's a duplicate."
   },
   {
@@ -124,9 +116,7 @@
       "ISSUE_BODY": "We are seeing this error frequently. \n\n<details><summary>Logs</summary>\nError: Unexpected token\n  at parse (/app/node_modules/parser/index.js:10:5)\n  ... [imagine 500 lines of logs here] ...\n  at main (/app/src/index.js:5:1)\n</details>",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug"
-    ],
+    "expected": ["bug"],
     "reason": "Extracted the core bug from a log-heavy report."
   },
   {
@@ -136,9 +126,7 @@
       "ISSUE_BODY": "I tried to use it and it didn't do what I expected. Please fix.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug"
-    ],
+    "expected": ["bug"],
     "reason": "Vague but still reports a functional issue."
   },
   {
@@ -158,9 +146,7 @@
       "ISSUE_BODY": "Actually, it's not a crash, but I think the button should be blue instead of red. It would look much better.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "enhancement"
-    ],
+    "expected": ["enhancement"],
     "reason": "Title says bug, but body clarifies it's a UI enhancement request."
   },
   {
@@ -170,9 +156,7 @@
       "ISSUE_BODY": "1. The login page has a typo in the footer. 2. The search function returns 'undefined' for empty queries.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug"
-    ],
+    "expected": ["bug"],
     "reason": "Reports a functional bug (search). Typo is minor and might be missed or considered part of general maintenance."
   },
   {
@@ -182,9 +166,7 @@
       "ISSUE_BODY": "I just updated to the latest version and now Feature X doesn't do anything. It worked perfectly in v1.5.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "bug"
-    ],
+    "expected": ["bug"],
     "reason": "Clearly identifies a regression, which is a bug."
   },
   {
@@ -194,9 +176,7 @@
       "ISSUE_BODY": "This PR updates react from v17 to v18. ...",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix,dependencies"
     },
-    "expected": [
-      "dependencies"
-    ],
+    "expected": ["dependencies"],
     "reason": "Standard dependency update bot."
   },
   {
@@ -206,10 +186,7 @@
       "ISSUE_BODY": "I see `timeout` in the code but I can't find it in the README. How do I use it?",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
     },
-    "expected": [
-      "documentation",
-      "question"
-    ],
+    "expected": ["documentation", "question"],
     "reason": "User asking a question about a missing documentation piece."
   },
   {
@@ -219,9 +196,7 @@
       "ISSUE_BODY": "I put '123' as my API key and the app says 'Invalid Key'. This is a bug, it should work.",
       "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix,invalid"
     },
-    "expected": [
-      "invalid"
-    ],
+    "expected": ["invalid"],
     "reason": "User error/configuration issue, not a software bug."
   }
 ]

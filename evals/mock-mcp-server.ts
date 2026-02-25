@@ -164,6 +164,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: { type: 'object' },
       },
       {
+        name: 'update_issue',
+        description: 'Update issue labels or status',
+        inputSchema: { type: 'object' },
+      },
+      {
         name: 'issue_read',
         description: 'Get issue info',
         inputSchema: { type: 'object' },
