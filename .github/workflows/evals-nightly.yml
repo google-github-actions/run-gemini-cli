@@ -46,7 +46,7 @@ jobs:
 
       - name: 'Run Evaluations'
         env:
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}'
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
           npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json
