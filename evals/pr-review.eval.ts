@@ -33,6 +33,9 @@ describe('PR Review Workflow', () => {
             item.inputs,
           );
 
+          // Add a small delay to ensure telemetry logs are flushed
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
           const toolCalls = rig.readToolLogs();
           const toolNames = toolCalls.map((c) => c.name);
 

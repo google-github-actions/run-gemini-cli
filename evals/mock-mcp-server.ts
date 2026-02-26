@@ -193,6 +193,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: 'Create a pull request',
         inputSchema: { type: 'object' },
       },
+      {
+        name: 'search_code',
+        description: 'Search code',
+        inputSchema: { type: 'object' },
+      },
+      {
+        name: 'get_file_contents',
+        description: 'Get file contents',
+        inputSchema: { type: 'object' },
+      },
     ],
   };
 });
@@ -202,6 +212,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const pull_number = (request.params.arguments as any)?.pull_number;
 
   switch (request.params.name) {
+    case 'search_code':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([{ path: 'src/index.js' }]),
+          },
+        ],
+      };
+    case 'get_file_contents':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'mock file content',
+          },
+        ],
+      };
     case 'pull_request_read.get':
       if (pull_number === 2) {
         return {

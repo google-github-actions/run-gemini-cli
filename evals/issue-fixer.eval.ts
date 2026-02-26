@@ -48,15 +48,22 @@ describe('Issue Fixer Workflow', () => {
           env,
         );
 
+        // Add a small delay to ensure telemetry logs are flushed
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         const toolCalls = rig.readToolLogs();
         const toolNames = toolCalls.map((c) => c.name);
 
         // 1. Structural check
-        const hasExploration =
-          toolNames.includes('read_file') ||
-          toolNames.includes('list_directory') ||
-          toolNames.includes('glob') ||
-          toolNames.includes('grep'); // Added grep
+        const hasExploration = toolNames.some(
+          (n) =>
+            n.includes('read_file') ||
+            n.includes('list_directory') ||
+            n.includes('glob') ||
+            n.includes('grep') ||
+            n.includes('search_code') ||
+            n.includes('get_file_contents'),
+        );
         const hasGitAction = toolCalls.some(
           (c) =>
             c.name === 'run_shell_command' &&
