@@ -40,7 +40,7 @@ jobs:
           npm install -g @google/gemini-cli@0.29.7 || (sleep 10 && npm install -g @google/gemini-cli@0.29.7) || (sleep 30 && npm install -g @google/gemini-cli@0.29.7)
 
       - name: 'Run Evaluations'
-        id: run_evals
+        id: 'run_evals'
         env:
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
           GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
