@@ -7,7 +7,7 @@ import {
   rmSync,
   realpathSync,
 } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import * as os from 'node:os';
 import { env } from 'node:process';
 
@@ -32,11 +32,15 @@ export class TestRig {
   }
 
   private _setupSettings() {
+    const authType =
+      env['GOOGLE_API_KEY'] && !env['GEMINI_API_KEY']
+        ? 'vertex-ai'
+        : 'gemini-api-key';
     const settings = {
       general: { disableAutoUpdate: true, previewFeatures: false },
       telemetry: { enabled: true, target: 'local', outfile: this.telemetryLog },
       security: {
-        auth: { selectedType: 'gemini-api-key' },
+        auth: { selectedType: authType },
         folderTrust: { enabled: false },
       },
       model: { name: env['GEMINI_MODEL'] || 'gemini-2.5-pro' },
@@ -59,6 +63,11 @@ export class TestRig {
     const userGeminiDir = join(this.homeDir, '.gemini');
     mkdirSync(projectGeminiDir, { recursive: true });
     mkdirSync(userGeminiDir, { recursive: true });
+
+    // Proactively create chats directory to avoid ENOENT errors
+    const sanitizedName = basename(this.testDir);
+    const chatsDir = join(userGeminiDir, 'tmp', sanitizedName, 'chats');
+    mkdirSync(chatsDir, { recursive: true });
 
     writeFileSync(
       join(projectGeminiDir, 'settings.json'),
