@@ -61,6 +61,7 @@ describe('Issue Fixer Workflow', () => {
             n.includes('list_directory') ||
             n.includes('glob') ||
             n.includes('grep') ||
+            n.includes('search') ||
             n.includes('search_code') ||
             n.includes('get_file_contents'),
         );
