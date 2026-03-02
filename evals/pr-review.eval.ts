@@ -34,7 +34,7 @@ describe('PR Review Workflow', () => {
           writeFileSync(join(commandDir, 'code-review.toml'), tomlContent);
 
           const stdout = await rig.run(
-            ['--prompt', '/code-review', 'pr-review', '--yolo'],
+            ['--prompt', '"/code-review pr-review"', '--yolo'],
             item.inputs,
           );
 
