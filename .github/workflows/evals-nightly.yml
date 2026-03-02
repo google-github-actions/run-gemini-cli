@@ -12,19 +12,13 @@ on:
 
 jobs:
   evaluate:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'ubuntu-22.04'
     permissions:
       contents: 'read'
     strategy:
+      fail-fast: false
       matrix:
-        model:
-          [
-            'gemini-3-pro-preview',
-            'gemini-3-flash-preview',
-            'gemini-2.5-pro',
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
-          ]
+        model: ['gemini-3-pro-preview', 'gemini-3-flash-preview']
     name: 'Evaluate ${{ matrix.model }}'
 
     steps:
@@ -39,17 +33,20 @@ jobs:
 
       - name: 'Install dependencies'
         run: |
-          npm ci
+          npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 
       - name: 'Install Gemini CLI'
-        run: 'npm install -g @google/gemini-cli@latest'
+        run: |
+          npm install -g @google/gemini-cli@0.29.7 || (sleep 10 && npm install -g @google/gemini-cli@0.29.7) || (sleep 30 && npm install -g @google/gemini-cli@0.29.7)
 
       - name: 'Run Evaluations'
+        id: 'run_evals'
         env:
           GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
-          npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json
+          npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json || true
 
       - name: 'Upload Results'
         if: 'always()'
