@@ -40,13 +40,13 @@ describe('PR Review Workflow', () => {
           const toolNames = toolCalls.map((c) => c.name);
 
           // 1. Structural check (tools)
+          // We use .includes because MCP tools are prefixed (e.g. github__add_comment_to_pending_review)
           const hasSpecificReviewTool =
-            toolNames.some((n) =>
-              n.includes('add_comment_to_pending_review'),
-            ) ||
-            toolNames.some((n) => n.includes('pull_request_review_write')) ||
-            toolNames.some((n) =>
-              n.includes('submit_pending_pull_request_review'),
+            toolNames.some(
+              (n) =>
+                n.includes('add_comment_to_pending_review') ||
+                n.includes('pull_request_review_write') ||
+                n.includes('submit_pending_pull_request_review'),
             ) ||
             toolCalls.some(
               (c) =>
@@ -54,9 +54,9 @@ describe('PR Review Workflow', () => {
                 c.args.includes('gh pr review'),
             );
 
-          const hasGithubExt =
-            toolNames.some((n) => n.includes('get_diff')) ||
-            toolNames.some((n) => n.includes('get_files'));
+          const hasGithubExt = toolNames.some(
+            (n) => n.includes('get_diff') || n.includes('get_files'),
+          );
           const hasExploration =
             toolNames.includes('read_file') ||
             toolNames.includes('list_directory') ||
