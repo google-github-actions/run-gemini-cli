@@ -215,7 +215,7 @@ You can customize the workflow by modifying:
 
 ### Review Prompt Customization
 
-The review prompt utilize [code review extension](https://github.com/gemini-cli-extensions/code-review) and its defined prompt.
+The review prompt utilizes [code review extension](https://github.com/gemini-cli-extensions/code-review) and its defined prompt.
 
 **To customize the review prompt:**
 

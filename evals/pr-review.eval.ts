@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
-import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 
