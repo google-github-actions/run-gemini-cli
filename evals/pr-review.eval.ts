@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
-import { mkdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 
@@ -13,6 +13,8 @@ interface ReviewCase {
 
 const datasetPath = join(__dirname, 'data/pr-review.json');
 const dataset: ReviewCase[] = JSON.parse(readFileSync(datasetPath, 'utf-8'));
+const REVIEW_TOML_URL =
+  'https://raw.githubusercontent.com/gemini-cli-extensions/code-review/main/commands/code-review.toml';
 
 describe('PR Review Workflow', () => {
   for (const item of dataset) {
@@ -22,14 +24,17 @@ describe('PR Review Workflow', () => {
         const rig = new TestRig(`review-${item.id}`);
         try {
           rig.setupMockMcp();
-          mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
-          copyFileSync(
-            '.github/commands/gemini-review.toml',
-            join(rig.testDir, '.gemini/commands/gemini-review.toml'),
-          );
+          const commandDir = join(rig.testDir, '.gemini/commands');
+          mkdirSync(commandDir, { recursive: true });
+
+          const response = await fetch(REVIEW_TOML_URL);
+          if (!response.ok)
+            throw new Error(`Failed to fetch TOML: ${response.statusText}`);
+          const tomlContent = await response.text();
+          writeFileSync(join(commandDir, 'code-review.toml'), tomlContent);
 
           const stdout = await rig.run(
-            ['--prompt', '/gemini-review', '--yolo'],
+            ['--prompt', '/code-review', 'pr-review', '--yolo'],
             item.inputs,
           );
 
