@@ -34,7 +34,7 @@ This document explains how to use the Gemini CLI on GitHub to automatically revi
 
 ## Overview
 
-The PR Review workflow uses Google's Gemini AI to provide comprehensive code reviews for pull requests. It analyzes code quality, security, performance, and maintainability while providing constructive feedback in a structured format.
+The PR Review workflow uses Google's Gemini AI and [code review extension](https://github.com/gemini-cli-extensions/code-review) to provide comprehensive code reviews for pull requests. It analyzes code quality, security, performance, and maintainability while providing constructive feedback in a structured format.
 
 ## Features
 
@@ -178,16 +178,15 @@ After posting all inline comments, the action submits the review with a final su
 The action provides specific, actionable feedback directly on the relevant lines of code in the pull request. Each comment includes:
 
 - **Priority**: An emoji indicating the severity of the feedback.
-  - 🔴 **Critical**: Must be fixed before merging (e.g., security vulnerabilities, breaking changes).
-  - 🟠 **High**: Should be addressed (e.g., performance issues, design flaws).
-  - 🟡 **Medium**: Recommended improvements (e.g., code quality, style).
-  - 🟢 **Low**: Nice-to-have suggestions (e.g., documentation, minor refactoring).
-  - 🔵 **Unclear**: Priority is not determined.
+  - **Critical**: Must be fixed before merging (e.g., security vulnerabilities, breaking changes).
+  - **High**: Should be addressed (e.g., performance issues, design flaws).
+  - **Medium**: Recommended improvements (e.g., code quality, style).
+  - **Low**: Nice-to-have suggestions (e.g., documentation, minor refactoring).
 - **Suggestion**: A code block with a suggested change, where applicable.
 
 **Example Inline Comment:**
 
-> 🟢 Use camelCase for function names
+> Use camelCase for function names
 >
 > ```suggestion
 > myFunction
@@ -216,7 +215,7 @@ You can customize the workflow by modifying:
 
 ### Review Prompt Customization
 
-The review prompt is defined in the `gemini-review.toml` file. The action automatically copies this file from `.github/commands/` to `.gemini/commands/` during execution.
+The review prompt utilize [code review extension](https://github.com/gemini-cli-extensions/code-review) and its defined prompt.
 
 **To customize the review prompt:**
 
@@ -224,7 +223,7 @@ The review prompt is defined in the `gemini-review.toml` file. The action automa
 
    ```bash
    mkdir -p .gemini/commands
-   curl -o .gemini/commands/gemini-review.toml https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/main/examples/workflows/pr-review/gemini-review.toml
+   curl -o .gemini/commands/gemini-review.toml https://raw.githubusercontent.com/gemini-cli-extensions/code-review/main/commands/code-review.toml
    ```
 
 2. Edit `.gemini/commands/gemini-review.toml` to customize:
