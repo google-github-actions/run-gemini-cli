@@ -31,6 +31,12 @@
       "create_or_update_file",
       "create_pull_request"
     ],
-    "expected_plan_keywords": ["complete", "success"]
+    "expected_plan_keywords": [
+      "created",
+      "branch",
+      "pull request",
+      "complete",
+      "done"
+    ]
   }
 ]

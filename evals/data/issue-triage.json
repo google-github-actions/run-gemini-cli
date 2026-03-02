@@ -68,5 +68,135 @@
     },
     "expected": ["documentation", "enhancement"],
     "reason": "Request for documentation work in another language."
+  },
+  {
+    "id": "mixed-bug-feature",
+    "inputs": {
+      "ISSUE_TITLE": "Search is slow and needs a better UI",
+      "ISSUE_BODY": "The search results take 10 seconds to load (bug). Also, the results should be displayed in a grid instead of a list.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug", "enhancement"],
+    "reason": "Identifies both a performance bug and a UI enhancement."
+  },
+  {
+    "id": "out-of-scope-spam",
+    "inputs": {
+      "ISSUE_TITLE": "GET FREE GIFT CARDS NOW!!!",
+      "ISSUE_BODY": "Click here to win a free gift card: http://malicious-link.com",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": [],
+    "reason": "Spam should not be assigned any functional labels."
+  },
+  {
+    "id": "wontfix-candidate",
+    "inputs": {
+      "ISSUE_TITLE": "Support Windows 95",
+      "ISSUE_BODY": "I am still using Windows 95 and I want this CLI to work on it. I know you said you only support modern OSs but please.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["wontfix"],
+    "reason": "User acknowledges it's outside supported scope."
+  },
+  {
+    "id": "duplicate-candidate",
+    "inputs": {
+      "ISSUE_TITLE": "Crash on login (same as #45)",
+      "ISSUE_BODY": "I am seeing the same crash as reported in #45. Here are my logs just in case.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug", "duplicate"],
+    "reason": "Reported as a bug but also explicitly mentions it's a duplicate."
+  },
+  {
+    "id": "long-log-dump",
+    "inputs": {
+      "ISSUE_TITLE": "Unexpected error in production",
+      "ISSUE_BODY": "We are seeing this error frequently. \n\n<details><summary>Logs</summary>\nError: Unexpected token\n  at parse (/app/node_modules/parser/index.js:10:5)\n  ... [imagine 500 lines of logs here] ...\n  at main (/app/src/index.js:5:1)\n</details>",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Extracted the core bug from a log-heavy report."
+  },
+  {
+    "id": "ambiguous-request",
+    "inputs": {
+      "ISSUE_TITLE": "It's not working correctly",
+      "ISSUE_BODY": "I tried to use it and it didn't do what I expected. Please fix.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Vague but still reports a functional issue."
+  },
+  {
+    "id": "completely-ambiguous",
+    "inputs": {
+      "ISSUE_TITLE": "Help",
+      "ISSUE_BODY": "I don't know.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": [],
+    "reason": "Too ambiguous to label."
+  },
+  {
+    "id": "contradictory-title-body",
+    "inputs": {
+      "ISSUE_TITLE": "Bug: App crashes on click",
+      "ISSUE_BODY": "Actually, it's not a crash, but I think the button should be blue instead of red. It would look much better.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["enhancement"],
+    "reason": "Title says bug, but body clarifies it's a UI enhancement request."
+  },
+  {
+    "id": "multi-component-report",
+    "inputs": {
+      "ISSUE_TITLE": "Issues with login and search",
+      "ISSUE_BODY": "1. The login page has a typo in the footer. 2. The search function returns 'undefined' for empty queries.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Reports a functional bug (search). Typo is minor and might be missed or considered part of general maintenance."
+  },
+  {
+    "id": "regression-report",
+    "inputs": {
+      "ISSUE_TITLE": "Feature X stopped working in v2.0",
+      "ISSUE_BODY": "I just updated to the latest version and now Feature X doesn't do anything. It worked perfectly in v1.5.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["bug"],
+    "reason": "Clearly identifies a regression, which is a bug."
+  },
+  {
+    "id": "renovate-update",
+    "inputs": {
+      "ISSUE_TITLE": "chore(deps): update dependency react to v18",
+      "ISSUE_BODY": "This PR updates react from v17 to v18. ...",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix,dependencies"
+    },
+    "expected": ["dependencies"],
+    "reason": "Standard dependency update bot."
+  },
+  {
+    "id": "missing-doc-feature",
+    "inputs": {
+      "ISSUE_TITLE": "Cannot find how to configure timeout",
+      "ISSUE_BODY": "I see `timeout` in the code but I can't find it in the README. How do I use it?",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix"
+    },
+    "expected": ["documentation", "question"],
+    "reason": "User asking a question about a missing documentation piece."
+  },
+  {
+    "id": "config-error-not-bug",
+    "inputs": {
+      "ISSUE_TITLE": "App fails with invalid API key",
+      "ISSUE_BODY": "I put '123' as my API key and the app says 'Invalid Key'. This is a bug, it should work.",
+      "AVAILABLE_LABELS": "bug,enhancement,question,documentation,security,duplicate,wontfix,invalid"
+    },
+    "expected": ["invalid"],
+    "reason": "User error/configuration issue, not a software bug."
   }
 ]
