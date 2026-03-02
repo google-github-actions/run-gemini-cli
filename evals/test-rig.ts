@@ -43,7 +43,7 @@ export class TestRig {
         auth: { selectedType: authType },
         folderTrust: { enabled: false },
       },
-      model: { name: env['GEMINI_MODEL'] || 'gemini-2.5-pro' },
+      model: { name: env['GEMINI_MODEL'] || 'gemini-3-flash-preview' },
       mcpServers: this.mcpServers,
       tools: {
         core: [
