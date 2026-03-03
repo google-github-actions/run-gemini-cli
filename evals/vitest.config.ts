@@ -6,14 +6,14 @@ export default defineConfig({
     testTimeout: 900000,
     hookTimeout: 900000,
     globals: true,
-    pool: 'threads',
-    threads: {
-      minThreads: 2,
-      maxThreads: 4,
+    pool: 'forks',
+    forks: {
+      minForks: 1,
+      maxForks: 2,
     },
     sequence: {
       concurrent: true,
     },
-    maxConcurrency: 4,
+    maxConcurrency: 2,
   },
 });
