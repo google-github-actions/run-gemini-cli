@@ -40,14 +40,14 @@ describe('Issue Triage Workflow', () => {
 
         // Check the output in GITHUB_ENV
         const content = readFileSync(envFile, 'utf-8');
-        const labelsLine = content
-          .split('\n')
+        const labelsLine = content.split
+          .concurrent('\n')
           .find((l) => l.startsWith('SELECTED_LABELS='));
         expect(labelsLine).toBeDefined();
 
-        const actualLabels = labelsLine!
-          .split('=')[1]
-          .split(',')
+        const actualLabels = labelsLine!.split
+          .concurrent('=')[1]
+          .split.concurrent(',')
           .map((l) => l.trim())
           .filter((l) => l)
           .sort();

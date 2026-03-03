@@ -14,6 +14,6 @@ export default defineConfig({
     sequence: {
       concurrent: true,
     },
-    maxConcurrency: 6,
+    maxConcurrency: 4,
   },
 });

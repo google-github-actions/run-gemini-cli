@@ -16,7 +16,7 @@ const dataset: ScheduledTriageCase[] = JSON.parse(
 
 describe('Scheduled Triage Workflow', () => {
   for (const item of dataset) {
-    it.concurrent(`should batch triage issues: ${item.id}`, async () => {
+    it(`should batch triage issues: ${item.id}`, async () => {
       const rig = new TestRig(`scheduled-triage-${item.id}`);
       try {
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
