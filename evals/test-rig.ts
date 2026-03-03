@@ -153,6 +153,7 @@ export class TestRig {
       let stderr = '';
       child.stdout.on('data', (data) => (stdout += data));
       child.stderr.on('data', (data) => (stderr += data));
+      child.on('error', (err) => reject(err));
 
       child.on('close', (code) => {
         this.lastRunStdout = stdout;
