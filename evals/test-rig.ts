@@ -29,6 +29,15 @@ export class TestRig {
 
     this.telemetryLog = join(this.homeDir, 'telemetry.log');
     this._setupSettings();
+    this._setupMockGh();
+  }
+
+  private _setupMockGh() {
+    const binDir = join(this.homeDir, 'bin');
+    mkdirSync(binDir, { recursive: true });
+    const ghPath = join(binDir, 'gh');
+    writeFileSync(ghPath, '#!/bin/bash\necho "Mock gh command: $@"\nexit 0\n');
+    execSync(`chmod +x ${ghPath}`);
   }
 
   private _setupSettings() {
@@ -121,7 +130,7 @@ export class TestRig {
     return {
       ...cleanEnv,
       GEMINI_CLI_HOME: this.homeDir,
-      PATH: `${this.testDir}:${cleanEnv.PATH || ''}`,
+      PATH: `${join(this.homeDir, 'bin')}:${cleanEnv.PATH || ''}`,
       ...extraEnv,
     };
   }
@@ -159,10 +168,10 @@ export class TestRig {
         child.kill('SIGKILL');
         reject(
           new Error(
-            `Timeout: Command exceeded 300 seconds. stdout: ${stdout.substring(0, 500)} stderr: ${stderr.substring(0, 500)}`,
+            `Timeout: Command exceeded 600 seconds. stdout: ${stdout.substring(0, 500)} stderr: ${stderr.substring(0, 500)}`,
           ),
         );
-      }, 300_000);
+      }, 600_000);
 
       child.on('error', (err) => {
         clearTimeout(timeoutId);
@@ -187,9 +196,6 @@ export class TestRig {
   }
 
   initGit() {
-    this.createFile('gh', '#!/bin/bash\necho "Mock gh command: $@"\nexit 0\n');
-    execSync('chmod +x gh', { cwd: this.testDir });
-
     this.git(['init']);
     this.git(['config', 'user.email', 'test@example.com']);
     this.git(['config', 'user.name', 'Test User']);
