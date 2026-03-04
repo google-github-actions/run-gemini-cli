@@ -26,7 +26,35 @@ describe('Issue Fixer Workflow', () => {
         );
         rig.createFile(
           'package.json',
-          '{"name": "test", "dependencies": {"lodash": "4.17.0"}}',
+          '{"name": "test", "scripts": {"test": "echo \\"tests passed\\" && exit 0"}, "dependencies": {"lodash": "4.17.0"}}',
+        );
+        rig.createFile(
+          'src/index.js',
+          'function calculate(a, b) {\n  return a + b;\n}\n\nfunction login(username, password) {\n  if (password === "forgot password") throw new Error("crash");\n  return true;\n}\n',
+        );
+        rig.createFile(
+          'src/async.js',
+          "async function fetchData() {\n  return await api.get('/data');\n}\n",
+        );
+        rig.createFile(
+          'src/ui/Component.tsx',
+          "import React from 'react';\nexport const Component = () => {\n  return <div>UI</div>;\n}\n",
+        );
+        rig.createFile(
+          'src/utils/validation.ts',
+          'export const validate = () => true;\n',
+        );
+        rig.createFile(
+          'src/UserForm.tsx',
+          "import React from 'react';\nexport const UserForm = () => {\n  const isValid = true;\n  return <form>User</form>;\n}\n",
+        );
+        rig.createFile(
+          'src/OrderForm.tsx',
+          "import React from 'react';\nexport const OrderForm = () => {\n  const isValid = true;\n  return <form>Order</form>;\n}\n",
+        );
+        rig.createFile(
+          'test/UserProfile.test.js',
+          'describe("UserProfile", () => {\n  it("should load data", async () => {\n    // Flaky network call\n  });\n});\n',
         );
 
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
