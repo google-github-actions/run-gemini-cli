@@ -1,5 +1,8 @@
 name: 'Nightly Evaluations'
 
+permissions:
+  contents: 'read'
+
 on:
   schedule:
     - cron: '0 1 * * *' # 1 AM UTC
@@ -26,8 +29,6 @@ jobs:
   evaluate:
     needs: list-evals
     runs-on: 'ubuntu-22.04'
-    permissions:
-      contents: 'read'
     strategy:
       fail-fast: false
       matrix:
