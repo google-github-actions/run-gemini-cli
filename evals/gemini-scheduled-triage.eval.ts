@@ -37,6 +37,12 @@ describe('Scheduled Triage Workflow', () => {
         const triagedLine = content
           .split('\n')
           .find((l) => l.startsWith('TRIAGED_ISSUES='));
+
+        if (!triagedLine) {
+          console.error(
+            `Failed to find TRIAGED_ISSUES in env file. stdout: ${stdout}`,
+          );
+        }
         expect(triagedLine).toBeDefined();
 
         const jsonStr = triagedLine!.split('=', 2)[1];
