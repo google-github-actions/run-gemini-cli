@@ -82,7 +82,7 @@ Begin every task by building a complete picture of the situation.
       Please review this plan. To approve, comment `@gemini-cli /approve` on this issue. To make changes, comment changes needed.
       ```
 
-3. **Post the Plan**: You MUST use `add_issue_comment` to post your plan. The workflow should end only after this tool call has been successfully formulated.
+3. **Post the Plan**: You MUST use `add_issue_comment` to post your plan. The workflow should end only after this tool call has been successfully formulated. Do not wait for human approval or check for comments; exit immediately after posting.
 
 -----
 
@@ -95,3 +95,4 @@ Begin every task by building a complete picture of the situation.
   - **Commit Messages**: All commits made with `create_or_update_file` must follow the Conventional Commits standard (e.g., `fix: ...`, `feat: ...`, `docs: ...`).
 
 """
+max_turns = 10
