@@ -17,23 +17,23 @@ jobs:
   list-evals:
     runs-on: 'ubuntu-22.04'
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: '${{ steps.set-matrix.outputs.matrix }}'
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4'
-      - id: set-matrix
+        uses: 'actions/checkout@v4' # ratchet:exclude
+      - id: 'set-matrix'
         run: |
-          FILES=$(ls evals/*.eval.ts | jq -R -s -c 'split("\n")[:-1]')
-          echo "matrix=${FILES}" >> $GITHUB_OUTPUT
+          FILES=$(find evals -maxdepth 1 -name "*.eval.ts" | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "matrix=${FILES}" >> "$GITHUB_OUTPUT"
 
   evaluate:
-    needs: list-evals
+    needs: 'list-evals'
     runs-on: 'ubuntu-22.04'
     strategy:
       fail-fast: false
       matrix:
         model: ['gemini-3-flash-preview']
-        eval-file: ${{ fromJson(needs.list-evals.outputs.matrix) }}
+        eval-file: '${{ fromJson(needs.list-evals.outputs.matrix) }}'
     name: 'Evaluate ${{ matrix.eval-file }} (${{ matrix.model }})'
 
     steps:
@@ -61,8 +61,8 @@ jobs:
           GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
-          BASE_NAME=$(basename ${{ matrix.eval-file }} .eval.ts)
-          npm run test:evals -- ${{ matrix.eval-file }} --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json" || true
+          BASE_NAME=$(basename "${{ matrix.eval-file }}" .eval.ts)
+          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json" || true
 
       - name: 'Upload Results'
         if: 'always()'
@@ -72,15 +72,15 @@ jobs:
           path: 'eval-results-${{ matrix.model }}-*.json'
 
   report:
-    needs: evaluate
+    needs: 'evaluate'
     if: 'always()'
     runs-on: 'ubuntu-22.04'
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4'
+        uses: 'actions/checkout@v4' # ratchet:exclude
 
       - name: 'Set up Node.js'
-        uses: 'actions/setup-node@v4'
+        uses: 'actions/setup-node@v4' # ratchet:exclude
         with:
           node-version: '20'
           cache: 'npm'
@@ -90,9 +90,9 @@ jobs:
           npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 
       - name: 'Download Results'
-        uses: 'actions/download-artifact@v4'
+        uses: 'actions/download-artifact@v4' # ratchet:exclude
         with:
-          path: eval-results
+          path: 'eval-results'
           pattern: 'eval-results-*'
           merge-multiple: true
 
