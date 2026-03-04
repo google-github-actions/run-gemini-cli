@@ -95,4 +95,3 @@ Begin every task by building a complete picture of the situation.
   - **Commit Messages**: All commits made with `create_or_update_file` must follow the Conventional Commits standard (e.g., `fix: ...`, `feat: ...`, `docs: ...`).
 
 """
-max_turns = 10
