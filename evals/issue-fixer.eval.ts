@@ -26,7 +26,48 @@ describe('Issue Fixer Workflow', () => {
         );
         rig.createFile(
           'package.json',
-          '{"name": "test", "dependencies": {"lodash": "4.17.0"}}',
+          '{"name": "test", "scripts": {"test": "echo \\"tests passed\\" && exit 0"}, "dependencies": {"lodash": "4.17.0"}}',
+        );
+        rig.createFile(
+          'src/db/search.js',
+          'export function searchUser(db, name) {\n  const query = "SELECT * FROM users WHERE name = \'" + name + "\'";\n  return db.query(query);\n}\n',
+        );
+        rig.createFile(
+          'src/index.js',
+          'function calculate(a, b) {\n  return a + b;\n}\n\nfunction login(username, password) {\n  if (password === "forgot password") throw new Error("crash");\n  return true;\n}\n',
+        );
+        rig.createFile(
+          'src/async.js',
+          "async function fetchData() {\n  return await api.get('/data');\n}\n",
+        );
+        rig.createFile(
+          'src/ui/Component.tsx',
+          "import React from 'react';\nexport const Component = () => {\n  return <div>UI</div>;\n}\n",
+        );
+        rig.createFile(
+          'src/utils/validation.ts',
+          'export const validate = () => true;\n',
+        );
+        rig.createFile(
+          'src/UserForm.tsx',
+          "import React from 'react';\nexport const UserForm = () => {\n  const isValid = true;\n  return <form>User</form>;\n}\n",
+        );
+        rig.createFile(
+          'src/OrderForm.tsx',
+          "import React from 'react';\nexport const OrderForm = () => {\n  const isValid = true;\n  return <form>Order</form>;\n}\n",
+        );
+        rig.createFile(
+          'test/UserProfile.test.js',
+          'describe("UserProfile", () => {\n  it("should load data", async () => {\n    // Flaky network call\n  });\n});\n',
+        );
+
+        rig.createFile(
+          'src/CheckoutWizard.tsx',
+          'import React, { useState } from "react";\nexport const CheckoutWizard = () => {\n  const [step, setStep] = useState(0);\n  const nextStep = async () => {\n    await new Promise(r => setTimeout(r, 100));\n    setStep(s => s + 1);\n  };\n  return <button onClick={nextStep}>Next</button>;\n};\n',
+        );
+        rig.createFile(
+          'scripts/deploy.js',
+          'const fs = require("fs");\nif (fs.exists("dist")) {\n  console.log("Deploying...");\n}\n',
         );
 
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });

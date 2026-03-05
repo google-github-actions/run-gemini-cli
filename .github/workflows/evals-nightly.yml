@@ -1,5 +1,8 @@
 name: 'Nightly Evaluations'
 
+permissions:
+  contents: 'read'
+
 on:
   schedule:
     - cron: '0 1 * * *' # 1 AM UTC
@@ -11,15 +14,27 @@ on:
         default: '1'
 
 jobs:
-  evaluate:
+  list-evals:
     runs-on: 'ubuntu-22.04'
-    permissions:
-      contents: 'read'
+    outputs:
+      matrix: '${{ steps.set-matrix.outputs.matrix }}'
+    steps:
+      - name: 'Checkout code'
+        uses: 'actions/checkout@v4' # ratchet:exclude
+      - id: 'set-matrix'
+        run: |
+          FILES=$(find evals -maxdepth 1 -name "*.eval.ts" | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "matrix=${FILES}" >> "$GITHUB_OUTPUT"
+
+  evaluate:
+    needs: 'list-evals'
+    runs-on: 'ubuntu-22.04'
     strategy:
       fail-fast: false
       matrix:
-        model: ['gemini-3-pro-preview', 'gemini-3-flash-preview']
-    name: 'Evaluate ${{ matrix.model }}'
+        model: ['gemini-3-flash-preview']
+        eval-file: '${{ fromJson(needs.list-evals.outputs.matrix) }}'
+    name: 'Evaluate ${{ matrix.eval-file }} (${{ matrix.model }})'
 
     steps:
       - name: 'Checkout code'
@@ -32,12 +47,14 @@ jobs:
           cache: 'npm'
 
       - name: 'Install dependencies'
+        # Retry logic for transient network or package retrieval failures
         run: |
           npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 
       - name: 'Install Gemini CLI'
+        # Retry logic for transient network or package retrieval failures
         run: |
-          npm install -g @google/gemini-cli@0.29.7 || (sleep 10 && npm install -g @google/gemini-cli@0.29.7) || (sleep 30 && npm install -g @google/gemini-cli@0.29.7)
+          npm install -g @google/gemini-cli@latest || (sleep 10 && npm install -g @google/gemini-cli@latest) || (sleep 30 && npm install -g @google/gemini-cli@latest)
 
       - name: 'Run Evaluations'
         id: 'run_evals'
@@ -46,16 +63,42 @@ jobs:
           GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
-          npm run test:evals -- --reporter=json --outputFile=eval-results-${{ matrix.model }}.json || true
+          BASE_NAME=$(basename "${{ matrix.eval-file }}" .eval.ts)
+          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json"
 
       - name: 'Upload Results'
         if: 'always()'
         uses: 'actions/upload-artifact@v4' # ratchet:exclude
         with:
-          name: 'eval-results-${{ matrix.model }}'
-          path: 'eval-results-${{ matrix.model }}.json'
+          name: 'eval-results-${{ matrix.model }}-${{ strategy.job-index }}'
+          path: 'eval-results-${{ matrix.model }}-*.json'
 
-      - name: 'Job Summary'
-        if: 'always()'
+  report:
+    needs: 'evaluate'
+    if: 'always()'
+    runs-on: 'ubuntu-22.04'
+    steps:
+      - name: 'Checkout code'
+        uses: 'actions/checkout@v4' # ratchet:exclude
+
+      - name: 'Set up Node.js'
+        uses: 'actions/setup-node@v4' # ratchet:exclude
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 'Install dependencies'
+        # Retry logic for transient network or package retrieval failures
         run: |
-          npx tsx scripts/aggregate_evals.ts "eval-results-${{ matrix.model }}.json" >> "$GITHUB_STEP_SUMMARY"
+          npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
+
+      - name: 'Download Results'
+        uses: 'actions/download-artifact@v4' # ratchet:exclude
+        with:
+          path: 'eval-results'
+          pattern: 'eval-results-*'
+          merge-multiple: true
+
+      - name: 'Aggregate All Results'
+        run: |
+          npx tsx scripts/aggregate_evals.ts eval-results/*.json >> "$GITHUB_STEP_SUMMARY"

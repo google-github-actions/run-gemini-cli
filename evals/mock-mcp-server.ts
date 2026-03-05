@@ -287,6 +287,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         ],
       };
+    case 'issue_read':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              title: 'Mock Issue',
+              body: 'This is a mock issue body.',
+            }),
+          },
+        ],
+      };
     case 'issue_read.get_comments':
       return {
         content: [

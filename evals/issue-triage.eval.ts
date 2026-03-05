@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
-import { readFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface TriageCase {
@@ -18,7 +18,7 @@ const dataset: TriageCase[] = JSON.parse(readFileSync(datasetPath, 'utf-8'));
 
 describe('Issue Triage Workflow', () => {
   for (const item of dataset) {
-    it.concurrent(`should correctly triage: ${item.id}`, async () => {
+    it(`should correctly triage: ${item.id}`, async () => {
       const rig = new TestRig(`triage-${item.id}`);
       try {
         // Setup the command
@@ -36,7 +36,16 @@ describe('Issue Triage Workflow', () => {
           GITHUB_ENV: envFile,
         };
 
-        await rig.run(['--prompt', '/gemini-triage', '--yolo'], env);
+        const stdout = await rig.run(
+          ['--prompt', '/gemini-triage', '--yolo'],
+          env,
+        );
+
+        if (!existsSync(envFile)) {
+          throw new Error(
+            `envFile was not created at ${envFile}.\nStdout: ${stdout}\nStderr: ${rig.lastRunStderr}`,
+          );
+        }
 
         // Check the output in GITHUB_ENV
         const content = readFileSync(envFile, 'utf-8');
