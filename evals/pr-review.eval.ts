@@ -81,6 +81,7 @@ describe('PR Review Workflow', () => {
         }
 
         expect(stdout.length).toBeGreaterThan(0);
+        expect(foundKeywords.length).toBeGreaterThan(0);
       } finally {
         rig.cleanup();
       }

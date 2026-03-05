@@ -47,10 +47,12 @@ jobs:
           cache: 'npm'
 
       - name: 'Install dependencies'
+        # Retry logic for transient network or package retrieval failures
         run: |
           npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 
       - name: 'Install Gemini CLI'
+        # Retry logic for transient network or package retrieval failures
         run: |
           npm install -g @google/gemini-cli@latest || (sleep 10 && npm install -g @google/gemini-cli@latest) || (sleep 30 && npm install -g @google/gemini-cli@latest)
 
@@ -62,7 +64,7 @@ jobs:
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
           BASE_NAME=$(basename "${{ matrix.eval-file }}" .eval.ts)
-          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json" || true
+          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json"
 
       - name: 'Upload Results'
         if: 'always()'
@@ -86,6 +88,7 @@ jobs:
           cache: 'npm'
 
       - name: 'Install dependencies'
+        # Retry logic for transient network or package retrieval failures
         run: |
           npm ci || (sleep 10 && npm ci) || (sleep 30 && npm ci)
 

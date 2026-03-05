@@ -168,7 +168,7 @@ export class TestRig {
         child.kill('SIGKILL');
         reject(
           new Error(
-            `Timeout: Command exceeded 600 seconds. stdout: ${stdout.substring(0, 500)} stderr: ${stderr.substring(0, 500)}`,
+            `Timeout: Command exceeded 600 seconds. stdout:\n${stdout.slice(-500)}\nstderr: \n${stderr.slice(-500)}\n`,
           ),
         );
       }, 600_000);
