@@ -112,7 +112,7 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           workflow_name: 'gemini-scheduled-triage'
-          github_item_number: '${{ steps.find_issues.outputs.issue_numbers }}'
+          github_custom_tracking_id: '${{ steps.find_issues.outputs.issue_numbers }}'
           settings: |-
             {
               "model": {

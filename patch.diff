@@ -1,0 +1,18 @@
+--- packages/core/src/telemetry/clearcut-logger/event-metadata-key.ts
++++ packages/core/src/telemetry/clearcut-logger/event-metadata-key.ts
+@@ -219,8 +219,14 @@
+   GEMINI_CLI_GH_EVENT_NAME = 172,
+ 
+-  // Logs the event number (Issue or PR ID) of the GitHub Action that triggered the session.
+-  GEMINI_CLI_GH_EVENT_NUMBER = 173,
++  // Logs the Pull Request number of the GitHub Action that triggered the session.
++  GEMINI_CLI_GH_PR_NUMBER = 173,
++
++  // Logs the Issue number of the GitHub Action that triggered the session.
++  GEMINI_CLI_GH_ISSUE_NUMBER = 174,
++
++  // Logs a custom item number of the GitHub Action that triggered the session.
++  GEMINI_CLI_GH_CUSTOM_NUMBER = 175,
+ 
+   // ==========================================================================
+   // Loop Detected Event Keys
