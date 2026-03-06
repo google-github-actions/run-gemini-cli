@@ -91,6 +91,10 @@ inputs:
     description: 'The GitHub workflow name, used for telemetry purposes.'
     required: false
     default: '${{ github.workflow }}'
+  github_item_number:
+    description: 'The Issue or Pull Request number the CLI is operating on. Useful for tracking unique item usage in telemetry. Defaults to the event payload.'
+    required: false
+    default: '${{ github.event.issue.number || github.event.pull_request.number }}'
 
 outputs:
   summary:
@@ -233,7 +237,7 @@ runs:
         USE_PNPM: '${{ inputs.use_pnpm }}'
         SURFACE: 'GH'
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
-        GH_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
+        GH_EVENT_NUMBER: '${{ inputs.github_item_number }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -417,7 +421,7 @@ runs:
         PROMPT: '${{ inputs.prompt }}'
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
-        GH_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
+        GH_EVENT_NUMBER: '${{ inputs.github_item_number }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-
@@ -495,7 +499,7 @@ runs:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
         GITHUB_REPOSITORY: '${{ github.repository }}'
         GITHUB_RUN_ID: '${{ github.run_id }}'
-        GITHUB_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
+        GITHUB_EVENT_NUMBER: '${{ inputs.github_item_number }}'
 
 branding:
   icon: 'terminal'
