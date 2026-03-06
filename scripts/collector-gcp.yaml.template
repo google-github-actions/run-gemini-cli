@@ -12,6 +12,9 @@ processors:
       - key: 'github.run_id'
         value: 'GITHUB_RUN_ID_PLACEHOLDER'
         action: 'upsert'
+      - key: 'github.event.number'
+        value: 'GITHUB_EVENT_NUMBER_PLACEHOLDER'
+        action: 'upsert'
   batch:
     send_batch_size: 100
     timeout: '10s'

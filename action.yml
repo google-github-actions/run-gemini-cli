@@ -444,6 +444,7 @@ runs:
         sed -e "s#OTLP_GOOGLE_CLOUD_PROJECT#${OTLP_GOOGLE_CLOUD_PROJECT}#g" \
             -e "s#GITHUB_REPOSITORY_PLACEHOLDER#${GITHUB_REPOSITORY}#g" \
             -e "s#GITHUB_RUN_ID_PLACEHOLDER#${GITHUB_RUN_ID}#g" \
+            -e "s#GITHUB_EVENT_NUMBER_PLACEHOLDER#${GITHUB_EVENT_NUMBER}#g" \
           "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
         # Ensure credentials file has the right permissions
@@ -494,6 +495,7 @@ runs:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
         GITHUB_REPOSITORY: '${{ github.repository }}'
         GITHUB_RUN_ID: '${{ github.run_id }}'
+        GITHUB_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
 
 branding:
   icon: 'terminal'
