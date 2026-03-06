@@ -231,6 +231,9 @@ runs:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
+        SURFACE: 'GH'
+        GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
+        GH_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -404,7 +407,7 @@ runs:
       env:
         GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
-        SURFACE: 'GitHub'
+        SURFACE: 'GH'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
         GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
@@ -414,6 +417,7 @@ runs:
         PROMPT: '${{ inputs.prompt }}'
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
+        GH_EVENT_NUMBER: '${{ github.event.issue.number || github.event.pull_request.number }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-
