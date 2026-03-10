@@ -22,11 +22,14 @@ describe('PR Review Workflow', () => {
       const rig = new TestRig(`review-${item.id}`);
       try {
         rig.setupMockMcp();
-        mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
-        copyFileSync(
-          '.github/commands/gemini-review.toml',
-          join(rig.testDir, '.gemini/commands/gemini-review.toml'),
-        );
+        const commandDir = join(rig.testDir, '.gemini/commands');
+        mkdirSync(commandDir, { recursive: true });
+
+        const response = await fetch(REVIEW_TOML_URL);
+        if (!response.ok)
+          throw new Error(`Failed to fetch TOML: ${response.statusText}`);
+        const tomlContent = await response.text();
+        writeFileSync(join(commandDir, 'pr-code-review.toml'), tomlContent);
 
         const stdout = await rig.run(
           ['--prompt', '/pr-code-review', '--yolo'],
