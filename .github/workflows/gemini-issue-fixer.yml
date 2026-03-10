@@ -39,7 +39,7 @@ jobs:
         uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
 
       - name: 'Run Gemini PR Create'
-        uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
+        uses: './' # ratchet:exclude
         id: 'gemini_pr_create'
         env:
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN }}'
