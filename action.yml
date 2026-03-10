@@ -270,6 +270,7 @@ runs:
         if [[ -n "${GOOGLE_CLOUD_ACCESS_TOKEN:-}" ]]; then
           unset GEMINI_API_KEY
           unset GOOGLE_API_KEY
+          unset GOOGLE_APPLICATION_CREDENTIALS
         elif [[ "${GOOGLE_GENAI_USE_VERTEXAI:-false}" == "true" && -n "${GOOGLE_API_KEY:-}" ]]; then
           unset GEMINI_API_KEY
         elif [[ -n "${GEMINI_API_KEY:-}" ]]; then
@@ -317,6 +318,7 @@ runs:
           unset GEMINI_API_KEY
           unset GOOGLE_API_KEY
           # Unset credential file pointers that might cause conflicts with the access token and hang.
+          unset GOOGLE_APPLICATION_CREDENTIALS
           unset CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
           unset GOOGLE_GHA_CREDS_PATH
         elif [[ "${GOOGLE_GENAI_USE_VERTEXAI:-false}" == "true" && -n "${GOOGLE_API_KEY:-}" ]]; then
