@@ -107,7 +107,7 @@ runs:
       id: 'validate_inputs'
       shell: 'bash'
       run: |-
-        set -exuo pipefail
+        set -euo pipefail
 
         # Emit a clear warning in three places without failing the step
         warn() {
@@ -134,7 +134,7 @@ runs:
         fi
 
         if [[ ${auth_methods} -gt 1 ]]; then
-          warn "Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
+          echo "::notice title=Authentication priority::Multiple authentication methods provided. The action will prioritize them in the following order: 1. Workload Identity Federation, 2. Vertex AI API Key, 3. Gemini API Key. Conflicting environment variables will be unset for the CLI."
         fi
 
         # Validate Workload Identity Federation inputs
@@ -231,9 +231,14 @@ runs:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
+        GOOGLE_CLOUD_ACCESS_TOKEN: '${{ steps.auth.outputs.access_token }}'
+        GOOGLE_GENAI_USE_VERTEXAI: '${{ inputs.use_vertex_ai }}'
+        GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
+        GOOGLE_API_KEY: '${{ inputs.google_api_key }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
+        mkdir -p ~/.gemini
 
         VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
 
@@ -260,6 +265,20 @@ runs:
           echo "Error: Gemini CLI not found in PATH"
           exit 1
         fi
+
+        # Sanitize authentication environment variables to avoid conflicts when installing extensions.
+        if [[ -n "${GOOGLE_CLOUD_ACCESS_TOKEN:-}" ]]; then
+          unset GEMINI_API_KEY
+          unset GOOGLE_API_KEY
+        elif [[ "${GOOGLE_GENAI_USE_VERTEXAI:-false}" == "true" && -n "${GOOGLE_API_KEY:-}" ]]; then
+          unset GEMINI_API_KEY
+        elif [[ -n "${GEMINI_API_KEY:-}" ]]; then
+          export GOOGLE_GENAI_USE_VERTEXAI="false"
+          export GOOGLE_GENAI_USE_GCA="false"
+          unset GOOGLE_API_KEY
+          unset GOOGLE_CLOUD_ACCESS_TOKEN
+        fi
+
         if [[ -n "${EXTENSIONS}" ]]; then
           echo "Installing Gemini CLI extensions:"
           echo "${EXTENSIONS}" | jq -r '.[]' | while IFS= read -r extension; do
@@ -288,6 +307,26 @@ runs:
 
         # Keep track of whether we've failed
         FAILED=false
+
+        # Sanitize authentication environment variables to avoid conflicts.
+        # Priority:
+        # 1. Workload Identity Federation (use_vertex_ai or use_gemini_code_assist with access token)
+        # 2. Vertex AI API Key (use_vertex_ai with google_api_key)
+        # 3. Gemini API Key (gemini_api_key)
+        if [[ -n "${GOOGLE_CLOUD_ACCESS_TOKEN:-}" ]]; then
+          unset GEMINI_API_KEY
+          unset GOOGLE_API_KEY
+          # Unset credential file pointers that might cause conflicts with the access token and hang.
+          unset CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
+          unset GOOGLE_GHA_CREDS_PATH
+        elif [[ "${GOOGLE_GENAI_USE_VERTEXAI:-false}" == "true" && -n "${GOOGLE_API_KEY:-}" ]]; then
+          unset GEMINI_API_KEY
+        elif [[ -n "${GEMINI_API_KEY:-}" ]]; then
+          export GOOGLE_GENAI_USE_VERTEXAI="false"
+          export GOOGLE_GENAI_USE_GCA="false"
+          unset GOOGLE_API_KEY
+          unset GOOGLE_CLOUD_ACCESS_TOKEN
+        fi
 
         # Run Gemini CLI with the provided prompt, using JSON output format
         # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
@@ -324,12 +363,18 @@ runs:
         if jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; then
            RESPONSE=$(jq -r '.response // ""' "${TEMP_STDOUT}")
         fi
-        if jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; then
-           ERROR_JSON=$(jq -c '.error // empty' "${TEMP_STDERR}")
+
+        # Stderr might contain non-JSON (like stack traces), so we try to extract the last valid JSON object
+        if grep -q "{" "${TEMP_STDERR}"; then
+           # Extract the last curly-braced block from stderr
+           ERROR_CANDIDATE=$(tac "${TEMP_STDERR}" | awk '/^}/{p=1} p; /^{/{if(p)exit}' | tac)
+           if [[ -n "${ERROR_CANDIDATE}" ]] && jq -e . <<< "${ERROR_CANDIDATE}" >/dev/null 2>&1; then
+              ERROR_JSON=$(jq -c '.error // empty' <<< "${ERROR_CANDIDATE}")
+           fi
         fi
 
-        if { [[ -s "${TEMP_STDERR}" ]] && ! jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; }; then
-          echo "::warning::Gemini CLI stderr was not valid JSON"
+        if { [[ -s "${TEMP_STDERR}" ]] && [[ -z "${ERROR_JSON}" ]]; }; then
+          echo "::warning::Gemini CLI stderr contains data but no valid JSON error object was extracted"
         fi
 
         if { [[ -s "${TEMP_STDOUT}" ]] && ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
@@ -338,22 +383,25 @@ runs:
 
 
         # Set the captured response as a step output, supporting multiline
-        echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
+        # Use a unique delimiter to avoid collisions
+        EOF_DELIMITER="gh_gemini_out_$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
+
+        echo "gemini_response<<${EOF_DELIMITER}" >> "${GITHUB_OUTPUT}"
         if [[ -n "${RESPONSE}" ]]; then
           echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
         else
           cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
         fi
-        echo "EOF" >> "${GITHUB_OUTPUT}"
+        echo "${EOF_DELIMITER}" >> "${GITHUB_OUTPUT}"
 
         # Set the captured errors as a step output, supporting multiline
-        echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
+        echo "gemini_errors<<${EOF_DELIMITER}" >> "${GITHUB_OUTPUT}"
         if [[ -n "${ERROR_JSON}" ]]; then
           echo "${ERROR_JSON}" >> "${GITHUB_OUTPUT}"
         else
           cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
         fi
-        echo "EOF" >> "${GITHUB_OUTPUT}"
+        echo "${EOF_DELIMITER}" >> "${GITHUB_OUTPUT}"
 
         # Generate Job Summary
         if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
