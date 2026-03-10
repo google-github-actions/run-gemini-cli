@@ -111,4 +111,4 @@ jobs:
             [
               "https://github.com/gemini-cli-extensions/code-review"
             ]
-          prompt: '/code-review pr-review'
+          prompt: '/pr-code-review'

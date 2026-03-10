@@ -235,8 +235,8 @@ The review prompt utilizes [code review extension](https://github.com/gemini-cli
 3. Edit `.github/workflows/gemini-review.yml` to use the customized prompt:
 
    ```yml
-   - prompt: '/code-review pr-review'
-   + prompt: '/gemini-review pr-review'
+   - prompt: '/pr-code-review'
+   + prompt: '/gemini-review'
    ```
 
 4. Commit the file to your repository:
