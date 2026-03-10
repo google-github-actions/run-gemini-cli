@@ -29,6 +29,15 @@ export class TestRig {
 
     this.telemetryLog = join(this.homeDir, 'telemetry.log');
     this._setupSettings();
+    this._setupMockGh();
+  }
+
+  private _setupMockGh() {
+    const binDir = join(this.homeDir, 'bin');
+    mkdirSync(binDir, { recursive: true });
+    const ghPath = join(binDir, 'gh');
+    writeFileSync(ghPath, '#!/bin/bash\necho "Mock gh command: $@"\nexit 0\n');
+    execSync(`chmod +x ${ghPath}`);
   }
 
   private _setupSettings() {
@@ -121,6 +130,7 @@ export class TestRig {
     return {
       ...cleanEnv,
       GEMINI_CLI_HOME: this.homeDir,
+      PATH: `${join(this.homeDir, 'bin')}:${cleanEnv.PATH || ''}`,
       ...extraEnv,
     };
   }
@@ -154,7 +164,22 @@ export class TestRig {
       child.stdout.on('data', (data) => (stdout += data));
       child.stderr.on('data', (data) => (stderr += data));
 
+      const timeoutId = setTimeout(() => {
+        child.kill('SIGKILL');
+        reject(
+          new Error(
+            `Timeout: Command exceeded 600 seconds. stdout:\n${stdout.slice(-500)}\nstderr: \n${stderr.slice(-500)}\n`,
+          ),
+        );
+      }, 600_000);
+
+      child.on('error', (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
+
       child.on('close', (code) => {
+        clearTimeout(timeoutId);
         this.lastRunStdout = stdout;
         this.lastRunStderr = stderr;
         if (code === 0) resolve(stdout);

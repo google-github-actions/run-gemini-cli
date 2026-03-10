@@ -18,6 +18,7 @@ describe('Gemini Assistant Workflow', () => {
     it.concurrent(`should propose a relevant plan: ${item.id}`, async () => {
       const rig = new TestRig(`assistant-${item.id}`);
       try {
+        rig.setupMockMcp();
         rig.initGit();
         rig.createFile(
           'utils.js',

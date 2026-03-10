@@ -16,7 +16,7 @@ const dataset: ScheduledTriageCase[] = JSON.parse(
 
 describe('Scheduled Triage Workflow', () => {
   for (const item of dataset) {
-    it.concurrent(`should batch triage issues: ${item.id}`, async () => {
+    it(`should batch triage issues: ${item.id}`, async () => {
       const rig = new TestRig(`scheduled-triage-${item.id}`);
       try {
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
@@ -37,6 +37,12 @@ describe('Scheduled Triage Workflow', () => {
         const triagedLine = content
           .split('\n')
           .find((l) => l.startsWith('TRIAGED_ISSUES='));
+
+        if (!triagedLine) {
+          console.error(
+            `Failed to find TRIAGED_ISSUES in env file. stdout: ${stdout}`,
+          );
+        }
         expect(triagedLine).toBeDefined();
 
         const jsonStr = triagedLine!.split('=', 2)[1];

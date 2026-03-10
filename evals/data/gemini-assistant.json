@@ -3,7 +3,7 @@
     "id": "fix-typo",
     "inputs": {
       "TITLE": "Fix typo in utils.js",
-      "DESCRIPTION": "There is a typo in the helper function name.",
+      "DESCRIPTION": "There is a typo in the helper function name. It should be 'newName' instead of 'oldName'.",
       "EVENT_NAME": "issues",
       "IS_PULL_REQUEST": "false",
       "ISSUE_NUMBER": "10",
