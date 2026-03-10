@@ -29,7 +29,7 @@ describe('PR Review Workflow', () => {
         );
 
         const stdout = await rig.run(
-          ['--prompt', '/gemini-review', '--yolo'],
+          ['--prompt', '/pr-code-review', '--yolo'],
           item.inputs,
         );
 
