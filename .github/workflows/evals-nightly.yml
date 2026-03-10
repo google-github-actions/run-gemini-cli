@@ -20,7 +20,7 @@ jobs:
       matrix: '${{ steps.set-matrix.outputs.matrix }}'
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4' # ratchet:exclude
+        uses: 'actions/checkout@v6' # ratchet:exclude
       - id: 'set-matrix'
         run: |
           FILES=$(find evals -maxdepth 1 -name "*.eval.ts" | sort | jq -R -s -c 'split("\n")[:-1]')
@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4' # ratchet:exclude
+        uses: 'actions/checkout@v6' # ratchet:exclude
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4' # ratchet:exclude
@@ -79,7 +79,7 @@ jobs:
     runs-on: 'ubuntu-22.04'
     steps:
       - name: 'Checkout code'
-        uses: 'actions/checkout@v4' # ratchet:exclude
+        uses: 'actions/checkout@v6' # ratchet:exclude
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4' # ratchet:exclude
