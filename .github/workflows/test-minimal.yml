@@ -1,0 +1,21 @@
+name: '🧪 Test Minimal'
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'fix/auth-priority-and-hang'
+    paths:
+      - '.github/workflows/test-minimal.yml'
+
+jobs:
+  test:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Run Gemini Version'
+        uses: './'
+        with:
+          prompt: '--version'
+          gemini_debug: true
