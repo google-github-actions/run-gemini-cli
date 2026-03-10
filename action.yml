@@ -309,6 +309,10 @@ runs:
         # Keep track of whether we've failed
         FAILED=false
 
+        # Always unset GOOGLE_APPLICATION_CREDENTIALS to prevent the CLI from hanging on credential discovery
+        # in environments where multiple auth methods might be present (like GHA).
+        unset GOOGLE_APPLICATION_CREDENTIALS
+
         # Sanitize authentication environment variables to avoid conflicts.
         # Priority:
         # 1. Workload Identity Federation (use_vertex_ai or use_gemini_code_assist with access token)
