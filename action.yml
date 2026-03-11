@@ -83,6 +83,10 @@ inputs:
     description: 'Whether to upload artifacts to the github action.'
     required: false
     default: 'false'
+  output_to_file:
+    description: 'When true, redirect all output to files and return file paths as step outputs instead of content. Useful when gemini_debug is true to avoid exceeding GitHub Actions output limits.'
+    required: false
+    default: 'false'
   use_pnpm:
     description: 'Whether or not to use pnpm instead of npm to install gemini-cli'
     required: false
@@ -107,6 +111,12 @@ outputs:
   error:
     description: 'The error output from the Gemini CLI execution, if any.'
     value: '${{ steps.gemini_run.outputs.gemini_errors }}'
+  output_mode:
+    description: 'Output mode used: "content" (default) or "file".'
+    value: '${{ steps.gemini_run.outputs.output_mode }}'
+  artifacts_dir:
+    description: 'Path to gemini-artifacts/ directory containing stdout.log, stderr.log, telemetry.log.'
+    value: '${{ steps.gemini_run.outputs.artifacts_dir }}'
 
 runs:
   using: 'composite'
@@ -303,7 +313,12 @@ runs:
 
         # Run Gemini CLI with the provided prompt, using JSON output format
         # We capture stdout (JSON) to TEMP_STDOUT and stderr to TEMP_STDERR
-        if [[ "${GEMINI_DEBUG}" = true ]]; then
+        if [[ "${GEMINI_DEBUG}" = true ]] && [[ "${OUTPUT_TO_FILE}" = true ]]; then
+          echo "::notice::Gemini CLI debug output redirected to files (gemini-artifacts/)"
+          if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> "${TEMP_STDERR}" 1> "${TEMP_STDOUT}"; then
+            FAILED=true
+          fi
+        elif [[ "${GEMINI_DEBUG}" = true ]]; then
           echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
           echo "::: Start Gemini CLI STDOUT :::"
           if ! gemini --debug --yolo --prompt "${PROMPT}" --output-format json 2> >(tee "${TEMP_STDERR}" >&2) | tee "${TEMP_STDOUT}"; then
@@ -349,23 +364,38 @@ runs:
         fi
 
 
-        # Set the captured response as a step output, supporting multiline
-        echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
-        if [[ -n "${RESPONSE}" ]]; then
-          echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
-        else
-          cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
-        fi
-        echo "EOF" >> "${GITHUB_OUTPUT}"
+        ARTIFACTS_DIR="$(pwd)/gemini-artifacts"
+        echo "artifacts_dir=${ARTIFACTS_DIR}" >> "${GITHUB_OUTPUT}"
 
-        # Set the captured errors as a step output, supporting multiline
-        echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
-        if [[ -n "${ERROR_JSON}" ]]; then
-          echo "${ERROR_JSON}" >> "${GITHUB_OUTPUT}"
+        if [[ "${OUTPUT_TO_FILE}" = true ]]; then
+          echo "output_mode=file" >> "${GITHUB_OUTPUT}"
+          # Return file paths instead of content
+          echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
+          echo "${ARTIFACTS_DIR}/stdout.log" >> "${GITHUB_OUTPUT}"
+          echo "EOF" >> "${GITHUB_OUTPUT}"
+          echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
+          echo "${ARTIFACTS_DIR}/stderr.log" >> "${GITHUB_OUTPUT}"
+          echo "EOF" >> "${GITHUB_OUTPUT}"
         else
-          cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+          echo "output_mode=content" >> "${GITHUB_OUTPUT}"
+          # Set the captured response as a step output, supporting multiline
+          echo "gemini_response<<EOF" >> "${GITHUB_OUTPUT}"
+          if [[ -n "${RESPONSE}" ]]; then
+            echo "${RESPONSE}" >> "${GITHUB_OUTPUT}"
+          else
+            cat "${TEMP_STDOUT}" >> "${GITHUB_OUTPUT}"
+          fi
+          echo "EOF" >> "${GITHUB_OUTPUT}"
+
+          # Set the captured errors as a step output, supporting multiline
+          echo "gemini_errors<<EOF" >> "${GITHUB_OUTPUT}"
+          if [[ -n "${ERROR_JSON}" ]]; then
+            echo "${ERROR_JSON}" >> "${GITHUB_OUTPUT}"
+          else
+            cat "${TEMP_STDERR}" >> "${GITHUB_OUTPUT}"
+          fi
+          echo "EOF" >> "${GITHUB_OUTPUT}"
         fi
-        echo "EOF" >> "${GITHUB_OUTPUT}"
 
         # Generate Job Summary
         if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
@@ -378,26 +408,35 @@ runs:
             echo "${PROMPT}"
             echo "\`\`\`"
             echo
-            if [[ -n "${RESPONSE}" ]]; then
-               echo "#### Response"
+            if [[ "${OUTPUT_TO_FILE}" = true ]]; then
+               echo "#### Output (file mode)"
                echo
-               echo "${RESPONSE}"
+               echo "Output redirected to files:"
+               echo "- stdout.log ($(wc -c < "${TEMP_STDOUT}" | xargs) bytes)"
+               echo "- stderr.log ($(wc -c < "${TEMP_STDERR}" | xargs) bytes)"
                echo
-            fi
-            if [[ -n "${ERROR_JSON}" ]]; then
-               echo "#### Error"
-               echo
-               echo "\`\`\`json"
-               echo "${ERROR_JSON}"
-               echo "\`\`\`"
-               echo
-            elif [[ "${FAILED}" == "true" ]]; then
-               echo "#### Error Output"
-               echo
-               echo "\`\`\`"
-               cat "${TEMP_STDERR}"
-               echo "\`\`\`"
-               echo
+            else
+              if [[ -n "${RESPONSE}" ]]; then
+                 echo "#### Response"
+                 echo
+                 echo "${RESPONSE}"
+                 echo
+              fi
+              if [[ -n "${ERROR_JSON}" ]]; then
+                 echo "#### Error"
+                 echo
+                 echo "\`\`\`json"
+                 echo "${ERROR_JSON}"
+                 echo "\`\`\`"
+                 echo
+              elif [[ "${FAILED}" == "true" ]]; then
+                 echo "#### Error Output"
+                 echo
+                 echo "\`\`\`"
+                 cat "${TEMP_STDERR}"
+                 echo "\`\`\`"
+                 echo
+              fi
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
         fi
@@ -415,6 +454,7 @@ runs:
         fi
       env:
         GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
+        OUTPUT_TO_FILE: '${{ fromJSON(inputs.output_to_file || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
