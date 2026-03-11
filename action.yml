@@ -91,6 +91,14 @@ inputs:
     description: 'The GitHub workflow name, used for telemetry purposes.'
     required: false
     default: '${{ github.workflow }}'
+  github_pr_number:
+    description: 'The Pull Request number the CLI is operating on. Defaults to the event payload.'
+    required: false
+    default: '${{ github.event.pull_request.number }}'
+  github_issue_number:
+    description: 'The Issue number (or comma-separated list of issue numbers) the CLI is operating on. Defaults to the event payload.'
+    required: false
+    default: '${{ github.event.issue.number }}'
 
 outputs:
   summary:
@@ -231,6 +239,10 @@ runs:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
+        SURFACE: 'GitHub'
+        GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
+        GH_PR_NUMBER: '${{ inputs.github_pr_number }}'
+        GH_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -414,6 +426,8 @@ runs:
         PROMPT: '${{ inputs.prompt }}'
         GEMINI_MODEL: '${{ inputs.gemini_model }}'
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
+        GH_PR_NUMBER: '${{ inputs.github_pr_number }}'
+        GH_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-
@@ -440,6 +454,8 @@ runs:
         sed -e "s#OTLP_GOOGLE_CLOUD_PROJECT#${OTLP_GOOGLE_CLOUD_PROJECT}#g" \
             -e "s#GITHUB_REPOSITORY_PLACEHOLDER#${GITHUB_REPOSITORY}#g" \
             -e "s#GITHUB_RUN_ID_PLACEHOLDER#${GITHUB_RUN_ID}#g" \
+            -e "s#GITHUB_PR_NUMBER_PLACEHOLDER#${GITHUB_PR_NUMBER}#g" \
+            -e "s#GITHUB_ISSUE_NUMBER_PLACEHOLDER#${GITHUB_ISSUE_NUMBER}#g" \
           "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
         # Ensure credentials file has the right permissions
@@ -490,6 +506,8 @@ runs:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
         GITHUB_REPOSITORY: '${{ github.repository }}'
         GITHUB_RUN_ID: '${{ github.run_id }}'
+        GITHUB_PR_NUMBER: '${{ inputs.github_pr_number }}'
+        GITHUB_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
 
 branding:
   icon: 'terminal'

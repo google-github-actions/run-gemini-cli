@@ -66,6 +66,10 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           workflow_name: 'gemini-invoke'
+          # Assistant workflows can be triggered by comments on either Issues or PRs.
+          # We explicitly map both fields so the CLI can correctly categorize the interaction.
+          github_pr_number: '${{ github.event.pull_request.number }}'
+          github_issue_number: '${{ github.event.issue.number }}'
           settings: |-
             {
               "model": {

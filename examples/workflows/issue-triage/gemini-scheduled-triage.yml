@@ -82,6 +82,9 @@ jobs:
           echo '📝 Setting output for GitHub Actions...'
           echo "issues_to_triage=${ISSUES}" >> "${GITHUB_OUTPUT}"
 
+          ISSUE_NUMBERS="$(echo "${ISSUES}" | jq -r '.[].number | tostring' | paste -sd, -)"
+          echo "issue_numbers=${ISSUE_NUMBERS}" >> "${GITHUB_OUTPUT}"
+
           ISSUE_COUNT="$(echo "${ISSUES}" | jq 'length')"
           echo "✅ Found ${ISSUE_COUNT} issue(s) to triage! 🎯"
 
@@ -109,6 +112,9 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           workflow_name: 'gemini-scheduled-triage'
+          # Overriding default telemetry inputs because scheduled workflows lack an event payload
+          # We pass the dynamically generated list of batch issues to the issue number field
+          github_issue_number: '${{ steps.find_issues.outputs.issue_numbers }}'
           settings: |-
             {
               "model": {
