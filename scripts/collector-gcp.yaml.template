@@ -18,9 +18,6 @@ processors:
       - key: 'github.issue.number'
         value: 'GITHUB_ISSUE_NUMBER_PLACEHOLDER'
         action: 'upsert'
-      - key: 'github.custom_tracking.id'
-        value: 'GITHUB_CUSTOM_TRACKING_ID_PLACEHOLDER'
-        action: 'upsert'
   batch:
     send_batch_size: 100
     timeout: '10s'

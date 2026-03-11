@@ -113,8 +113,8 @@ jobs:
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           workflow_name: 'gemini-scheduled-triage'
           # Overriding default telemetry inputs because scheduled workflows lack an event payload
-          # We pass the dynamically generated list of batch issues to the custom tracking ID field
-          github_custom_tracking_id: '${{ steps.find_issues.outputs.issue_numbers }}'
+          # We pass the dynamically generated list of batch issues to the issue number field
+          github_issue_number: '${{ steps.find_issues.outputs.issue_numbers }}'
           settings: |-
             {
               "model": {

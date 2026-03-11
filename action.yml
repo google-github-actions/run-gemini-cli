@@ -96,12 +96,9 @@ inputs:
     required: false
     default: '${{ github.event.pull_request.number }}'
   github_issue_number:
-    description: 'The Issue number the CLI is operating on. Defaults to the event payload.'
+    description: 'The Issue number (or comma-separated list of issue numbers) the CLI is operating on. Defaults to the event payload.'
     required: false
     default: '${{ github.event.issue.number }}'
-  github_custom_tracking_id:
-    description: 'A custom tracking ID (e.g. comma-separated list of issue IDs for scheduled batches).'
-    required: false
 
 outputs:
   summary:
@@ -246,7 +243,6 @@ runs:
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
         GH_PR_NUMBER: '${{ inputs.github_pr_number }}'
         GH_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
-        GH_CUSTOM_TRACKING_ID: '${{ inputs.github_custom_tracking_id }}'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -432,7 +428,6 @@ runs:
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
         GH_PR_NUMBER: '${{ inputs.github_pr_number }}'
         GH_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
-        GH_CUSTOM_TRACKING_ID: '${{ inputs.github_custom_tracking_id }}'
 
     - name: 'Upload Gemini CLI outputs'
       if: |-
@@ -461,7 +456,6 @@ runs:
             -e "s#GITHUB_RUN_ID_PLACEHOLDER#${GITHUB_RUN_ID}#g" \
             -e "s#GITHUB_PR_NUMBER_PLACEHOLDER#${GITHUB_PR_NUMBER}#g" \
             -e "s#GITHUB_ISSUE_NUMBER_PLACEHOLDER#${GITHUB_ISSUE_NUMBER}#g" \
-            -e "s#GITHUB_CUSTOM_TRACKING_ID_PLACEHOLDER#${GITHUB_CUSTOM_TRACKING_ID}#g" \
           "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
         # Ensure credentials file has the right permissions
@@ -514,7 +508,6 @@ runs:
         GITHUB_RUN_ID: '${{ github.run_id }}'
         GITHUB_PR_NUMBER: '${{ inputs.github_pr_number }}'
         GITHUB_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
-        GITHUB_CUSTOM_TRACKING_ID: '${{ inputs.github_custom_tracking_id }}'
 
 branding:
   icon: 'terminal'
