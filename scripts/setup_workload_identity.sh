@@ -15,10 +15,12 @@
 # limitations under the License.
 
 # Universal Direct Workload Identity Federation Setup Script for GitHub Actions
-# This script sets up Google Cloud Direct Workload Identity Federation for any GitHub repository
-# to work with the google-github-actions/auth action.
+# The original script sets up Google Cloud Direct Workload Identity Federation for
+# any GitHub repositorty to work with the google-github-actions/auth action.
 # 
-# Uses Direct WIF (preferred): No intermediate service accounts, direct authentication to GCP resources.
+# It has been modified for Gemini CLI, which requires a special WIF setup
+# setup through a Service Account.
+
 
 set -e
 
@@ -221,9 +223,7 @@ required_apis=(
 )
 # Separately enable the internal-only Cloud Code API, ignoring errors
 # for public users who may not have access.
-gcloud services enable "cloudcode-pa.googleapis.com" --project="${GOOGLE_CLOUD_PROJECT}" || true
 gcloud services enable "${required_apis[@]}" --project="${GOOGLE_CLOUD_PROJECT}"
-gcloud services enable "cloudcode-pa.googleapis.com" --project="${GOOGLE_CLOUD_PROJECT}" || true
 print_success "APIs enabled successfully."
 
 # Step 2: Create Workload Identity Pool
@@ -319,38 +319,10 @@ else
 fi
 
 # Step 4: Grant required permissions to the Workload Identity Pool
-print_header "Step 4: Granting required permissions to Workload Identity Pool"
+print_header "(Skipped) Step 4: Granting required permissions to Workload Identity Pool"
 PRINCIPAL_SET="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_REPO}"
 
-print_info "Granting required permissions directly to the Workload Identity Pool..."
-
-# Observability permissions
-print_info "Granting logging permissions..."
-gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/logging.logWriter" \
-    --member="${PRINCIPAL_SET}" \
-    --condition=None
-
-print_info "Granting monitoring permissions..."
-gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/monitoring.metricWriter" \
-    --member="${PRINCIPAL_SET}" \
-    --condition=None
-
-print_info "Granting tracing permissions..."
-gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/cloudtrace.agent" \
-    --member="${PRINCIPAL_SET}" \
-    --condition=None
-
-# Model inference permissions
-print_info "Granting vertex permissions..."
-gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
-    --role="roles/aiplatform.user" \
-    --member="${PRINCIPAL_SET}" \
-    --condition=None
-
-print_success "Required permissions granted to Workload Identity Pool"
+print_info "(Skipped) Granting required permissions directly to the Workload Identity Pool..."
 
 # Step 5: Create and Configure Service Account for Gemini CLI
 print_header "Step 5: Create and Configure Service Account for Gemini CLI"
