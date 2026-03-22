@@ -194,6 +194,10 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_workflow_name"></a><a href="#user-content-__input_workflow_name"><code>workflow_name</code></a>: _(Optional, default: `${{ github.workflow }}`)_ The GitHub workflow name, used for telemetry purposes.
 
+-   <a name="__input_github_pr_number"></a><a href="#user-content-__input_github_pr_number"><code>github_pr_number</code></a>: _(Optional, default: `${{ github.event.pull_request.number }}`)_ The Pull Request number the CLI is operating on. Defaults to the event payload.
+
+-   <a name="__input_github_issue_number"></a><a href="#user-content-__input_github_issue_number"><code>github_issue_number</code></a>: _(Optional, default: `${{ github.event.issue.number }}`)_ The Issue number (or comma-separated list of issue numbers) the CLI is operating on. Defaults to the event payload.
+
 
 <!-- END_AUTOGEN_INPUTS -->
 <!-- prettier-ignore-end -->
