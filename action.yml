@@ -41,6 +41,10 @@ inputs:
   gemini_api_key:
     description: 'The API key for the Gemini API.'
     required: false
+  gemini_cli_package:
+    description: 'The package name of the Gemini CLI to install.'
+    required: false
+    default: '@google/gemini-cli'
   gemini_cli_version:
     description: 'The version of the Gemini CLI to install. Can be "latest", "preview", "nightly", a specific version number, or a git branch, tag, or commit. For more information, see [Gemini CLI releases](https://github.com/google-gemini/gemini-cli/blob/main/docs/releases.md).'
     required: false
@@ -236,6 +240,7 @@ runs:
     - name: 'Install Gemini CLI'
       id: 'install'
       env:
+        GEMINI_CLI_PACKAGE: '${{ inputs.gemini_cli_package }}'
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
@@ -247,14 +252,15 @@ runs:
       run: |-
         set -euo pipefail
 
+        PACKAGE_NAME="${GEMINI_CLI_PACKAGE:-@google/gemini-cli}"
         VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" == "preview" || "${VERSION_INPUT}" == "nightly" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
-          echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
+          echo "Installing Gemini CLI from npm: ${PACKAGE_NAME}@${VERSION_INPUT}"
           if [[ "${USE_PNPM}" == "true" ]]; then
-            pnpm add --silent --global @google/gemini-cli@"${VERSION_INPUT}"
+            pnpm add --silent --global "${PACKAGE_NAME}@${VERSION_INPUT}"
           else
-            npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+            npm install --silent --no-audit --prefer-offline --global "${PACKAGE_NAME}@${VERSION_INPUT}"
           fi
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
