@@ -210,19 +210,20 @@ export class TestRig {
   readToolLogs() {
     if (!existsSync(this.telemetryLog)) return [];
     const stats = statSync(this.telemetryLog);
-    if (stats.size > 500 * 1024 * 1024) {
+    if (stats.size > 300 * 1024 * 1024) {
       throw new Error(
         `Telemetry log file is too large (${stats.size} bytes). Possible infinite loop.`,
       );
     }
-    // Use Buffer to avoid string length limits for very large logs
-    const buffer = readFileSync(this.telemetryLog);
-    const content = buffer.toString('utf-8');
+
+    const content = readFileSync(this.telemetryLog, 'utf-8');
+    // Telemetry logs are NDJSON (one JSON object per line)
     return content
-      .split(/(?<=})\s*(?={)/)
-      .map((obj) => {
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => {
         try {
-          return JSON.parse(obj.trim());
+          return JSON.parse(line);
         } catch {
           return null;
         }
