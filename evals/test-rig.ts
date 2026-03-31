@@ -6,6 +6,7 @@ import {
   existsSync,
   rmSync,
   realpathSync,
+  copyFileSync,
 } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import * as os from 'node:os';
@@ -33,7 +34,7 @@ export class TestRig {
   }
 
   private _setupMockGh() {
-    const binDir = join(this.homeDir, 'bin');
+    const binDir = join(this.testDir, 'bin');
     mkdirSync(binDir, { recursive: true });
     const ghPath = join(binDir, 'gh');
     writeFileSync(ghPath, '#!/bin/bash\necho "Mock gh command: $@"\nexit 0\n');
@@ -130,7 +131,7 @@ export class TestRig {
     return {
       ...cleanEnv,
       GEMINI_CLI_HOME: this.homeDir,
-      PATH: `${join(this.homeDir, 'bin')}:${cleanEnv.PATH || ''}`,
+      PATH: `${join(this.testDir, 'bin')}:${cleanEnv.PATH || ''}`,
       ...extraEnv,
     };
   }
