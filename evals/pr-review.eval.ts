@@ -21,6 +21,7 @@ describe('PR Review Workflow', () => {
     it(`should initiate review and find key issues: ${item.id}`, async () => {
       const rig = new TestRig(`review-${item.id}`);
       try {
+        rig.initGit();
         rig.setupMockMcp();
         const commandDir = join(rig.testDir, '.gemini/commands');
         mkdirSync(commandDir, { recursive: true });
