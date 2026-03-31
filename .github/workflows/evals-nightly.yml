@@ -70,7 +70,7 @@ jobs:
         if: 'always()'
         uses: 'actions/upload-artifact@v4' # ratchet:exclude
         with:
-          name: 'eval-results-${{ matrix.model }}-${{ matrix.eval-file }}'
+          name: 'eval-results-${{ matrix.model }}-${{ strategy.job-index }}'
           path: 'eval-results-${{ matrix.model }}-*.json'
 
   report:
