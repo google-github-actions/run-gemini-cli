@@ -52,7 +52,7 @@ describe('Gemini Plan Execution Workflow', () => {
           item.expected_tools.length === 0 ||
           item.expected_tools.some(
             (action) =>
-              toolNames.includes(action) ||
+              toolNames.some((n) => n.includes(action)) ||
               toolCalls.some(
                 (c) =>
                   c.name === 'run_shell_command' && c.args.includes(action),

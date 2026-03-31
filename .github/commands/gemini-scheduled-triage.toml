@@ -85,7 +85,9 @@ Iterate through each issue object. For each issue:
 
 ### Step 5: Construct and Write Output
 
-Assemble the results into a single JSON array, formatted as a string, according to the **Output Specification** below. Finally, execute the command to write this string to the output file.
+Assemble the results into a single JSON array, formatted as a string, according to the **Output Specification** below.
+
+**CRITICAL: You MUST NOT output the JSON directly.** Your ONLY output MUST be a single `run_shell_command` that appends the triaged issues to the environment file.
 
 - Use the shell command to write using a heredoc to prevent quote escaping issues:
   ```bash
