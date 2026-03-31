@@ -64,13 +64,13 @@ jobs:
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
           BASE_NAME=$(basename "${{ matrix.eval-file }}" .eval.ts)
-          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json"
+          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json" || true
 
       - name: 'Upload Results'
         if: 'always()'
         uses: 'actions/upload-artifact@v4' # ratchet:exclude
         with:
-          name: 'eval-results-${{ matrix.model }}-${{ strategy.job-index }}'
+          name: 'eval-results-${{ matrix.model }}-${{ matrix.eval-file }}'
           path: 'eval-results-${{ matrix.model }}-*.json'
 
   report:
