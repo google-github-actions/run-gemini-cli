@@ -6,6 +6,7 @@ import {
   existsSync,
   rmSync,
   realpathSync,
+  statSync,
 } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import * as os from 'node:os';
@@ -89,11 +90,16 @@ export class TestRig {
   }
 
   setupMockMcp() {
+    const rootDir = realpathSync(join(__dirname, '..'));
+    const tsxPath = join(rootDir, 'node_modules', '.bin', 'tsx');
     const mockServerPath = realpathSync(join(__dirname, 'mock-mcp-server.ts'));
     this.mcpServers['github'] = {
-      command: 'npx',
-      args: ['tsx', mockServerPath],
+      command: tsxPath,
+      args: [mockServerPath],
       trust: true,
+      env: {
+        NODE_PATH: join(rootDir, 'node_modules'),
+      },
     };
     this._setupSettings(); // Re-write with MCP config
   }
@@ -203,7 +209,15 @@ export class TestRig {
 
   readToolLogs() {
     if (!existsSync(this.telemetryLog)) return [];
-    const content = readFileSync(this.telemetryLog, 'utf-8');
+    const stats = statSync(this.telemetryLog);
+    if (stats.size > 500 * 1024 * 1024) {
+      throw new Error(
+        `Telemetry log file is too large (${stats.size} bytes). Possible infinite loop.`,
+      );
+    }
+    // Use Buffer to avoid string length limits for very large logs
+    const buffer = readFileSync(this.telemetryLog);
+    const content = buffer.toString('utf-8');
     return content
       .split(/(?<=})\s*(?={)/)
       .map((obj) => {

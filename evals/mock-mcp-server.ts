@@ -209,7 +209,36 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   log(`Calling tool: ${request.params.name}`);
-  const pull_number = (request.params.arguments as any)?.pull_number;
+  const args = request.params.arguments as any;
+  const pull_number = args?.pull_number;
+
+  // Try to read custom mock data from CWD
+  let customMockData: Record<string, any> = {};
+  try {
+    if (fs.existsSync('mock-data.json')) {
+      customMockData = JSON.parse(fs.readFileSync('mock-data.json', 'utf-8'));
+    }
+  } catch (err) {
+    log(`Error reading custom mock data: ${err}`);
+  }
+
+  if (customMockData[request.params.name]) {
+    const customResult = customMockData[request.params.name];
+    // If it's a function, it's not supported by JSON.
+    // If it's an array, we might want to return a specific item based on args,
+    // but for now let's just return the whole thing as content.
+    return {
+      content: [
+        {
+          type: 'text',
+          text:
+            typeof customResult === 'string'
+              ? customResult
+              : JSON.stringify(customResult),
+        },
+      ],
+    };
+  }
 
   switch (request.params.name) {
     case 'search_code':

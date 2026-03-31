@@ -27,6 +27,15 @@ describe('Gemini Plan Execution Workflow', () => {
           join(rig.testDir, '.gemini/commands/gemini-plan-execute.toml'),
         );
 
+        if (item.inputs.DESCRIPTION.includes('AI Assistant: Plan of Action')) {
+          rig.createFile(
+            'mock-data.json',
+            JSON.stringify({
+              'issue_read.get_comments': [{ body: item.inputs.DESCRIPTION }],
+            }),
+          );
+        }
+
         const stdout = await rig.run(
           ['--prompt', '/gemini-plan-execute', '--yolo'],
           item.inputs,

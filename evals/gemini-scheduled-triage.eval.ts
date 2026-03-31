@@ -31,7 +31,10 @@ describe('Scheduled Triage Workflow', () => {
           GITHUB_ENV: envFile,
         };
 
-        await rig.run(['--prompt', '/gemini-scheduled-triage', '--yolo'], env);
+        const stdout = await rig.run(
+          ['--prompt', '/gemini-scheduled-triage', '--yolo'],
+          env,
+        );
 
         const content = readFileSync(envFile, 'utf-8');
         const triagedLine = content
