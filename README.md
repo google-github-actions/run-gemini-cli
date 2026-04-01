@@ -167,6 +167,8 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_gemini_api_key"></a><a href="#user-content-__input_gemini_api_key"><code>gemini_api_key</code></a>: _(Optional)_ The API key for the Gemini API.
 
+-   <a name="__input_gemini_cli_package"></a><a href="#user-content-__input_gemini_cli_package"><code>gemini_cli_package</code></a>: _(Optional, default: `@google/gemini-cli`)_ The package name of the Gemini CLI to install.
+
 -   <a name="__input_gemini_cli_version"></a><a href="#user-content-__input_gemini_cli_version"><code>gemini_cli_version</code></a>: _(Optional, default: `latest`)_ The version of the Gemini CLI to install. Can be "latest", "preview", "nightly", a specific version number, or a git branch, tag, or commit. For more information, see [Gemini CLI releases](https://github.com/google-gemini/gemini-cli/blob/main/docs/releases.md).
 
 -   <a name="__input_gemini_debug"></a><a href="#user-content-__input_gemini_debug"><code>gemini_debug</code></a>: _(Optional)_ Enable debug logging and output streaming.
@@ -218,6 +220,7 @@ We recommend setting the following values as repository variables so they can be
 | Name                        | Description                                                                                                                    | Type     | Required | When Required                  |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | -------- | ------------------------------ |
 | `GEMINI_DEBUG`              | Enables debug logging for the Gemini CLI.                                                                                      | Variable | No       | Never                          |
+| `GEMINI_CLI_PACKAGE`        | Controls which package of the Gemini CLI is installed.                                                                         | Variable | No       | Custom CLI package             |
 | `GEMINI_CLI_VERSION`        | Controls which version of the Gemini CLI is installed.                                                                         | Variable | No       | Pinning the CLI version        |
 | `GCP_WIF_PROVIDER`          | Full resource name of the Workload Identity Provider.                                                                          | Variable | No       | Using Google Cloud             |
 | `GOOGLE_CLOUD_PROJECT`      | Google Cloud project for inference and observability.                                                                          | Variable | No       | Using Google Cloud             |
