@@ -39,11 +39,12 @@ describe('Gemini Plan Execution Workflow', () => {
         const toolNames = toolCalls.map((c) => c.name);
 
         // 1. Structural check
+        const toolNamesStripped = toolNames.map(name => name.replace(/^mcp_github_/, ''));
         const hasSomeExpectedToolCalls =
           item.expected_tools.length === 0 ||
           item.expected_tools.some(
             (action) =>
-              toolNames.includes(action) ||
+              toolNamesStripped.includes(action) ||
               toolCalls.some(
                 (c) =>
                   c.name === 'run_shell_command' && c.args.includes(action),

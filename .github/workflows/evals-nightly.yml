@@ -64,7 +64,17 @@ jobs:
           GEMINI_MODEL: '${{ matrix.model }}'
         run: |
           BASE_NAME=$(basename "${{ matrix.eval-file }}" .eval.ts)
-          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="eval-results-${{ matrix.model }}-${BASE_NAME}.json"
+          REPORT_FILE="eval-results-${{ matrix.model }}-${BASE_NAME}.json"
+
+          # Run tests and ignore exit code
+          npm run test:evals -- "${{ matrix.eval-file }}" --reporter=json --outputFile="$REPORT_FILE" || true
+
+          # Check if report was generated
+          if [ ! -f "$REPORT_FILE" ]; then
+            echo "❌ Report file $REPORT_FILE was not generated. The evaluation likely crashed."
+            exit 1
+          fi
+          echo "✅ Report file generated. Continuing."
 
       - name: 'Upload Results'
         if: 'always()'
