@@ -36,10 +36,19 @@ describe('PR Review Workflow', () => {
           'call the `pull_request_read.get_diff` tool with the provided `PULL_REQUEST_NUMBER`',
         );
         
-        // Remove skill activation instruction which fails in clean test environment
-        tomlContent = tomlContent.replace(
-          'Activate the `code-review-commons` skill',
-          '# Skill activation requested here was disabled in evaluation',
+        // Create mock skill file
+        const skillDir = join(rig.testDir, '.gemini/skills/code-review-commons');
+        mkdirSync(skillDir, { recursive: true });
+        writeFileSync(
+          join(skillDir, 'SKILL.md'),
+          `---
+name: code-review-commons
+description: Common code review guidelines
+---
+You are an expert code reviewer. Follow these rules:
+1. Look for subtle race conditions in async code (e.g., returning results before assignment in .then()).
+2. Identify architectural violations (e.g., UI importing DB internal logic).
+`
         );
         
         writeFileSync(join(commandDir, 'pr-code-review.toml'), tomlContent);
@@ -47,7 +56,12 @@ describe('PR Review Workflow', () => {
         const stdout = await rig.run(
           ['--prompt', '/pr-code-review', '--yolo'],
           item.inputs,
-          ['pull_request_read.get_diff', 'pull_request_read:get_diff'],
+          [
+            'pull_request_read.get_diff', 
+            'pull_request_read:get_diff',
+            'activate_skill',
+            'list_directory'
+          ],
         );
 
         // Add a small delay to ensure telemetry logs are flushed
