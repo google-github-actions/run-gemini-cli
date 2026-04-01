@@ -28,12 +28,26 @@ describe('PR Review Workflow', () => {
         const response = await fetch(REVIEW_TOML_URL);
         if (!response.ok)
           throw new Error(`Failed to fetch TOML: ${response.statusText}`);
-        const tomlContent = await response.text();
+        let tomlContent = await response.text();
+        
+        // Modify prompt to use MCP tools instead of git diff which fails in clean test dir
+        tomlContent = tomlContent.replace(
+          'call the `git diff -U5 --merge-base origin/HEAD` tool',
+          'call the `pull_request_read.get_diff` tool with the provided `PULL_REQUEST_NUMBER`',
+        );
+        
+        // Remove skill activation instruction which fails in clean test environment
+        tomlContent = tomlContent.replace(
+          'Activate the `code-review-commons` skill',
+          '# Skill activation requested here was disabled in evaluation',
+        );
+        
         writeFileSync(join(commandDir, 'pr-code-review.toml'), tomlContent);
 
         const stdout = await rig.run(
           ['--prompt', '/pr-code-review', '--yolo'],
           item.inputs,
+          ['pull_request_read.get_diff', 'pull_request_read:get_diff'],
         );
 
         // Add a small delay to ensure telemetry logs are flushed

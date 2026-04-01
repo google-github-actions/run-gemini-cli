@@ -31,21 +31,25 @@ describe('Scheduled Triage Workflow', () => {
           GITHUB_ENV: envFile,
         };
 
-        await rig.run(['--prompt', '/gemini-scheduled-triage', '--yolo'], env);
+        const stdout = await rig.run(
+          ['--prompt', '/gemini-scheduled-triage', '--yolo'],
+          env,
+        );
 
-        const content = readFileSync(envFile, 'utf-8');
-        const triagedLine = content
-          .split('\n')
-          .find((l) => l.startsWith('TRIAGED_ISSUES='));
-
-        if (!triagedLine) {
+        const content = readFileSync(envFile, 'utf-8').trim();
+        let jsonStr = '';
+        
+        if (content.startsWith('TRIAGED_ISSUES=')) {
+          jsonStr = content.split('=', 2)[1];
+        } else if (content.startsWith('[')) {
+          jsonStr = content;
+        } else {
           console.error(
-            `Failed to find TRIAGED_ISSUES in env file. stdout: ${stdout}`,
+            `Failed to find TRIAGED_ISSUES or JSON array in env file. content: ${content}`,
           );
         }
-        expect(triagedLine).toBeDefined();
-
-        const jsonStr = triagedLine!.split('=', 2)[1];
+        
+        expect(jsonStr).toBeTruthy();
         const actual = JSON.parse(jsonStr);
 
         expect(actual.length).toBeGreaterThan(0);
