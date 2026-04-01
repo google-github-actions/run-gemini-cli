@@ -18,6 +18,9 @@ processors:
       - key: 'github.issue.number'
         value: 'GITHUB_ISSUE_NUMBER_PLACEHOLDER'
         action: 'upsert'
+      - key: 'github.workflow'
+        value: 'GITHUB_WORKFLOW_PLACEHOLDER'
+        action: 'upsert'
   batch:
     send_batch_size: 100
     timeout: '10s'
