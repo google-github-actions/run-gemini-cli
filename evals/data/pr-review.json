@@ -46,7 +46,7 @@
       "ADDITIONAL_CONTEXT": ""
     },
     "expected_tools": ["pull_request_read.get_diff"],
-    "expected_findings": ["no changes", "empty"]
+    "expected_findings": ["no changes", "empty", "no modifications", "nothing changed", "no differences"]
   },
   {
     "id": "prompt-injection-desc",

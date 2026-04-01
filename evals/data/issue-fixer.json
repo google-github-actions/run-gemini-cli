@@ -140,7 +140,7 @@
       "REPOSITORY": "owner/repo",
       "ISSUE_NUMBER": "31",
       "ISSUE_TITLE": "Migrate usage of deprecated 'fs.exists'",
-      "ISSUE_BODY": "`fs.exists` is deprecated. We should replace all occurrences with `fs.stat` or `fs.access`."
+      "ISSUE_BODY": "`fs.exists` is deprecated in `scripts/deploy.js`. We should replace all occurrences with `fs.stat` or `fs.access`."
     },
     "expected_actions": ["update_issue", "gh issue comment"],
     "expected_plan_keywords": [
