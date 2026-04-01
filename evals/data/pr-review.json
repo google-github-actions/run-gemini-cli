@@ -82,7 +82,7 @@
       "pull_request_read.get_diff",
       "add_comment_to_pending_review"
     ],
-    "expected_findings": ["layer", "violation", "import", "dependency"]
+    "expected_findings": ["layer", "layering", "violation", "violates", "import", "dependency", "db", "internal"]
   },
   {
     "id": "large-refactor",
