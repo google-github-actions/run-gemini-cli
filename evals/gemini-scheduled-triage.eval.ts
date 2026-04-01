@@ -36,13 +36,14 @@ describe('Scheduled Triage Workflow', () => {
           env,
         );
 
-        const content = readFileSync(envFile, 'utf-8').trim();
+        const content = readFileSync(envFile, 'utf-8');
         let jsonStr = '';
         
-        if (content.startsWith('TRIAGED_ISSUES=')) {
-          jsonStr = content.split('=', 2)[1];
-        } else if (content.startsWith('[')) {
-          jsonStr = content;
+        const triagedLine = content.split('\n').find(l => l.trim().startsWith('TRIAGED_ISSUES='));
+        if (triagedLine) {
+          jsonStr = triagedLine.split('=', 2)[1];
+        } else if (content.trim().startsWith('[')) {
+          jsonStr = content.trim();
         } else {
           console.error(
             `Failed to find TRIAGED_ISSUES or JSON array in env file. content: ${content}`,

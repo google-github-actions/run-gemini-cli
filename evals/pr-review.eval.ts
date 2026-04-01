@@ -31,10 +31,13 @@ describe('PR Review Workflow', () => {
         let tomlContent = await response.text();
         
         // Modify prompt to use MCP tools instead of git diff which fails in clean test dir
-        tomlContent = tomlContent.replace(
-          'call the `git diff -U5 --merge-base origin/HEAD` tool',
-          'call the `pull_request_read.get_diff` tool with the provided `PULL_REQUEST_NUMBER`',
-        );
+        const gitDiffPrompt = 'call the `git diff -U5 --merge-base origin/HEAD` tool';
+        if (tomlContent.includes(gitDiffPrompt)) {
+          tomlContent = tomlContent.replace(
+            gitDiffPrompt,
+            'call the `pull_request_read.get_diff` tool with the provided `PULL_REQUEST_NUMBER`',
+          );
+        }
         
         // Create mock skill file
         const skillDir = join(rig.testDir, '.gemini/skills/code-review-commons');
