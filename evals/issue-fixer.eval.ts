@@ -58,7 +58,15 @@ describe('Issue Fixer Workflow', () => {
         );
         rig.createFile(
           'test/UserProfile.test.js',
-          'describe("UserProfile", () => {\n  it("should load data", async () => {\n    // Flaky network call\n  });\n});\n',
+          `describe("UserProfile", () => {
+  it("should load data", async () => {
+    // Flaky network call
+    const response = await fetch('https://api.example.com/user');
+    const data = await response.json();
+    expect(data.name).toBe("John Doe");
+  });
+});
+`,
         );
 
         rig.createFile(
