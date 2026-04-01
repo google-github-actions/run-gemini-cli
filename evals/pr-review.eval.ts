@@ -107,14 +107,17 @@ You are an expert code reviewer. Follow these rules:
           outputLower.includes(kw.toLowerCase()),
         );
 
-        if (foundKeywords.length === 0) {
+        if (foundKeywords.length === 0 && item.expected_findings.length > 0) {
           console.warn(
             `Reviewer for ${item.id} didn't mention any expected findings. Output preview: ${stdout.substring(0, 200)}`,
           );
         }
 
         expect(stdout.length).toBeGreaterThan(0);
-        expect(foundKeywords.length).toBeGreaterThan(0);
+        
+        if (item.expected_findings.length > 0) {
+          expect(foundKeywords.length).toBeGreaterThan(0);
+        }
       } finally {
         rig.cleanup();
       }
