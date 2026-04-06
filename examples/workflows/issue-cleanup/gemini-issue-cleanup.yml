@@ -1,0 +1,95 @@
+name: '🧹 Gemini Issue Cleanup'
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Runs weekly at midnight on Sunday
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  find-issues:
+    runs-on: 'ubuntu-latest'
+    outputs:
+      issue_numbers: '${{ steps.find_issues.outputs.issue_numbers }}'
+    steps:
+      - name: 'Find old issues for cleanup'
+        id: 'find_issues'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+        run: |-
+          echo '🔍 Finding old issues for cleanup...'
+          # Query matches target: google-gemini/gemini-cli, open issues, sorted by oldest last update time
+          # with labels area/core, area/extensions, area/site, area/non-interactive
+          ISSUES="$(gh issue list \
+            --repo google-gemini/gemini-cli \
+            --state 'open' \
+            --search "label:area/core,area/extensions,area/site,area/non-interactive sort:updated-asc" \
+            --json number \
+            --limit 10 \
+          )"
+
+          # Convert to JSON array of integers
+          ISSUE_NUMBERS="$(echo "${ISSUES}" | jq -c '[.[].number | tostring]')"
+
+          if [ "${ISSUE_NUMBERS}" = "[]" ] || [ -z "${ISSUE_NUMBERS}" ]; then
+            echo "issue_numbers=[]" >> "${GITHUB_OUTPUT}"
+            echo "✅ No issues found to clean up."
+          else
+            echo "issue_numbers=${ISSUE_NUMBERS}" >> "${GITHUB_OUTPUT}"
+            echo "✅ Found $(echo "${ISSUES}" | jq 'length') issue(s) to process."
+          fi
+
+  process-issue:
+    needs: find-issues
+    if: needs.find-issues.outputs.issue_numbers != '[]' && needs.find-issues.outputs.issue_numbers != ''
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        issue_number: ${{ fromJSON(needs.find-issues.outputs.issue_numbers) }}
+      max-parallel: 3
+      fail-fast: false
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      issues: 'write'
+    steps:
+      - name: 'Checkout Target Repository Code'
+        uses: 'actions/checkout@v4'
+        with:
+          repository: 'google-gemini/gemini-cli'
+
+      - name: 'Run Gemini Issue Cleanup'
+        uses: 'google-github-actions/run-gemini-cli@v0' # Replace with actual version when deploying
+        env:
+          ISSUE_NUMBER: '${{ matrix.issue_number }}'
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+        with:
+          # Modify the auth settings depending on your environment
+          gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+          workflow_name: 'gemini-issue-cleanup'
+          # Passing issue number to let the agent retrieve it
+          settings: |-
+            {
+              "model": {
+                "maxSessionTurns": 50
+              },
+              "tools": {
+                "core": [
+                  "grep_search",
+                  "read_file",
+                  "run_shell_command(gh)"
+                ]
+              }
+            }
+          prompt: '/gemini-issue-cleanup'
