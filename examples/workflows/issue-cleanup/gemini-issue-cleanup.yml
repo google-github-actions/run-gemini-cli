@@ -168,12 +168,23 @@ jobs:
                 return lowerName === 'priority/p0' || lowerName === 'priority/p1' || lowerName === 'p0' || lowerName === 'p1';
               });
 
-              let commentBody = `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps.`;
+              const isFeatureRequest = issue.labels.some(l => {
+                const name = typeof l === 'string' ? l : l.name;
+                const lowerName = name.toLowerCase();
+                return lowerName.includes('feature') || lowerName.includes('enhancement');
+              });
+
+              let commentBody = '';
+              if (isFeatureRequest) {
+                commentBody = `@${reporter}, this feature request hasn't been updated in over a month. Please reopen if this is still needed.`;
+              } else {
+                commentBody = `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps.`;
+              }
 
               if (!isHighPriority) {
                 if (hasAssignees) {
                   commentBody += `\n\n${assigneeMentions}, please reopen if you are actively working on this.`;
-                } else {
+                } else if (!isFeatureRequest) {
                   commentBody += ` Feel free to reopen this issue.`;
                 }
               } else {
