@@ -61,10 +61,8 @@ jobs:
       id-token: 'write'
       issues: 'write'
     steps:
-      - name: 'Checkout Target Repository Code'
+      - name: 'Checkout Current Repository'
         uses: 'actions/checkout@v4'
-        with:
-          repository: 'google-gemini/gemini-cli'
 
       - name: 'Run Gemini Issue Cleanup'
         uses: 'google-github-actions/run-gemini-cli@v0' # Replace with actual version when deploying
@@ -89,7 +87,8 @@ jobs:
                 "core": [
                   "grep_search",
                   "read_file",
-                  "run_shell_command(gh)"
+                  "run_shell_command(gh)",
+                  "run_shell_command(git)"
                 ]
               }
             }
