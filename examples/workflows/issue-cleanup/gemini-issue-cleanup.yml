@@ -25,18 +25,18 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
         run: |-
           echo '🔍 Finding old issues for cleanup...'
-          # Query matches target: google-gemini/gemini-cli, open issues, sorted by oldest last update time
+          # Query matches target repository, open issues, sorted by oldest last update time
           # with labels area/core, area/extensions, area/site, area/non-interactive
           ISSUES="$(gh issue list \
-            --repo google-gemini/gemini-cli \
+            --repo ${{ github.repository }} \
             --state 'open' \
             --search "label:area/core,area/extensions,area/site,area/non-interactive sort:updated-asc" \
             --json number \
             --limit 10 \
           )"
 
-          # Convert to JSON array of integers
-          ISSUE_NUMBERS="$(echo "${ISSUES}" | jq -c '[.[].number | tostring]')"
+          # Convert to JSON array
+          ISSUE_NUMBERS="$(echo "${ISSUES}" | jq -c '[.[].number]')"
 
           if [ "${ISSUE_NUMBERS}" = "[]" ] || [ -z "${ISSUE_NUMBERS}" ]; then
             echo "issue_numbers=[]" >> "${GITHUB_OUTPUT}"
@@ -68,6 +68,7 @@ jobs:
         uses: 'google-github-actions/run-gemini-cli@v0' # Replace with actual version when deploying
         env:
           ISSUE_NUMBER: '${{ matrix.issue_number }}'
+          REPOSITORY: '${{ github.repository }}'
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
         with:
           # Modify the auth settings depending on your environment

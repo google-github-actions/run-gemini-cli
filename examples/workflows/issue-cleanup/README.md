@@ -12,12 +12,10 @@ The Issue Cleanup workflow is designed to automate the triage of stale issues by
 
 ## Usage
 
-This example is tailored to process issues in a specific repository (`google-gemini/gemini-cli`) matching specific labels (`area/core`, `area/extensions`, `area/site`, `area/non-interactive`), selecting the 10 issues with the oldest last update time.
+This example is tailored to process issues in your repository matching specific labels (`area/core`, `area/extensions`, `area/site`, `area/non-interactive`), selecting the 10 issues with the oldest last update time.
 
 To adapt this to your own repository:
 
 1. Copy `gemini-issue-cleanup.yml` to your repository's `.github/workflows/` directory.
-2. Update the repository name and search string in the `Find old issues for cleanup` step in `gemini-issue-cleanup.yml`.
-3. Update the repository name in the `Checkout Target Repository Code` step in `gemini-issue-cleanup.yml`.
-4. Copy `gemini-issue-cleanup.toml` to your `.github/commands/` directory.
-5. Update the prompt instructions in `gemini-issue-cleanup.toml` replacing `google-gemini/gemini-cli` with your repository name.
+2. Update the search string in the `Find old issues for cleanup` step in `gemini-issue-cleanup.yml` to match your repository's labels.
+3. Copy `gemini-issue-cleanup.toml` to your `.github/commands/` directory.
