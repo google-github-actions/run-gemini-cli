@@ -161,7 +161,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build and let us know if it still occurs? If so, please provide detailed reproduction steps.`
+                body: `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps and feel free to reopen this issue.`
               });
               await github.rest.issues.update({
                 owner: context.repo.owner,
