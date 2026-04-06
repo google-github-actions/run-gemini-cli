@@ -70,6 +70,7 @@ jobs:
           ISSUE_NUMBER: '${{ matrix.issue_number }}'
           REPOSITORY: '${{ github.repository }}'
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          CUSTOM_INSTRUCTIONS: 'State whether the issue should be categorized as **Maintainer-only** (epic, core architecture, sensitive fixes, internal tasks, or issues requiring deep investigation) or **Help-wanted** (good for community, general bugs, features, or tasks ready for external help). Your comment should be brief and clearly explain *why* it fits that category.'
         with:
           # Modify the auth settings depending on your environment
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'

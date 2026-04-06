@@ -31,10 +31,10 @@ You MUST use your tools (like `grep_search`, `read_file`, and `run_shell_command
 
 ### Step 3: Provide Triage Summary
 - If the issue is still valid and NOT a duplicate, add a brief summary comment for further triaging.
-- State whether the issue should be categorized as:
-  - **Maintainer-only**: (e.g., epic, core architecture, sensitive fixes, internal tasks, or issues requiring deep investigation)
-  - **Help-wanted**: (e.g., good for community, general bugs, features, or tasks ready for external help)
-- Your comment should be brief and clearly explain *why* it fits that category.
-- Use `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n**Category:** <Maintainer-only OR Help-wanted>\n\n**Reasoning:** <brief explanation>" --repo !{echo $REPOSITORY}`
+- To formulate your summary, follow these custom instructions:
+```
+!{echo $CUSTOM_INSTRUCTIONS}
+```
+- Use `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary based on custom instructions>" --repo !{echo $REPOSITORY}`
 - STOP execution. You are done with this issue.
 """
