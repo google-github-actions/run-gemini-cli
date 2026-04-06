@@ -20,4 +20,5 @@ To adapt this to your own repository:
 
 1. Copy `gemini-issue-cleanup.yml` to your repository's `.github/workflows/` directory.
 2. Update the search string in the `Find old issues for cleanup` step in `gemini-issue-cleanup.yml` to match your repository's labels.
-3. Copy `gemini-issue-cleanup.toml` to your `.github/commands/` directory.
+3. Configure the `maintainers` input in `gemini-issue-cleanup.yml` (either via the workflow dispatch inputs or by setting the `MAINTAINERS` repository variable) to explicitly list which users count as maintainers for the staleness check.
+4. Copy `gemini-issue-cleanup.toml` to your `.github/commands/` directory.

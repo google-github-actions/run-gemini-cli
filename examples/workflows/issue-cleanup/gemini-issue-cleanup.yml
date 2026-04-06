@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 0 * * 0' # Runs weekly at midnight on Sunday
   workflow_dispatch:
+    inputs:
+      maintainers:
+        description: 'Comma-separated list of maintainer usernames (e.g., gemini-cli)'
+        required: false
+        default: 'gemini-cli'
 
 concurrency:
   group: '${{ github.workflow }}'
@@ -66,10 +71,13 @@ jobs:
         uses: 'actions/github-script@v7'
         env:
           ISSUE_NUMBER: '${{ matrix.issue_number }}'
+          MAINTAINERS: "${{ inputs.maintainers || vars.MAINTAINERS || ' }}"
         with:
           script: |-
             const issueNumber = parseInt(process.env.ISSUE_NUMBER, 10);
             console.log(`Checking staleness for issue #${issueNumber}`);
+
+            const maintainers = process.env.MAINTAINERS ? process.env.MAINTAINERS.split(',').map(m => m.trim()) : [];
 
             const { data: issue } = await github.rest.issues.get({
               owner: context.repo.owner,
@@ -85,8 +93,11 @@ jobs:
             });
 
             // Find last maintainer comment
-            const maintainerComments = comments.filter(c => c.user.login !== reporter && !c.user.login.includes('github-actions') && c.user.type !== 'Bot');
-
+            const maintainerComments = comments.filter(c => {
+              if (c.user.login === reporter) return false;
+              if (maintainers.length > 0) return maintainers.includes(c.user.login);
+              return !c.user.login.includes('github-actions') && c.user.type !== 'Bot';
+            });
             if (maintainerComments.length > 0) {
               const lastMaintainerComment = maintainerComments[maintainerComments.length - 1];
               const reporterReplied = comments.some(c => c.user.login === reporter && new Date(c.created_at) > new Date(lastMaintainerComment.created_at));
