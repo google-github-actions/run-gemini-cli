@@ -163,6 +163,12 @@ jobs:
                 issue_number: issueNumber,
                 body: `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build and let us know if it still occurs? If so, please provide detailed reproduction steps.`
               });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed'
+              });
               core.setOutput('is_stale', 'true');
               return;
             }
