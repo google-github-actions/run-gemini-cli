@@ -31,10 +31,10 @@ You MUST use your tools (like `grep_search`, `read_file`, and `run_shell_command
 
 ### Step 3: Provide Triage Summary
 - If the issue is still valid and NOT a duplicate, add a brief summary comment for further triaging.
-- To formulate your summary, follow these custom instructions:
+- If custom instructions are provided below, use them to formulate your summary. Otherwise, formulate a standard triage summary (e.g., identifying the core problem, potential impact, and recommended next steps for a maintainer).
 ```
 !{echo $CUSTOM_INSTRUCTIONS}
 ```
-- Use `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary based on custom instructions>" --repo !{echo $REPOSITORY}`
+- Use `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary>" --repo !{echo $REPOSITORY}`
 - STOP execution. You are done with this issue.
 """
