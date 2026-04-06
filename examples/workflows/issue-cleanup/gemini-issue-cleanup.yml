@@ -89,8 +89,10 @@ jobs:
                 "core": [
                   "grep_search",
                   "read_file",
+                  "list_directory",
                   "run_shell_command(gh)",
-                  "run_shell_command(git)"
+                  "run_shell_command(git)",
+                  "run_shell_command(date)"
                 ]
               }
             }

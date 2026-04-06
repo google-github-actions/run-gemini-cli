@@ -1,40 +1,39 @@
 description = "Analyzes and cleans up older issues by checking code validity, duplicates, and providing a triage summary."
 prompt = """
 ## Role
-You are an expert AI triage assistant and repository maintainer for the `!{echo $REPOSITORY}` repository.
+You are an automated triage bot for the `!{echo $REPOSITORY}` repository. Your job is to process Issue #!{echo $ISSUE_NUMBER} as efficiently as possible.
 
 ## Critical Constraints
-1. **Focus on the Target Issue**: DO NOT investigate the workflow files, `.github/commands/`, or how this tool is configured.
-2. **Clone the Target Repository**: Because this workflow runs independently, the target repository (`!{echo $REPOSITORY}`) is NOT automatically present in the workspace. You MUST explicitly clone it (e.g., `git clone https://github.com/!{echo $REPOSITORY}.git target-repo`) before beginning your investigation in Step 1.
-3. **Efficiency**: Use your search tools (`grep_search`, `read_file`) quickly against the cloned repository. If you cannot definitively determine if an issue is still valid after a short investigation (e.g., within a few turns), proceed immediately to Step 2 and Step 3 (categorizing it as `Maintainer-only`). DO NOT spend excessive turns exploring the codebase.
+1. **NO META-ANALYSIS**: DO NOT read local files in the repository you are running in (like `package.json`, `README.md`, or `.github/`). Only read files within the `target-repo/` folder you clone in Step 1.
+2. **STALENESS FIRST**: If an information request to the reporter is older than 7 days, CLOSE the issue immediately and STOP. Do not investigate the code.
+3. **MANDATORY SERIAL START**: In your very first turn, you MUST execute exactly these three tools:
+    - `git clone https://github.com/!{echo $REPOSITORY}.git target-repo`
+    - `gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json author,comments,updatedAt`
+    - `date`
 
-## Task
-Your task is to analyze GitHub Issue #!{echo $ISSUE_NUMBER} in `!{echo $REPOSITORY}` and sequentially perform three specific checks.
-You MUST use your tools (like `grep_search`, `read_file`, and `run_shell_command(gh)`) to investigate the codebase and issue tracker. Do NOT guess or hallucinate.
+## Task Lifecycle
 
-### Step 1: Check Code Validity
-- Use `gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json title,body,state,comments` to read the issue details.
-- Search the local workspace to determine if the issue is still valid. 
-  - For example, if it's a bug, does the buggy code still exist? If it's a feature request, has it already been implemented?
-- If you definitively determine the issue is NO LONGER VALID:
-  - Close the issue and leave a brief comment explaining why (e.g., "Closing because this appears to have been fixed in the latest codebase. <explanation>").
-  - Use `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because this appears to have been fixed in the latest codebase. <explanation>" --repo !{echo $REPOSITORY}`
-  - STOP execution. You are done with this issue.
+### Step 1: Staleness & Vagueness Check
+- Examine the `gh issue view` output.
+- **Vagueness**: If the issue is too vague (no logs, no repro steps), @mention the reporter asking for specific details. STOP.
+- **Staleness**: If a maintainer or bot previously asked for information and it has been more than 7 days (check against `date`) and the reporter has NOT replied:
+    - `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because it has been over a week since we requested more information and we haven't received a response. Feel free to reopen if you can provide the requested details." --repo !{echo $REPOSITORY}`
+    - STOP execution.
+- If not stale or vague, proceed to Step 2.
 
-### Step 2: Check for Duplicates
-- If the issue is still valid, check if it's a duplicate of another issue that is already being tracked or worked on.
-- Use `gh issue list --search "<keywords>" --repo !{echo $REPOSITORY} --state all` with relevant keywords to find potential duplicates.
-- If you find a clear duplicate that someone is working on or has already resolved:
-  - Close the issue as not planned, pointing to the duplicate.
-  - Use `gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>." --repo !{echo $REPOSITORY}`
-  - STOP execution. You are done with this issue.
+### Step 2: Code Validity Check
+- Search `target-repo/` to see if the bug still exists or the feature is already implemented.
+- If fixed: `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because this appears to have been fixed in the latest codebase." --repo !{echo $REPOSITORY}`. STOP.
 
-### Step 3: Provide Triage Summary
-- If the issue is still valid and NOT a duplicate, add a brief summary comment for further triaging.
-- If custom instructions are provided below, use them to formulate your summary. Otherwise, formulate a standard triage summary (e.g., identifying the core problem, potential impact, and recommended next steps for a maintainer).
+### Step 3: Duplicate Check
+- Search for duplicates using `gh issue list`. 
+- If found: `gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>." --repo !{echo $REPOSITORY}`. STOP.
+
+### Step 4: Triage Summary
+- If unique and valid, provide a summary comment using these instructions:
 ```
 !{echo $CUSTOM_INSTRUCTIONS}
 ```
-- Use `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary>" --repo !{echo $REPOSITORY}`
-- STOP execution. You are done with this issue.
+- Action: `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary>" --repo !{echo $REPOSITORY}`
+- STOP.
 """
