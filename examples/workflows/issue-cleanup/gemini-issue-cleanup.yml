@@ -95,7 +95,8 @@ jobs:
             // Find last maintainer comment
             const maintainerComments = comments.filter(c => {
               if (c.user.login === reporter) return false;
-              if (maintainers.length > 0) return maintainers.includes(c.user.login);
+              const isMaintainer = maintainers.includes(c.user.login) || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association);
+              if (maintainers.length > 0) return isMaintainer;
               return !c.user.login.includes('github-actions') && c.user.type !== 'Bot';
             });
             if (maintainerComments.length > 0) {
