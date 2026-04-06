@@ -158,19 +158,47 @@ jobs:
                 console.log('Failed to add needs-info label:', e.message);
               }
               
+              const assignees = issue.assignees.map(a => a.login);
+              const hasAssignees = assignees.length > 0;
+              const assigneeMentions = hasAssignees ? assignees.map(a => `@${a}`).join(' ') : '';
+              
+              const isHighPriority = issue.labels.some(l => {
+                const name = typeof l === 'string' ? l : l.name;
+                const lowerName = name.toLowerCase();
+                return lowerName === 'priority/p0' || lowerName === 'priority/p1' || lowerName === 'p0' || lowerName === 'p1';
+              });
+
+              let commentBody = `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps.`;
+
+              if (!isHighPriority) {
+                if (hasAssignees) {
+                  commentBody += `\n\n${assigneeMentions}, please reopen if you are actively working on this.`;
+                } else {
+                  commentBody += ` Feel free to reopen this issue.`;
+                }
+              } else {
+                if (hasAssignees) {
+                  commentBody += `\n\n${assigneeMentions}, checking in on this high priority issue.`;
+                }
+              }
+
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps and feel free to reopen this issue.`
+                body: commentBody
               });
-              await github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                state: 'closed',
-                state_reason: 'not_planned'
-              });
+
+              if (!isHighPriority) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                  state_reason: 'not_planned'
+                });
+              }
+              
               core.setOutput('is_stale', 'true');
               return;
             }
