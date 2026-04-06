@@ -79,6 +79,49 @@ jobs:
 
             const maintainers = process.env.MAINTAINERS ? process.env.MAINTAINERS.split(',').map(m => m.trim()) : [];
 
+            // First, check if it's tracked by a parent issue or part of a project
+            const query = `
+              query($owner: String!, $repo: String!, $issueNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $issueNumber) {
+                    trackedInIssues(first: 1) {
+                      totalCount
+                    }
+                    projectItems(first: 1) {
+                      totalCount
+                    }
+                  }
+                }
+              }
+            `;
+            try {
+              const result = await github.graphql(query, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issueNumber: issueNumber
+              });
+              const isTracked = result.repository.issue.trackedInIssues.totalCount > 0;
+              const inProject = result.repository.issue.projectItems.totalCount > 0;
+              
+              if (isTracked || inProject) {
+                console.log(`Issue #${issueNumber} is tracked by a parent issue or project. Removing 'status/need-triage' and stopping.`);
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    name: 'status/need-triage'
+                  });
+                } catch (e) {
+                  // Ignore if label doesn't exist
+                }
+                core.setOutput('is_stale', 'true');
+                return;
+              }
+            } catch (err) {
+              console.log('Failed to fetch GraphQL data for parent issues/projects:', err.message);
+            }
+
             const { data: issue } = await github.rest.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
