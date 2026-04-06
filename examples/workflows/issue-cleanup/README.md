@@ -6,8 +6,8 @@ This document describes a workflow to batch-process and clean up older open issu
 
 The Issue Cleanup workflow is designed to automate the triage of stale issues by using the Gemini CLI to:
 
-1. **Check for Staleness (Native)**: Identifies if an issue has been waiting for reporter feedback for over 7 days. If so, it closes the issue directly via a GitHub Action script to save AI resources.
-2. **Check for Age and Vagueness (AI)**: If an issue is not stale but hasn't been updated in over a month, it asks the reporter to reproduce the issue with the latest build. If the issue lacks sufficient information (e.g., reproduction steps), it asks the reporter for specific details and stops.
+1. **Check for Staleness and Age (Native)**: Identifies if an issue has been waiting for reporter feedback for over 7 days, closing it if so. If the issue is not stale but hasn't been updated in over a month, it asks the reporter to reproduce the issue with the latest build. This is handled via a native GitHub Action script to save AI resources.
+2. **Check for Vagueness (AI)**: If an issue is not stale or old but lacks sufficient information (e.g., reproduction steps), the agent asks the reporter for specific details and stops.
 3. **Check Code Validity (AI)**: Determines if an issue is still relevant against the current codebase. The agent may attempt to write and execute a minimal reproduction script to verify if a bug has been resolved, or manually inspect the code. If verified as fixed, it will close the issue with an explanation.
 4. **Find Duplicates (AI)**: Checks if the issue has a more recent duplicate. If a duplicate exists, it closes the issue and links to the duplicate.
 5. **Summarize for Triage (AI)**: If an issue is still valid and unique, it provides a summary comment based on customizable instructions (e.g., categorizing it as `Maintainer-only` or `Help-wanted`). If no custom instructions are provided, it falls back to a standard triage summary.

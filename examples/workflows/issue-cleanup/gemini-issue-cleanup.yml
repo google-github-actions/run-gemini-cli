@@ -125,6 +125,23 @@ jobs:
                 }
               }
             }
+
+            // Check overall issue age / inactivity
+            const lastUpdateDaysAgo = (new Date() - new Date(issue.updated_at)) / (1000 * 60 * 60 * 24);
+            console.log(`Issue was last updated ${lastUpdateDaysAgo.toFixed(1)} days ago.`);
+
+            if (lastUpdateDaysAgo > 30) {
+              console.log(`Issue has been inactive for over a month. Asking for repro.`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build and let us know if it still occurs? If so, please provide detailed reproduction steps.`
+              });
+              core.setOutput('is_stale', 'true');
+              return;
+            }
+
             core.setOutput('is_stale', 'false');
 
       - name: 'Checkout Current Repository'
