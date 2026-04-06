@@ -47,12 +47,13 @@ jobs:
           fi
 
   process-issue:
-    needs: find-issues
-    if: needs.find-issues.outputs.issue_numbers != '[]' && needs.find-issues.outputs.issue_numbers != ''
+    needs: 'find-issues'
+    if: |-
+      needs.find-issues.outputs.issue_numbers != '[]' && needs.find-issues.outputs.issue_numbers != ''
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:
-        issue_number: ${{ fromJSON(needs.find-issues.outputs.issue_numbers) }}
+        issue_number: '${{ fromJSON(needs.find-issues.outputs.issue_numbers) }}'
       max-parallel: 3
       fail-fast: false
     permissions:
