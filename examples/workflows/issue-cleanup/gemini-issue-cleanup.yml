@@ -79,6 +79,13 @@ jobs:
 
             const maintainers = process.env.MAINTAINERS ? process.env.MAINTAINERS.split(',').map(m => m.trim()) : [];
 
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+            const reporter = issue.user.login;
+
             // First, check if it's tracked by a parent issue or part of a project
             const query = `
               query($owner: String!, $repo: String!, $issueNumber: Int!) {
@@ -115,19 +122,31 @@ jobs:
                 } catch (e) {
                   // Ignore if label doesn't exist
                 }
+
+                const assignees = issue.assignees.map(a => a.login);
+                const hasAssignees = assignees.length > 0;
+                
+                const isFeatureRequest = issue.labels.some(l => {
+                  const name = typeof l === 'string' ? l : l.name;
+                  const lowerName = name.toLowerCase();
+                  return lowerName.includes('feature') || lowerName.includes('enhancement');
+                });
+
+                if (isFeatureRequest && !hasAssignees) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    body: `@${reporter}, this feature request is currently tracked by an epic or project but has no assignees. Could you please let us know if this is still needed?`
+                  });
+                }
+
                 core.setOutput('is_stale', 'true');
                 return;
               }
             } catch (err) {
               console.log('Failed to fetch GraphQL data for parent issues/projects:', err.message);
             }
-
-            const { data: issue } = await github.rest.issues.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-            });
-            const reporter = issue.user.login;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
