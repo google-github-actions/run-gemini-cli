@@ -1,19 +1,24 @@
 description = "Analyzes and cleans up older issues by checking code validity, duplicates, and providing a triage summary."
 prompt = """
-Execute the following triage process for Issue #!{echo $ISSUE_NUMBER} in the `!{echo $REPOSITORY}` repository. You must perform these exact steps in order. Do not investigate your own configuration.
+Execute the following triage process for Issue #!{echo $ISSUE_NUMBER} in the `!{echo $REPOSITORY}` repository. 
+You are a script executor. You MUST execute these steps in exact sequential order. Do not skip steps. Do not parallelize steps. Do not investigate your own configuration.
 
-### Step 1: Fetch Context (DO THIS IMMEDIATELY)
-- Run `git clone https://github.com/!{echo $REPOSITORY}.git target-repo`
-- Run `gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json title,body,author,comments,labels,assignees`
+### STEP 1: FETCH DATA (MANDATORY FIRST TURN)
+You MUST execute ONLY these two commands in your very first turn. Do NOT execute any other tools.
+1. `git clone https://github.com/!{echo $REPOSITORY}.git target-repo`
+2. `gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json title,body,author,comments,labels,assignees`
 
-### Step 2: Resolution Check
-- Read the comments. Does the latest comment indicate that the issue has been fixed, resolved, or is functioning properly?
-  - If YES: `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because the latest comments indicate this issue has been resolved. Feel free to reopen if the problem persists." --reason "completed" --repo !{echo $REPOSITORY}`
-  - **STOP EXECUTION IMMEDIATELY**.
+WAIT for the output of Step 1 before proceeding to Step 2.
 
-### Step 3: Inactivity Check
-- Is `!{echo $INACTIVE_OVER_30_DAYS}` equal to `true`?
-  - If YES (and it was not resolved above): Execute the following bash script exactly as written to handle the inactivity.
+### STEP 2: RESOLUTION CHECK
+Read the comments from the `gh issue view` output. 
+Does the latest comment indicate that the issue has been fixed, resolved, or is functioning properly?
+- If YES: Execute `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because the latest comments indicate this issue has been resolved. Feel free to reopen if the problem persists." --reason "completed" --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
+- If NO: Proceed to Step 3.
+
+### STEP 3: INACTIVITY CHECK
+Check the environment variable `!{echo $INACTIVE_OVER_30_DAYS}`. Is it exactly equal to the string `true`?
+- If YES: Execute the following bash script exactly as written.
 ```bash
 ISSUE_JSON=$(gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json author,labels,assignees)
 REPORTER=$(echo "$ISSUE_JSON" | jq -r '.author.login')
@@ -50,29 +55,26 @@ if [ "$IS_HIGH_PRIORITY" = "false" ]; then
   gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --repo !{echo $REPOSITORY}
 fi
 ```
-  - **STOP EXECUTION IMMEDIATELY**.
+  - After executing this script, **STOP EXECUTION IMMEDIATELY**. Do not proceed to Step 4.
+- If NO: Proceed to Step 4.
 
-### Step 4: Vagueness Check
-- If the issue is NOT inactive over 30 days: Is the issue description fundamentally missing context (no logs, no repro steps, just "it's broken") AND no one has asked for more information yet?
-  - Ask the reporter: `gh issue comment !{echo $ISSUE_NUMBER} --body "@<reporter_username>, thank you for the report! Could you please provide more specific details (e.g., reproduction steps, expected behavior, and environment)? Closing this as vague if no response is received in a week." --repo !{echo $REPOSITORY}`
-  - **STOP EXECUTION IMMEDIATELY**.
-- If the issue is clear, proceed to Step 5.
+### STEP 4: VAGUENESS CHECK
+Is the issue description fundamentally missing context (no logs, no repro steps, just "it's broken") AND no one has asked for more information yet?
+- If YES: Ask the reporter: `gh issue comment !{echo $ISSUE_NUMBER} --body "@<reporter_username>, thank you for the report! Could you please provide more specific details (e.g., reproduction steps, expected behavior, and environment)? Closing this as vague if no response is received in a week." --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
+- If NO: Proceed to Step 5.
 
-### Step 5: Reproduction & Code Validity Check
-- If the issue describes a reproducible bug (e.g., a runtime error, unexpected output, or terminal behavior), you should write and execute a minimal test script using `node` to verify if the bug still occurs in the `target-repo/` codebase.
-- Alternatively, search `target-repo/` to manually trace the logic and see if the feature is already implemented or fixed.
-- If you can prove the issue is definitively NO LONGER VALID (e.g., your reproduction script works correctly without the bug, or the code has clearly been fixed):
-  - Close it: `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because I have verified this works correctly in the latest codebase. <brief explanation of how you verified>" --repo !{echo $REPOSITORY}`
-  - **STOP EXECUTION IMMEDIATELY**.
+### STEP 5: REPRODUCTION & CODE VALIDITY
+Search the `target-repo/` codebase to see if the bug still occurs or if the feature is already implemented.
+- If definitively NO LONGER VALID: Close it: `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because I have verified this works correctly in the latest codebase. <brief explanation>" --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
+- If still valid: Proceed to Step 6.
 
-### Step 6: Duplicate Check
-- Search for duplicates using `gh issue list --search "<keywords>" --repo !{echo $REPOSITORY} --state all`
-- If a clear duplicate is found:
-  - Close it: `gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>." --repo !{echo $REPOSITORY}`
-  - **STOP EXECUTION IMMEDIATELY**.
+### STEP 6: DUPLICATES
+Search for duplicates using `gh issue list --search "<keywords>" --repo !{echo $REPOSITORY} --state all`.
+- If found: `gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>." --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
+- If no duplicates: Proceed to Step 7.
 
-### Step 7: Triage Summary
-- If unique and valid, provide a summary comment using these instructions:
+### STEP 7: TRIAGE SUMMARY
+Provide a summary comment using these instructions:
 ```
 !{echo $CUSTOM_INSTRUCTIONS}
 ```
