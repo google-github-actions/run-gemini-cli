@@ -86,15 +86,12 @@ jobs:
             });
             const reporter = issue.user.login;
 
-            // First, check if it's tracked by a parent issue or part of a project
+            // First, check if it's tracked by a parent issue
             const query = `
               query($owner: String!, $repo: String!, $issueNumber: Int!) {
                 repository(owner: $owner, name: $repo) {
                   issue(number: $issueNumber) {
                     trackedInIssues(first: 1) {
-                      totalCount
-                    }
-                    projectItems(first: 1) {
                       totalCount
                     }
                   }
@@ -108,10 +105,9 @@ jobs:
                 issueNumber: issueNumber
               });
               const isTracked = result.repository.issue.trackedInIssues.totalCount > 0;
-              const inProject = result.repository.issue.projectItems.totalCount > 0;
               
-              if (isTracked || inProject) {
-                console.log(`Issue #${issueNumber} is tracked by a parent issue or project. Removing 'status/need-triage' and stopping.`);
+              if (isTracked) {
+                console.log(`Issue #${issueNumber} is tracked by a parent issue. Removing 'status/need-triage' and stopping.`);
                 try {
                   await github.rest.issues.removeLabel({
                     owner: context.repo.owner,
@@ -135,9 +131,9 @@ jobs:
                 if (!hasAssignees) {
                   let commentBody = '';
                   if (isFeatureRequest) {
-                    commentBody = `@${reporter}, this feature request is currently tracked by an epic or project but has no assignees. Could you please let us know if this is still needed?`;
+                    commentBody = `@${reporter}, this feature request is currently tracked by an epic but has no assignees. Could you please let us know if this is still needed?`;
                   } else {
-                    commentBody = `@${reporter}, this issue is currently tracked by an epic or project but has no assignees. Could you please try reproducing it with the latest build and let us know if it still occurs?`;
+                    commentBody = `@${reporter}, this issue is currently tracked by an epic but has no assignees. Could you please try reproducing it with the latest build and let us know if it still occurs?`;
                   }
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
@@ -151,7 +147,7 @@ jobs:
                 return;
               }
             } catch (err) {
-              console.log('Failed to fetch GraphQL data for parent issues/projects:', err.message);
+              console.log('Failed to fetch GraphQL data for parent issues:', err.message);
             }
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -202,6 +198,30 @@ jobs:
             console.log(`Issue was last updated ${lastUpdateDaysAgo.toFixed(1)} days ago.`);
 
             if (lastUpdateDaysAgo > 30) {
+              // Check if the last comment says it's fixed
+              if (comments.length > 0) {
+                const lastCommentBody = comments[comments.length - 1].body.toLowerCase();
+                const resolvedKeywords = ['functioning properly', 'works now', 'is fixed', 'resolved now'];
+                if (resolvedKeywords.some(kw => lastCommentBody.includes(kw))) {
+                  console.log(`Issue appears resolved in the last comment. Closing.`);
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    body: "Closing because the latest comments indicate this issue has been resolved. Feel free to reopen if the problem persists."
+                  });
+                  await github.rest.issues.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    state: 'closed',
+                    state_reason: 'completed'
+                  });
+                  core.setOutput('is_stale', 'true');
+                  return;
+                }
+              }
+
               console.log(`Issue has been inactive for over a month. Asking for repro.`);
               
               try {
