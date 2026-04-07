@@ -132,12 +132,18 @@ jobs:
                   return lowerName.includes('feature') || lowerName.includes('enhancement');
                 });
 
-                if (isFeatureRequest && !hasAssignees) {
+                if (!hasAssignees) {
+                  let commentBody = '';
+                  if (isFeatureRequest) {
+                    commentBody = `@${reporter}, this feature request is currently tracked by an epic or project but has no assignees. Could you please let us know if this is still needed?`;
+                  } else {
+                    commentBody = `@${reporter}, this issue is currently tracked by an epic or project but has no assignees. Could you please try reproducing it with the latest build and let us know if it still occurs?`;
+                  }
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: issueNumber,
-                    body: `@${reporter}, this feature request is currently tracked by an epic or project but has no assignees. Could you please let us know if this is still needed?`
+                    body: commentBody
                   });
                 }
 
