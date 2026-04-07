@@ -198,110 +198,12 @@ jobs:
             console.log(`Issue was last updated ${lastUpdateDaysAgo.toFixed(1)} days ago.`);
 
             if (lastUpdateDaysAgo > 30) {
-              // Check if the last comment says it's fixed
-              if (comments.length > 0) {
-                const lastCommentBody = comments[comments.length - 1].body.toLowerCase();
-                const resolvedKeywords = ['functioning properly', 'works now', 'is fixed', 'resolved now'];
-                if (resolvedKeywords.some(kw => lastCommentBody.includes(kw))) {
-                  console.log(`Issue appears resolved in the last comment. Closing.`);
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    body: "Closing because the latest comments indicate this issue has been resolved. Feel free to reopen if the problem persists."
-                  });
-                  await github.rest.issues.update({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    state: 'closed',
-                    state_reason: 'completed'
-                  });
-                  core.setOutput('is_stale', 'true');
-                  return;
-                }
-              }
-
-              console.log(`Issue has been inactive for over a month. Asking for repro.`);
-              
-              try {
-                await github.rest.issues.removeLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  name: 'status/need-triage'
-                });
-              } catch (e) {
-                // Ignore if label doesn't exist
-              }
-              
-              try {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  labels: ['status/needs-info']
-                });
-              } catch (e) {
-                console.log('Failed to add needs-info label:', e.message);
-              }
-              
-              const assignees = issue.assignees.map(a => a.login);
-              const hasAssignees = assignees.length > 0;
-              const assigneeMentions = hasAssignees ? assignees.map(a => `@${a}`).join(' ') : '';
-              
-              const isHighPriority = issue.labels.some(l => {
-                const name = typeof l === 'string' ? l : l.name;
-                const lowerName = name.toLowerCase();
-                return lowerName === 'priority/p0' || lowerName === 'priority/p1' || lowerName === 'p0' || lowerName === 'p1';
-              });
-
-              const isFeatureRequest = issue.labels.some(l => {
-                const name = typeof l === 'string' ? l : l.name;
-                const lowerName = name.toLowerCase();
-                return lowerName.includes('feature') || lowerName.includes('enhancement');
-              });
-
-              let commentBody = '';
-              if (isFeatureRequest) {
-                commentBody = `@${reporter}, this feature request hasn't been updated in over a month. Please reopen if this is still needed.`;
-              } else {
-                commentBody = `@${reporter}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps.`;
-              }
-
-              if (!isHighPriority) {
-                if (hasAssignees) {
-                  commentBody += `\n\n${assigneeMentions}, please reopen if you are actively working on this.`;
-                } else if (!isFeatureRequest) {
-                  commentBody += ` Feel free to reopen this issue.`;
-                }
-              } else {
-                if (hasAssignees) {
-                  commentBody += `\n\n${assigneeMentions}, checking in on this high priority issue.`;
-                }
-              }
-
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                body: commentBody
-              });
-
-              if (!isHighPriority) {
-                await github.rest.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  state: 'closed',
-                  state_reason: 'not_planned'
-                });
-              }
-              
-              core.setOutput('is_stale', 'true');
+              core.setOutput('inactive_over_30_days', 'true');
+              core.setOutput('is_stale', 'false'); // Let AI handle it
               return;
             }
 
+            core.setOutput('inactive_over_30_days', 'false');
             core.setOutput('is_stale', 'false');
 
       - name: 'Checkout Current Repository'
@@ -314,6 +216,7 @@ jobs:
         env:
           ISSUE_NUMBER: '${{ matrix.issue_number }}'
           REPOSITORY: '${{ github.repository }}'
+          INACTIVE_OVER_30_DAYS: '${{ steps.staleness.outputs.inactive_over_30_days }}'
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
           CUSTOM_INSTRUCTIONS: 'State whether the issue should be categorized as **Maintainer-only** (epic, core architecture, sensitive fixes, internal tasks, or issues requiring deep investigation) or **Help-wanted** (good for community, general bugs, features, or tasks ready for external help). Your comment should be brief and clearly explain *why* it fits that category.'
         with:
