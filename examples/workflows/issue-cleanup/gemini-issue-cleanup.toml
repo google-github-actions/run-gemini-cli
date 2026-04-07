@@ -1,83 +1,85 @@
 description = "Analyzes and cleans up older issues by checking code validity, duplicates, and providing a triage summary."
 prompt = """
-Execute the following triage process for Issue #!{echo $ISSUE_NUMBER} in the `!{echo $REPOSITORY}` repository. 
-You are a script executor. You MUST execute these steps in exact sequential order. Do not skip steps. Do not parallelize steps. Do not investigate your own configuration.
+Execute the following triage process for `!{echo $ISSUE_LINK}`. 
+You are a script executor. You MUST execute these steps in exact sequential order. Do not skip steps. Do not parallelize steps. Do not investigate your own configuration. DO NOT clone the repository until you reach Step 5.
+
+<custom_instructions>
+!{echo $CUSTOM_INSTRUCTIONS}
+</custom_instructions>
 
 ### STEP 1: FETCH DATA (MANDATORY FIRST TURN)
-You MUST execute ONLY these two commands in your very first turn. Do NOT execute any other tools.
-1. `git clone https://github.com/!{echo $REPOSITORY}.git target-repo`
-2. `gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json title,body,author,comments,labels,assignees`
+You MUST execute ONLY these commands in your very first turn. Do NOT execute any other tools.
+1. `gh issue view !{echo $ISSUE_LINK} --json title,body,author,comments,labels,assignees`
+2. `gh api repos/!{echo $REPOSITORY}/issues/$(echo !{echo $ISSUE_LINK} | awk -F/ '{print $NF}')/timeline --jq '[.[] | select(.event == "cross-referenced" and .source.issue)] | map({issue: .source.issue.number, state: .source.issue.state, state_reason: .source.issue.state_reason, is_pr: (.source.issue.pull_request != null)})'`
+3. `gh api graphql -F owner=$(echo !{echo $REPOSITORY} | cut -d/ -f1) -F repo=$(echo !{echo $REPOSITORY} | cut -d/ -f2) -F number=$(echo !{echo $ISSUE_LINK} | awk -F/ '{print $NF}') -f query='query($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issue(number: $number) { parent { number } } } }' --jq '.data.repository.issue.parent'`
+4. `gh api repos/!{echo $REPOSITORY}/issues/$(echo !{echo $ISSUE_LINK} | awk -F/ '{print $NF}') --jq '{is_epic: (.sub_issues_summary.total > 0)}'`
 
-WAIT for the output of Step 1 before proceeding to Step 2.
+WAIT for the outputs of Step 1 before proceeding to Step 2.
 
-### STEP 2: RESOLUTION CHECK
-Read the comments from the `gh issue view` output. 
-Does the latest comment indicate that the issue has been fixed, resolved, or is functioning properly?
-- If YES: Execute `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because the latest comments indicate this issue has been resolved. Feel free to reopen if the problem persists." --reason "completed" --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
-- If NO: Proceed to Step 3.
+### STEP 2: PRE-TRIAGE OVERRIDES
+Review the <custom_instructions> provided at the beginning of this prompt. Do they contain any conditions that dictate stopping execution early based on the data fetched in Step 1 (e.g., specific labels)?
+- If YES and the condition is met: Execute the actions specified in the custom instructions and **STOP EXECUTION IMMEDIATELY**. Do not proceed to Step 3.
+- If NO or the condition is not met: Proceed to Step 3.
 
-### STEP 3: INACTIVITY CHECK
-Check the environment variable `!{echo $INACTIVE_OVER_30_DAYS}`. Is it exactly equal to the string `true`?
-- If YES: Execute the following bash script exactly as written.
-```bash
-ISSUE_JSON=$(gh issue view !{echo $ISSUE_NUMBER} --repo !{echo $REPOSITORY} --json author,labels,assignees)
-REPORTER=$(echo "$ISSUE_JSON" | jq -r '.author.login')
-HAS_ASSIGNEES=$(echo "$ISSUE_JSON" | jq '.assignees | length > 0')
-ASSIGNEE_MENTIONS=$(echo "$ISSUE_JSON" | jq -r '.assignees | map("@" + .login) | join(" ")')
-IS_HIGH_PRIORITY=$(echo "$ISSUE_JSON" | jq '.labels | map(.name | ascii_downcase) | any(. == "priority/p0" or . == "priority/p1" or . == "p0" or . == "p1")')
-IS_FEATURE=$(echo "$ISSUE_JSON" | jq '.labels | map(.name | ascii_downcase) | any(contains("feature") or contains("enhancement"))')
+### STEP 3: RESOLUTION CHECK
+Read ALL the comments from the `gh issue view` output carefully. 
+Check if ANY of the following conditions are met in the comments (especially the latest ones):
+1. Is it fixed, resolved, no longer reproducible, or functioning properly? (e.g., someone mentions it `might be fixed`, `should be fixed`, or `no longer an issue`) AND the reporter has not replied afterward to contradict this?
+2. Is there a workaround provided?
+3. Does someone state the issue is actually unrelated to this repository/project, or is an external problem (like a terminal emulator bug)?
 
-gh issue edit !{echo $ISSUE_NUMBER} --remove-label "status/need-triage" --repo !{echo $REPOSITORY} 2>/dev/null || true
-gh issue edit !{echo $ISSUE_NUMBER} --add-label "status/needs-info" --repo !{echo $REPOSITORY} 2>/dev/null || true
+- If condition 1 or 2 is met: Execute `gh issue close !{echo $ISSUE_LINK} --comment "Closing because the comments indicate this issue might be fixed, has a workaround, is no longer an issue, or is resolved. Feel free to reopen if the problem persists." --reason "completed"` and **STOP EXECUTION IMMEDIATELY**.
+- If condition 3 is met: Execute `gh issue close !{echo $ISSUE_LINK} --comment "Closing because the comments indicate this issue is unrelated to the Gemini CLI or is an external problem." --reason "not planned"` and **STOP EXECUTION IMMEDIATELY**.
+- If NONE of these conditions are met: Proceed to Step 4.
 
-COMMENT=""
-if [ "$IS_FEATURE" = "true" ]; then
-  COMMENT="@${REPORTER}, this feature request hasn't been updated in over a month. Please reopen if this is still needed."
-else
-  COMMENT="@${REPORTER}, this issue hasn't been updated in over a month. Could you please try reproducing it with the latest build? If it still occurs, please provide detailed reproduction steps."
-fi
+### STEP 4: ASSIGNEE AND INACTIVITY CHECK
+1. ASSIGNEE CHECK: Look at the assignees and comments from Step 1. If an assignee is a contributor and hasn't made any updates on the issue for over 2 weeks, you MUST execute `gh issue edit !{echo $ISSUE_LINK} --remove-assignee <username>` to remove them. (Do this before proceeding further).
+2. INACTIVITY CHECK: Check the environment variable `!{echo $INACTIVE_OVER_60_DAYS}`. Is it exactly equal to the string `true`?
+- If YES: 
+  a. Formulate a comment to the reporter (@<reporter_username>). Evaluate the issue description and whether it is an Epic (from Step 1.4):
+     - Always mention that the issue is being closed or pinged because it has been inactive for over 60 days.
+     - IF IT IS AN EPIC (has sub-issues): Ask the reporter if it is still in progress or complete, and if it is complete, ask them to close it.
+     - IF IT IS NOT AN EPIC:
+       - If it's a feature/enhancement request and the description is relatively vague, ask: 1) if it is still needed and 2) if they can provide more details on the feature request.
+       - If the issue was mentioned by another issue that is closed as completed or by a pull request that is merged/closed (based on the cross-referenced timeline events), mention this cross-reference (e.g., "I see this issue was mentioned by #123 which is closed as completed...") and ask if this means it is resolved. Do NOT mention cross-references that are still open or closed as "not planned".
+       - If it's a feature/enhancement request but well-described, just ask if it's still needed.
+       - If it's a bug, ask if they can reproduce it with the latest build and provide detailed reproduction steps.
+       - If the issue has assignees, append a ping to the assignees to check in.
+       - If it is NOT an Epic AND the issue is NOT high priority (`priority/p0` or `priority/p1`) AND does NOT have a parent issue (from Step 1.3), append "Feel free to reopen this issue." to the comment.
+  b. Execute `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage"` (ignore errors if the label doesn't exist). If it is NOT an Epic, also append `--add-label "status/needs-info"`.
+  c. Execute `gh issue comment !{echo $ISSUE_LINK} --body "<your formulated comment>"`
+  d. If it is NOT an Epic AND the issue is NOT high priority AND does NOT have a parent issue (from Step 1.3), execute `gh issue close !{echo $ISSUE_LINK} --reason "not planned"`.
+  - After executing these actions, **STOP EXECUTION IMMEDIATELY**. Do not proceed to Step 5.
+- If NO: Check the environment variable `!{echo $INACTIVE_OVER_30_DAYS}`. Is it exactly equal to the string `true`?
+  - If YES AND the issue is a bug report (not a feature/enhancement request) AND it is NOT an Epic:
+    a. Execute `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage" --add-label "status/needs-info"` (ignore errors if labels don't exist).
+    b. Execute `gh issue comment !{echo $ISSUE_LINK} --body "@<reporter_username>, this issue has been inactive for over a month. Could you please try reproducing it with the latest nightly build and let us know if it still occurs?"`
+    - After executing these actions, **STOP EXECUTION IMMEDIATELY**. Do not proceed to Step 5.
+  - If NO (or it is not a bug, or it is an Epic): Proceed to Step 5.
 
-if [ "$IS_HIGH_PRIORITY" = "false" ]; then
-  if [ "$HAS_ASSIGNEES" = "true" ]; then
-    COMMENT="${COMMENT}\n\n${ASSIGNEE_MENTIONS}, please reopen if you are actively working on this."
-  elif [ "$IS_FEATURE" = "false" ]; then
-    COMMENT="${COMMENT} Feel free to reopen this issue."
-  fi
-else
-  if [ "$HAS_ASSIGNEES" = "true" ]; then
-    COMMENT="${COMMENT}\n\n${ASSIGNEE_MENTIONS}, checking in on this high priority issue."
-  fi
-fi
+### STEP 5: VAGUENESS CHECK
+Is the issue fundamentally missing context AND no one has asked for more information yet?
+- For bugs: Explicit reproduction steps are **REQUIRED**. Even if the user provides logs, error traces, or screenshots, if they do not provide clear, step-by-step instructions on how to reproduce the bug, it MUST be considered vague.
+- For feature requests: If it is just a vague statement without clear use cases or details, it is considered vague.
+- If YES (it is vague): Execute `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage" --add-label "status/needs-info"` (ignore errors if labels don't exist). Ask the reporter: `gh issue comment !{echo $ISSUE_LINK} --body "@<reporter_username>, thank you for the report! Could you please provide more specific details (e.g., detailed reproduction steps, expected behavior, logs, and environment details)? Closing this as vague if no response is received in a week."` and **STOP EXECUTION IMMEDIATELY**.
+- If NO: Proceed to Step 6.
 
-gh issue comment !{echo $ISSUE_NUMBER} --body "$COMMENT" --repo !{echo $REPOSITORY}
+### STEP 6: REPRODUCTION & CODE VALIDITY
+1. Review the issue comments. If a community member has already clearly identified the root cause of the bug, DO NOT clone the repo, DO NOT write tests, and DO NOT execute any code. You may only perform a quick `grep_search` or `read_file` if the repo is already cloned to determine if the fix is simple. 
+- If your quick code check reveals that the problematic code has already been significantly changed or appears fixed in the current `target-repo`, DO NOT investigate git history or releases. Simply execute `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage" --add-label "status/needs-info"` and `gh issue comment !{echo $ISSUE_LINK} --body "@<reporter_username>, the code related to this issue appears to have been updated recently. Could you please try reproducing it with the latest nightly build and let us know if it still occurs?"` and **STOP EXECUTION IMMEDIATELY**.
+- Otherwise, immediately proceed to Step 7.
+2. If no root cause is identified, run `git clone https://github.com/!{echo $REPOSITORY}.git target-repo` and search the `target-repo/` codebase using `grep_search` and `read_file` ONLY. You are explicitly FORBIDDEN from writing new files, running `npm test`, attempting to fix the code, OR attempting to reproduce the bug by executing code or shell commands (e.g., creating named pipes, running scripts, etc.). Your ONLY goal is to perform STATIC code analysis to determine if the logic for the bug still exists, if the feature is already implemented, or if the reported behavior is actually intentional by design.
+- If definitively NO LONGER VALID: Close it: `gh issue close !{echo $ISSUE_LINK} --comment "Closing because I have verified this works correctly in the latest codebase. <brief explanation>"` and **STOP EXECUTION IMMEDIATELY**.
+- If INTENTIONAL BY DESIGN: Close it: `gh issue close !{echo $ISSUE_LINK} --reason "not planned" --comment "Closing this issue as the reported behavior is intentional by design. <brief explanation of the design logic>"` and **STOP EXECUTION IMMEDIATELY**.
+- If still valid: Proceed to Step 7.
 
-if [ "$IS_HIGH_PRIORITY" = "false" ]; then
-  gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --repo !{echo $REPOSITORY}
-fi
-```
-  - After executing this script, **STOP EXECUTION IMMEDIATELY**. Do not proceed to Step 4.
-- If NO: Proceed to Step 4.
-
-### STEP 4: VAGUENESS CHECK
-Is the issue description fundamentally missing context (no logs, no repro steps, just "it's broken") AND no one has asked for more information yet?
-- If YES: Ask the reporter: `gh issue comment !{echo $ISSUE_NUMBER} --body "@<reporter_username>, thank you for the report! Could you please provide more specific details (e.g., reproduction steps, expected behavior, and environment)? Closing this as vague if no response is received in a week." --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
-- If NO: Proceed to Step 5.
-
-### STEP 5: REPRODUCTION & CODE VALIDITY
-Search the `target-repo/` codebase to see if the bug still occurs or if the feature is already implemented.
-- If definitively NO LONGER VALID: Close it: `gh issue close !{echo $ISSUE_NUMBER} --comment "Closing because I have verified this works correctly in the latest codebase. <brief explanation>" --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
-- If still valid: Proceed to Step 6.
-
-### STEP 6: DUPLICATES
+### STEP 7: DUPLICATES
 Search for duplicates using `gh issue list --search "<keywords>" --repo !{echo $REPOSITORY} --state all`.
-- If found: `gh issue close !{echo $ISSUE_NUMBER} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>." --repo !{echo $REPOSITORY}` and **STOP EXECUTION IMMEDIATELY**.
-- If no duplicates: Proceed to Step 7.
+- If found: `gh issue close !{echo $ISSUE_LINK} --reason "not planned" --comment "Closing as duplicate of #<duplicate_number>."` and **STOP EXECUTION IMMEDIATELY**.
+- If no duplicates: Proceed to Step 8.
 
-### STEP 7: TRIAGE SUMMARY
-Provide a summary comment using these instructions:
-```
-!{echo $CUSTOM_INSTRUCTIONS}
-```
-- Action: `gh issue comment !{echo $ISSUE_NUMBER} --body "### Triage Summary\n\n<your summary>" --repo !{echo $REPOSITORY}`
+### STEP 8: TRIAGE SUMMARY
+Provide a summary comment using the <custom_instructions> provided at the beginning of this prompt.
+- Action: `gh issue comment !{echo $ISSUE_LINK} --body "### Triage Summary\\n\\n<your summary>"`
 - **STOP EXECUTION**.
 """
