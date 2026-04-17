@@ -6,6 +6,7 @@ import {
   existsSync,
   rmSync,
   realpathSync,
+  copyFileSync,
 } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import * as os from 'node:os';
@@ -33,7 +34,7 @@ export class TestRig {
   }
 
   private _setupMockGh() {
-    const binDir = join(this.homeDir, 'bin');
+    const binDir = join(this.testDir, 'bin');
     mkdirSync(binDir, { recursive: true });
     const ghPath = join(binDir, 'gh');
     writeFileSync(ghPath, '#!/bin/bash\necho "Mock gh command: $@"\nexit 0\n');
@@ -89,10 +90,10 @@ export class TestRig {
   }
 
   setupMockMcp() {
-    const mockServerPath = realpathSync(join(__dirname, 'mock-mcp-server.ts'));
+    const mockServerPath = realpathSync(join(__dirname, 'mock-mcp-server.mjs'));
     this.mcpServers['github'] = {
-      command: 'npx',
-      args: ['tsx', mockServerPath],
+      command: 'node',
+      args: [mockServerPath],
       trust: true,
     };
     this._setupSettings(); // Re-write with MCP config
@@ -130,7 +131,7 @@ export class TestRig {
     return {
       ...cleanEnv,
       GEMINI_CLI_HOME: this.homeDir,
-      PATH: `${join(this.homeDir, 'bin')}:${cleanEnv.PATH || ''}`,
+      PATH: `${join(this.testDir, 'bin')}:${cleanEnv.PATH || ''}`,
       ...extraEnv,
     };
   }
@@ -138,6 +139,7 @@ export class TestRig {
   async run(
     args: string[],
     extraEnv?: Record<string, string>,
+    allowedTools?: string[],
   ): Promise<string> {
     const runArgs = [...args];
     const isSubcommand = args.length > 0 && !args[0].startsWith('-');
@@ -149,7 +151,8 @@ export class TestRig {
           Object.keys(this.mcpServers).join(','),
         );
       }
-      runArgs.push('--allowed-tools', 'run_shell_command');
+      const tools = ['run_shell_command', ...(allowedTools || [])];
+      runArgs.push('--allowed-tools', tools.join(','));
     }
 
     return new Promise((resolve, reject) => {

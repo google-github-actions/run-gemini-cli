@@ -502,6 +502,7 @@ runs:
             -e "s#GITHUB_RUN_ID_PLACEHOLDER#${GITHUB_RUN_ID}#g" \
             -e "s#GITHUB_PR_NUMBER_PLACEHOLDER#${GITHUB_PR_NUMBER}#g" \
             -e "s#GITHUB_ISSUE_NUMBER_PLACEHOLDER#${GITHUB_ISSUE_NUMBER}#g" \
+            -e "s#GITHUB_WORKFLOW_PLACEHOLDER#${GH_WORKFLOW_NAME}#g" \
           "${GITHUB_ACTION_PATH}/scripts/collector-gcp.yaml.template" > ".gemini/collector-gcp.yaml"
 
         # Ensure credentials file has the right permissions
@@ -554,6 +555,7 @@ runs:
         GITHUB_RUN_ID: '${{ github.run_id }}'
         GITHUB_PR_NUMBER: '${{ inputs.github_pr_number }}'
         GITHUB_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
+        GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
 
 branding:
   icon: 'terminal'

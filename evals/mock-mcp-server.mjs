@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 
 // Simple logger
 const LOG_FILE = `/tmp/mock-mcp-${Date.now()}.log`;
-function log(msg: string) {
+function log(msg) {
   fs.appendFileSync(LOG_FILE, msg + '\n');
 }
 
@@ -34,17 +34,17 @@ index e69de29..b123456 100644
 +++ b/src/index.js
 @@ -1,3 +1,10 @@
  function calculate(a, b) {
--  return a + b;
-+  // Potential security risk: eval used on untrusted input
-+  const result = eval(a + b);
-+  return result;
+ -  return a + b;
+ +  // Potential security risk: eval used on untrusted input
+ +  const result = eval(a + b);
+ +  return result;
  }
-+
-+function slowLoop(n) {
-+  // O(n^2) complexity identified in performance review
+ +
+ +function slowLoop(n) {
+ +  // O(n^2) complexity identified in performance review
 +  for(let i=0; i<n; i++) { for(let j=0; j<n; j++) { console.log(i+j); } }
 +}
-`;
+ `;
 
 const RACE_CONDITION_DIFF = `diff --git a/src/async.js b/src/async.js
 index 0000000..1111111
@@ -52,15 +52,15 @@ index 0000000..1111111
 +++ b/src/async.js
 @@ -1,5 +1,12 @@
  async function fetchData() {
--  return await api.get('/data');
-+  let result;
-+  api.get('/data').then(res => {
-+    result = res;
-+  });
-+  // Subtle race condition: returning result before it's set in .then()
-+  return result;
+ -  return await api.get('/data');
+ +  let result;
+ +  api.get('/data').then(res => {
+ +    result = res;
+ +  });
+ +  // Subtle race condition: returning result before it's set in .then()
+ +  return result;
  }
-`;
+ `;
 
 const ARCH_VIOLATION_DIFF = `diff --git a/src/ui/Component.tsx b/src/ui/Component.tsx
 index 0000000..2222222
@@ -74,7 +74,7 @@ index 0000000..2222222
  export const Component = () => {
    return <div>UI</div>;
  }
-`;
+ `;
 
 const LARGE_REFACTOR_DIFF = `diff --git a/src/core.js b/src/core.js
 index 111..222 100644
@@ -83,13 +83,13 @@ index 111..222 100644
 @@ -1,50 +1,55 @@
 +// Major refactor of core logic
  function processData(data) {
--  // old logic
-+  // new complex logic with potential readability issues
-+  return data.map(d => {
-+     return d.value > 10 ? d.x : d.y;
-+  }).filter(x => !!x).reduce((a, b) => a + b, 0);
+ -  // old logic
+ +  // new complex logic with potential readability issues
+ +  return data.map(d => {
+ +     return d.value > 10 ? d.x : d.y;
+ +  }).filter(x => !!x).reduce((a, b) => a + b, 0);
  }
-`;
+ `;
 
 const UNJUSTIFIED_DEP_DIFF = `diff --git a/package.json b/package.json
 index 333..444 100644
@@ -98,10 +98,10 @@ index 333..444 100644
 @@ -10,6 +10,7 @@
    "dependencies": {
      "react": "^18.0.0",
-+    "left-pad": "^1.3.0"
+ +    "left-pad": "^1.3.0"
    }
  }
-`;
+ `;
 
 const INSUFFICIENT_TESTS_DIFF = `diff --git a/src/feature.js b/src/feature.js
 new file mode 100644
@@ -113,7 +113,7 @@ index 000..555
 +  return x * 2;
 +}
 +// No accompanying test file added
-`;
+ `;
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   log('Listing tools...');
@@ -209,7 +209,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   log(`Calling tool: ${request.params.name}`);
-  const pull_number = (request.params.arguments as any)?.pull_number;
+  const pull_number = request.params.arguments?.pull_number;
 
   switch (request.params.name) {
     case 'search_code':
