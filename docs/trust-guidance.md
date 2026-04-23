@@ -17,7 +17,7 @@ Follow these principles to protect your repository, especially when dealing with
 
 - **Exercise Least Privilege:** Explicitly exercise the principle of least privilege. Grant only the minimum privileges necessary for the workflow to complete its task.
 - **GitHub Token Permissions:** Set a **minimal set of GH token permissions** for your GitHub token (e.g., `issues: read`). Be aware that even token permissions that may be considered "downscoped" can still pose a security risk (e.g. `actions: write`). See GitHub’s [Modifying Github Tokens for Least Privilege](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token#modifying-the-permissions-for-the-github_token)
-- **Limit credential permissions** as much as possible to limit the risk if they are stolen. (See GitHub’s [Limiting credential permissions](https://docs.github.com/en/actions/concepts/security/secrets#limiting-credential-permissions%20))
+- **Limit credential permissions** as much as possible to limit the risk if they are stolen. (See GitHub’s [Limiting credential permissions](https://docs.github.com/en/actions/concepts/security/secrets#limiting-credential-permissions))
 - **Workflow Triggering:** Prefer workflows where the **PR review is kicked off intentionally by a maintainer** (manually triggered workflows) and not on forks, to avoid automatically processing untrusted content.
 
 See [Best Practices](./best-practices.md) and GitHub’s [GHA Best Practices for Security](https://docs.github.com/en/actions/reference/security/secure-use)
