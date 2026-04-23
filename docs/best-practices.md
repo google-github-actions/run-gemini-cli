@@ -3,6 +3,7 @@
 This guide provides best practices for using the Gemini CLI GitHub Action, with a focus on repository security and operational excellence.
 
 - [Best Practices](#best-practices)
+  - [Trust](#trust)
   - [Repository Security](#repository-security)
     - [Branch and Tag Protection](#branch-and-tag-protection)
     - [Restrict PR Approvers](#restrict-pr-approvers)
@@ -12,6 +13,10 @@ This guide provides best practices for using the Gemini CLI GitHub Action, with 
     - [Pin Action Versions](#pin-action-versions)
   - [Creating Custom Workflows](#creating-custom-workflows)
   - [Monitoring and Auditing](#monitoring-and-auditing)
+
+## Trust
+
+Safeguard your repository by following the [Trust Guidance](./trust-guidance.md) to distinguish between trusted and untrusted data sources and apply appropriate security boundaries.
 
 ## Repository Security
 
