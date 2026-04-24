@@ -237,6 +237,7 @@ runs:
       id: 'install'
       env:
         GEMINI_CLI_VERSION: '${{ inputs.gemini_cli_version }}'
+        GEMINI_CLI_TRUST_WORKSPACE: 'true'
         EXTENSIONS: '${{ inputs.extensions }}'
         USE_PNPM: '${{ inputs.use_pnpm }}'
         SURFACE: 'GitHub'
@@ -416,6 +417,7 @@ runs:
       env:
         GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
         GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
+        GEMINI_CLI_TRUST_WORKSPACE: 'true'
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
