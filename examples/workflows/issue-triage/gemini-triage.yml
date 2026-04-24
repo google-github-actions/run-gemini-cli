@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 7
     outputs:
       available_labels: '${{ steps.get_labels.outputs.available_labels }}'
-      selected_labels: '${{ env.SELECTED_LABELS }}'
+      selected_labels: '${{ steps.gemini_analysis.outputs.summary }}'
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -61,6 +61,7 @@ jobs:
           ${{ steps.get_labels.outputs.available_labels != '' }}
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         env:
+          GEMINI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
           ISSUE_TITLE: '${{ github.event.issue.title }}'
           ISSUE_BODY: '${{ github.event.issue.body }}'
@@ -94,7 +95,8 @@ jobs:
               "tools": {
                 "core": [
                   "run_shell_command(echo)"
-                ]
+                ],
+                "sandbox": false
               }
             }
           prompt: '/gemini-triage'

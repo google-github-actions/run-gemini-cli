@@ -36,7 +36,7 @@ jobs:
       pull-requests: 'read'
     outputs:
       available_labels: '${{ steps.get_labels.outputs.available_labels }}'
-      triaged_issues: '${{ env.TRIAGED_ISSUES }}'
+      triaged_issues: '${{ steps.gemini_issue_analysis.outputs.summary }}'
     steps:
       - name: 'Get repository labels'
         id: 'get_labels'
@@ -94,6 +94,7 @@ jobs:
           ${{ steps.find_issues.outputs.issues_to_triage != '[]' }}
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         env:
+          GEMINI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '' # Do not pass any auth token here since this runs on untrusted inputs
           ISSUES_TO_TRIAGE: '${{ steps.find_issues.outputs.issues_to_triage }}'
           REPOSITORY: '${{ github.repository }}'
@@ -127,10 +128,9 @@ jobs:
               },
               "tools": {
                 "core": [
-                  "run_shell_command(echo)",
-                  "run_shell_command(jq)",
-                  "run_shell_command(printenv)"
-                ]
+                  "run_shell_command(echo)"
+                ],
+                "sandbox": false
               }
             }
           prompt: '/gemini-scheduled-triage'

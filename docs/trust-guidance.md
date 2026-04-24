@@ -31,7 +31,7 @@ If you are processing **untrusted data**, you must strictly limit which tools th
 
 ### Allow List Configuration Examples
 
-These examples demonstrate how to configure the tool allow list using the `settings_json` input in your GHA workflow.
+These examples demonstrate how to configure the tool allow list using the `settings` input in your GHA workflow.
 
 **Example A: Strict Allow List (Recommended for Untrusted Data)**
 
@@ -39,20 +39,24 @@ This configuration allows only the core native tools necessary for reading and s
 
 ```
 with:
-  settings_json: |
+  settings: |
     {
-      "coreTools": [
-        "read_file",
-        "grep_search"
-      ],
-      "sandbox": false
+      "tools": {
+        "core": [
+          "list_directory",
+          "read_file",
+          "grep_search"
+        ],
+        "sandbox": false
+      }
     }
 ```
 
-|  Tool Category   | Tool/Command  |                  Rationale                   |
-| :--------------: | :-----------: | :------------------------------------------: |
-| **Native Tools** |  `read_file`  |    Recommended tool for reading content.     |
-| **Native Tools** | `grep_search` | Recommended tool for file pattern searching. |
+|  Tool Category   |   Tool/Command   |                  Rationale                   |
+| :--------------: | :--------------: | :------------------------------------------: |
+| **Native Tools** | `list_directory` |    Recommended tool for listing content.     |
+| **Native Tools** |   `read_file`    |    Recommended tool for reading content.     |
+| **Native Tools** |  `grep_search`   | Recommended tool for file pattern searching. |
 
 **Example B: Including Minimal Shell Commands (If Necessary)**
 
@@ -60,14 +64,16 @@ If your workflow requires a very simple shell command that cannot be replaced by
 
 ```
 with:
-  settings_json: |
+  settings: |
     {
-      "coreTools": [
-        "read_file",
-        "grep_search",
-        "run_shell_command(echo)"
-      ],
-      "sandbox": false
+      "tools": {
+        "core": [
+          "list_directory",
+          "read_file",
+          "grep_search",
+          "run_shell_command(echo)"
+        ]
+      }
     }
 ```
 
