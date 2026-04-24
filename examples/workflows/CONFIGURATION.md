@@ -103,7 +103,8 @@ with:
         "core": [
           "list_directory",
           "read_file",
-          "grep_search"
+          "grep_search",
+          "run_shell_command(echo)"
         ]
       }
     }
