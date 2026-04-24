@@ -39,6 +39,8 @@ jobs:
 
       - name: 'Checkout Code'
         uses: 'actions/checkout@v4' # ratchet:exclude
+        with:
+          persist-credentials: 'false'
 
       - name: 'Run Gemini CLI'
         id: 'run_gemini'
@@ -112,9 +114,6 @@ jobs:
               },
               "tools": {
                 "core": [
-                  "list_directory",
-                  "read_file",
-                  "grep_search",
                   "run_shell_command(echo)"
                 ]
               }
