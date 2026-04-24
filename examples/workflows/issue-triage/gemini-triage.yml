@@ -55,6 +55,20 @@ jobs:
             core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
             return labelNames;
 
+      - name: 'Prepare prompt context'
+        shell: 'bash'
+        run: |-
+          mkdir -p .gemini
+          jq -n \
+            --arg labels "${AVAILABLE_LABELS}" \
+            --arg title "${ISSUE_TITLE}" \
+            --arg body "${ISSUE_BODY}" \
+            '{available_labels: $labels, issue_title: $title, issue_body: $body}' > .gemini/context.json
+        env:
+          AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
+          ISSUE_TITLE: '${{ github.event.issue.title }}'
+          ISSUE_BODY: '${{ github.event.issue.body }}'
+
       - name: 'Run Gemini issue analysis'
         id: 'gemini_analysis'
         if: |-
@@ -63,9 +77,6 @@ jobs:
         env:
           GEMINI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
-          ISSUE_TITLE: '${{ github.event.issue.title }}'
-          ISSUE_BODY: '${{ github.event.issue.body }}'
-          AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -94,7 +105,7 @@ jobs:
               },
               "tools": {
                 "core": [
-                  "run_shell_command(echo)"
+                  "read_file"
                 ]
               }
             }

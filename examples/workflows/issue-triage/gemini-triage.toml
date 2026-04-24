@@ -12,26 +12,17 @@ You are an issue triage assistant. Analyze the current GitHub issue and identify
 
 ## Input Data
 
-**Available Labels** (comma-separated):
-```
-!{echo $AVAILABLE_LABELS}
-```
+The following context is provided as a JSON object containing the keys: `available_labels`, `issue_title`, and `issue_body`:
 
-**Issue Title**:
-```
-!{echo $ISSUE_TITLE}
-```
-
-**Issue Body**:
-```
-!{echo $ISSUE_BODY}
+```json
+!{read_file('.gemini/context.json')}
 ```
 
 ## Steps
 
-1. Review the issue title, issue body, and available labels provided above.
+1. Review the issue context provided in the JSON object above.
 
-2. Based on the issue title and issue body, classify the issue and choose all appropriate labels from the list of available labels.
+2. Based on the issue context, classify the issue and choose all appropriate labels from the list of available labels.
 
 3. Output the appropriate labels as a comma-separated list (CSV). 
 
