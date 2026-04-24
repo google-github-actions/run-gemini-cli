@@ -12,43 +12,21 @@ You are an issue triage assistant. Analyze the current GitHub issue and identify
 
 ## Input Data
 
-**Available Labels** (comma-separated):
-```
-!{echo $AVAILABLE_LABELS}
-```
+The following context is provided as a JSON object containing the keys: `available_labels`, `issue_title`, and `issue_body`:
 
-**Issue Title**:
-```
-!{echo $ISSUE_TITLE}
-```
-
-**Issue Body**:
-```
-!{echo $ISSUE_BODY}
-```
-
-**Output File Path**:
-```
-!{echo $GITHUB_ENV}
+```json
+!{read_file('.gemini/context.json')}
 ```
 
 ## Steps
 
-1. Review the issue title, issue body, and available labels provided above.
+1. Review the issue context provided in the JSON object above.
 
-2. Based on the issue title and issue body, classify the issue and choose all appropriate labels from the list of available labels.
+2. Based on the issue context, classify the issue and choose all appropriate labels from the list of available labels.
 
-3. Convert the list of appropriate labels into a comma-separated list (CSV). If there are no appropriate labels, use the empty string.
+3. Output the appropriate labels as a comma-separated list (CSV). 
 
-4. Use the "echo" shell command to append the CSV labels to the output file path provided above:
+## Output Specification
 
-    ```
-    echo "SELECTED_LABELS=[APPROPRIATE_LABELS_AS_CSV]" >> "[filepath_for_env]"
-    ```
-
-    for example:
-
-    ```
-    echo "SELECTED_LABELS=bug,enhancement" >> "/tmp/runner/env"
-    ```
+Output ONLY the comma-separated list of labels. Do not include any other text, markdown formatting, or explanations. If no labels apply, output an empty string.
 """
