@@ -106,8 +106,7 @@ jobs:
                   "read_file",
                   "grep_search",
                   "run_shell_command(echo)"
-                ],
-                "sandbox": false
+                ]
               }
             }
           extensions: |

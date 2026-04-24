@@ -46,8 +46,7 @@ with:
           "list_directory",
           "read_file",
           "grep_search"
-        ],
-        "sandbox": false
+        ]
       }
     }
 ```

@@ -129,8 +129,7 @@ jobs:
               "tools": {
                 "core": [
                   "run_shell_command(echo)"
-                ],
-                "sandbox": false
+                ]
               }
             }
           prompt: '/gemini-scheduled-triage'
