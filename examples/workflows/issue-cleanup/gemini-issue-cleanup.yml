@@ -1,0 +1,277 @@
+name: '🧹 Gemini Issue Cleanup'
+
+'on':
+  schedule:
+    - cron: '0 0 * * 0' # Runs weekly at midnight on Sunday
+  workflow_dispatch:
+    inputs:
+      issue_link:
+        description: 'Link to the GitHub issue to process (e.g., https://github.com/owner/repo/issues/123). If provided, only this issue will be processed.'
+        required: false
+        type: string
+      maintainers:
+        description: 'Comma-separated list of maintainer usernames (e.g., gemini-cli)'
+        required: false
+        default: 'gemini-cli'
+
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  find-issues:
+    runs-on: 'ubuntu-latest'
+    outputs:
+      issue_links: '${{ steps.find_issues.outputs.issue_links }}'
+    steps:
+      - name: 'Find old issues for cleanup'
+        id: 'find_issues'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          ISSUE_LINK_INPUT: '${{ inputs.issue_link }}'
+        run: |-
+          if [ -n "${ISSUE_LINK_INPUT}" ]; then
+            echo '🔍 Using provided issue link...'
+            echo "issue_links=[\"${ISSUE_LINK_INPUT}\"]" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo '🔍 Finding old issues for cleanup...'
+          ISSUES="$(gh issue list \
+            --repo ${{ github.repository }} \
+            --state 'open' \
+            --search "label:area/core,area/extensions,area/site,area/non-interactive sort:updated-asc" \
+            --json url \
+            --limit 10 \
+          )"
+
+          ISSUE_LINKS="$(echo "${ISSUES}" | jq -c '[.[].url]')"
+
+          if [ "${ISSUE_LINKS}" = "[]" ] || [ -z "${ISSUE_LINKS}" ]; then
+            echo "issue_links=[]" >> "${GITHUB_OUTPUT}"
+            echo "✅ No issues found to clean up."
+          else
+            echo "issue_links=${ISSUE_LINKS}" >> "${GITHUB_OUTPUT}"
+            echo "✅ Found $(echo "${ISSUES}" | jq 'length') issue(s) to process."
+          fi
+
+  process-issue:
+    needs: 'find-issues'
+    if: |-
+      needs.find-issues.outputs.issue_links != '[]' && needs.find-issues.outputs.issue_links != ''
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        issue_link: '${{ fromJSON(needs.find-issues.outputs.issue_links) }}'
+      max-parallel: 3
+      fail-fast: false
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      issues: 'write'
+    steps:
+      - name: 'Check for Staleness'
+        id: 'staleness'
+        uses: 'actions/github-script@v7'
+        env:
+          ISSUE_LINK: '${{ matrix.issue_link }}'
+          MAINTAINERS: '${{ inputs.maintainers || vars.MAINTAINERS }}'
+        with:
+          script: |-
+            const issueLink = process.env.ISSUE_LINK;
+            const parts = issueLink.split('/');
+            const issueNumber = parseInt(parts[parts.length - 1], 10);
+            const repoOwner = parts[parts.length - 4];
+            const repoName = parts[parts.length - 3];
+
+            console.log(`Checking staleness for issue #${issueNumber} from ${issueLink}`);
+            const maintainers = process.env.MAINTAINERS ? process.env.MAINTAINERS.split(',').map(m => m.trim()) : [];
+
+            const { data: issue } = await github.rest.issues.get({
+              owner: repoOwner,
+              repo: repoName,
+              issue_number: issueNumber,
+            });
+            const reporter = issue.user.login;
+
+            // First, check if it's tracked by a parent issue
+            const query = `
+              query($owner: String!, $repo: String!, $issueNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $issueNumber) {
+                    trackedInIssues(first: 1) {
+                      totalCount
+                    }
+                  }
+                }
+              }
+            `;
+            try {
+              const result = await github.graphql(query, {
+                owner: repoOwner,
+                repo: repoName,
+                issueNumber: issueNumber
+              });
+              const isTracked = result.repository.issue.trackedInIssues.totalCount > 0;
+              
+              if (isTracked) {
+                console.log(`Issue #${issueNumber} is tracked by a parent issue. Removing 'status/need-triage' and stopping.`);
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: issueNumber,
+                    name: 'status/need-triage'
+                  });
+                } catch (e) {
+                  // Ignore if label doesn't exist
+                }
+
+                const assignees = issue.assignees.map(a => a.login);
+                const hasAssignees = assignees.length > 0;
+                
+                const isFeatureRequest = issue.labels.some(l => {
+                  const name = typeof l === 'string' ? l : l.name;
+                  const lowerName = name.toLowerCase();
+                  return lowerName.includes('feature') || lowerName.includes('enhancement');
+                });
+
+                if (!hasAssignees) {
+                  let commentBody = '';
+                  if (isFeatureRequest) {
+                    commentBody = `@${reporter}, this feature request is currently tracked by an epic but has no assignees. Could you please let us know if this is still needed?`;
+                  } else {
+                    commentBody = `@${reporter}, this issue is currently tracked by an epic but has no assignees. Could you please try reproducing it with the latest build and let us know if it still occurs?`;
+                  }
+                  await github.rest.issues.createComment({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: issueNumber,
+                    body: commentBody
+                  });
+                }
+
+                core.setOutput('is_stale', 'true');
+                return;
+              }
+            } catch (err) {
+              console.log('Failed to fetch GraphQL data for parent issues:', err.message);
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: repoOwner,
+              repo: repoName,
+              issue_number: issueNumber,
+            });
+
+            // Find last maintainer comment
+            const maintainerComments = comments.filter(c => {
+              if (c.user.login === reporter) return false;
+              const isMaintainer = maintainers.includes(c.user.login) || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association);
+              if (maintainers.length > 0) return isMaintainer;
+              return !c.user.login.includes('github-actions') && c.user.type !== 'Bot';
+            });
+            if (maintainerComments.length > 0) {
+              const lastMaintainerComment = maintainerComments[maintainerComments.length - 1];
+              const reporterReplied = comments.some(c => c.user.login === reporter && new Date(c.created_at) > new Date(lastMaintainerComment.created_at));
+              
+              if (!reporterReplied) {
+                const daysAgo = (new Date() - new Date(lastMaintainerComment.created_at)) / (1000 * 60 * 60 * 24);
+                console.log(`Last maintainer comment was ${daysAgo.toFixed(1)} days ago.`);
+                
+                if (daysAgo > 7) {
+                  console.log(`Issue is stale. Closing.`);
+                  
+                  await github.rest.issues.createComment({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: issueNumber,
+                    body: "Closing because it has been over a week since we requested more information and we haven't received a response. Feel free to reopen if you can provide the requested details."
+                  });
+                  await github.rest.issues.update({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: issueNumber,
+                    state: 'closed',
+                    state_reason: 'not_planned'
+                  });
+                  core.setOutput('is_stale', 'true');
+                  return;
+                }
+              }
+            }
+
+            // Check overall issue age / inactivity
+            const lastUpdateDaysAgo = (new Date() - new Date(issue.updated_at)) / (1000 * 60 * 60 * 24);
+            console.log(`Issue was last updated ${lastUpdateDaysAgo.toFixed(1)} days ago.`);
+
+            if (lastUpdateDaysAgo > 60) {
+              core.setOutput('inactive_over_60_days', 'true');
+              core.setOutput('inactive_over_30_days', 'true');
+              core.setOutput('is_stale', 'false'); // Let AI handle it
+              return;
+            }
+
+            if (lastUpdateDaysAgo > 30) {
+              core.setOutput('inactive_over_60_days', 'false');
+              core.setOutput('inactive_over_30_days', 'true');
+              core.setOutput('is_stale', 'false');
+              return;
+            }
+
+            core.setOutput('inactive_over_60_days', 'false');
+            core.setOutput('inactive_over_30_days', 'false');
+            core.setOutput('is_stale', 'false');
+
+      - name: 'Checkout Current Repository'
+        if: steps.staleness.outputs.is_stale != 'true'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Set Repository'
+        if: steps.staleness.outputs.is_stale != 'true'
+        run: |
+          REPOSITORY=$(echo "${{ matrix.issue_link }}" | awk -F'/' '{print $4"/"$5}')
+          echo "REPOSITORY=$REPOSITORY" >> $GITHUB_ENV
+
+      - name: 'Run Gemini Issue Cleanup'
+        if: steps.staleness.outputs.is_stale != 'true'
+        uses: 'google-github-actions/run-gemini-cli@v0' # Replace with actual version when deploying
+        env:
+          ISSUE_LINK: '${{ matrix.issue_link }}'
+          REPOSITORY: '${{ env.REPOSITORY }}'
+          INACTIVE_OVER_60_DAYS: '${{ steps.staleness.outputs.inactive_over_60_days }}'
+          INACTIVE_OVER_30_DAYS: '${{ steps.staleness.outputs.inactive_over_30_days }}'
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN || github.token }}'
+          CUSTOM_INSTRUCTIONS: 'If the issue already has a maintainer-only label, just run `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage"` and **STOP EXECUTION IMMEDIATELY** without providing a triage summary. Otherwise, review the issue comments to see if a community member has already identified the root cause. If a root cause is identified: determine if it is a very simple fix. If it is a simple fix, post guidance for the fix, categorize the issue as **Maintainer-only**, and explain why. If it is not a simple fix, determine whether it should be **Maintainer-only** or **Help-wanted** and explain why. If no root cause is identified: State whether the issue should be categorized as **Maintainer-only** (epic, core architecture, sensitive fixes, internal tasks, or issues requiring deep investigation) or **Help-wanted** (good for community, general bugs, features, or tasks ready for external help). Your comment should be brief and clearly explain *why* it fits that category. If you categorized the issue as **Help-wanted**, also run `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage" --add-label "help wanted"`. If you categorized the issue as **Maintainer-only**, also run `gh issue edit !{echo $ISSUE_LINK} --remove-label "status/need-triage" --add-label "🔒 maintainer only"`.'
+        with:
+          # Modify the auth settings depending on your environment
+          gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+          gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+          workflow_name: 'gemini-issue-cleanup'
+          # Passing issue number to let the agent retrieve it
+          settings: |-
+            {
+              "model": {
+                "maxSessionTurns": 50
+              },
+              "tools": {
+                "core": [
+                  "grep_search",
+                  "read_file",
+                  "list_directory",
+                  "run_shell_command(gh)",
+                  "run_shell_command(git)",
+                  "run_shell_command(date)",
+                  "run_shell_command(node)",
+                  "run_shell_command(echo)"
+                ]
+              }
+            }
+          prompt: '/gemini-issue-cleanup'

@@ -1,0 +1,25 @@
+# Issue Cleanup Workflow
+
+This document describes a workflow to batch-process and clean up older open issues using Gemini CLI.
+
+## Overview
+
+The Issue Cleanup workflow is designed to automate the triage of stale issues by using the Gemini CLI to:
+
+1. **Check for Parent Issues (Native)**: Identifies if an issue is tracked by a parent issue (task list). If so, it removes the triage label and stops, assuming the issue is already being managed as part of a larger epic. If it has no assignees, it additionally asks the reporter if it is still needed (for feature requests) or asks them to try reproducing it with the latest build (for other issues).
+2. **Check for Staleness and Age (Native)**: Identifies if an issue has been waiting for reporter feedback for over 7 days, closing it if so. If the issue is not stale but hasn't been updated in over a month, it first checks if the last comment indicates the issue is resolved (e.g., "functioning properly"); if so, it closes it as completed. Otherwise, it asks the reporter to reproduce it with the latest build. For feature requests, it asks to reopen if still needed. By default, it closes the inactive issue as "not planned" and tags any assignees to reopen it. However, if the issue is a high-priority (`p0` or `p1`), it leaves the issue open. This logic runs natively to save AI resources.
+3. **Check for Vagueness (AI)**: If an issue is not stale or old but lacks sufficient information (e.g., reproduction steps), the agent asks the reporter for specific details and stops.
+4. **Check Code Validity (AI)**: Determines if an issue is still relevant against the current codebase. The agent may attempt to write and execute a minimal reproduction script to verify if a bug has been resolved, or manually inspect the code. If verified as fixed, it will close the issue with an explanation.
+5. **Find Duplicates (AI)**: Checks if the issue has a more recent duplicate. If a duplicate exists, it closes the issue and links to the duplicate.
+6. **Summarize for Triage (AI)**: If an issue is still valid and unique, it provides a summary comment based on customizable instructions (e.g., categorizing it as `Maintainer-only` or `Help-wanted`). If no custom instructions are provided, it falls back to a standard triage summary.
+
+## Usage
+
+This example is tailored to process issues in your repository matching specific labels (`area/core`, `area/extensions`, `area/site`, `area/non-interactive`), selecting the 10 issues with the oldest last update time.
+
+To adapt this to your own repository:
+
+1. Copy `gemini-issue-cleanup.yml` to your repository's `.github/workflows/` directory.
+2. Update the search string in the `Find old issues for cleanup` step in `gemini-issue-cleanup.yml` to match your repository's labels.
+3. Configure the `maintainers` input in `gemini-issue-cleanup.yml` (either via the workflow dispatch inputs or by setting the `MAINTAINERS` repository variable) to explicitly list which users count as maintainers for the staleness check.
+4. Copy `gemini-issue-cleanup.toml` to your `.github/commands/` directory.
