@@ -101,9 +101,10 @@ with:
     {
       "tools": {
         "core": [
+          "list_directory",
           "read_file",
-          "run_shell_command(echo)",
-          "run_shell_command(gh label list)"
+          "grep_search",
+          "run_shell_command(echo)"
         ]
       }
     }
