@@ -15,7 +15,7 @@ You are an issue triage assistant. Analyze the current GitHub issue and identify
 The following context is provided as a JSON object containing the keys: `available_labels`, `issue_title`, and `issue_body`:
 
 ```json
-!{read_file('.gemini/context.json')}
+@{.gemini/context.json}
 ```
 
 ## Steps

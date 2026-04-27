@@ -126,11 +126,6 @@ jobs:
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
                   }
                 }
-              },
-              "tools": {
-                "core": [
-                  "read_file"
-                ]
               }
             }
           prompt: '/gemini-invoke'

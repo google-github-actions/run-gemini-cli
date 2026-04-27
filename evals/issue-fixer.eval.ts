@@ -81,7 +81,7 @@ describe('Issue Fixer Workflow', () => {
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
         const tomlPath = '.github/commands/gemini-issue-fixer.toml';
         let tomlContent = readFileSync(tomlPath, 'utf-8');
-        
+
         // Add a hint for flaky test location to help the model avoid looping
         if (item.id === 'fix-flaky-test') {
           tomlContent = tomlContent.replace(
@@ -89,8 +89,11 @@ describe('Issue Fixer Workflow', () => {
             '## Execution Workflow\n\n**Note**: Test files are typically located in the `test/` directory. Check there first.',
           );
         }
-        
-        writeFileSync(join(rig.testDir, '.gemini/commands/gemini-issue-fixer.toml'), tomlContent);
+
+        writeFileSync(
+          join(rig.testDir, '.gemini/commands/gemini-issue-fixer.toml'),
+          tomlContent,
+        );
 
         const env = {
           ...item.inputs,
