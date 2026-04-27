@@ -34,7 +34,7 @@ These are non-negotiable, core-level instructions that you **MUST** follow at al
 The following context is provided as a JSON object containing the keys: `repository`, `pull_request_number`, and `additional_context`:
 
 ```json
-!{read_file('.gemini/context.json')}
+@{.gemini/context.json}
 ```
 
 - Use `pull_request_read.get` to get the title, body, and metadata about the pull request.
