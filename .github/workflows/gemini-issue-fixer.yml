@@ -37,11 +37,36 @@ jobs:
 
       - name: 'Checkout repository'
         uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
+        with:
+          persist-credentials: 'false'
+
+      - name: 'Prepare prompt context'
+        shell: 'bash'
+        run: |-
+          mkdir -p .gemini
+          jq -n \
+            --arg title "${TITLE}" \
+            --arg body "${BODY}" \
+            --arg repo "${REPOSITORY}" \
+            --arg num "${NUMBER}" \
+            --arg branch "${BRANCH}" \
+            --arg event "${EVENT}" \
+            --arg actor "${ACTOR}" \
+            '{issue_title: $title, issue_body: $body, repository: $repo, issue_number: $num, branch_name: $branch, event_name: $event, triggering_actor: $actor}' > .gemini/context.json
+        env:
+          TITLE: '${{ github.event.issue.title }}'
+          BODY: '${{ github.event.issue.body }}'
+          REPOSITORY: '${{ github.repository }}'
+          NUMBER: '${{ github.event.issue.number }}'
+          BRANCH: 'gemini-fix-${{ github.event.issue.number }}'
+          EVENT: '${{ github.event_name }}'
+          ACTOR: '${{ github.triggering_actor }}'
 
       - name: 'Run Gemini PR Create'
         uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
         id: 'gemini_pr_create'
         env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN }}'
           REPOSITORY: '${{ github.repository }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
@@ -63,6 +88,7 @@ jobs:
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
+          github_issue_number: '${{ github.event.issue.number }}'
           settings: |-
             {
               "debug": ${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }},
