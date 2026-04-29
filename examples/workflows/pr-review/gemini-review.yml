@@ -110,6 +110,9 @@ jobs:
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
                   }
                 }
+              },
+              "tools": {
+                "core": []
               }
             }
           extensions: |

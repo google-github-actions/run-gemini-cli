@@ -95,6 +95,9 @@ jobs:
               "model": {
                 "maxSessionTurns": 200
               },
+              "tools": {
+                "core": []
+              },
               "mcpServers": {
                 "github": {
                   "command": "docker",

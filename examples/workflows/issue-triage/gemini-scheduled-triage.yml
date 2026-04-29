@@ -134,6 +134,9 @@ jobs:
                 "enabled": true,
                 "target": "local",
                 "outfile": ".gemini/telemetry.log"
+              },
+              "tools": {
+                "core": []
               }
             }
           prompt: '/gemini-scheduled-triage'
