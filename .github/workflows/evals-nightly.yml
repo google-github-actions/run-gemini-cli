@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: 'Checkout code'
         uses: 'actions/checkout@v4' # ratchet:exclude
+        with:
+          persist-credentials: false
       - id: 'set-matrix'
         run: |
           FILES=$(find evals -maxdepth 1 -name "*.eval.ts" | sort | jq -R -s -c 'split("\n")[:-1]')
@@ -39,6 +41,8 @@ jobs:
     steps:
       - name: 'Checkout code'
         uses: 'actions/checkout@v4' # ratchet:exclude
+        with:
+          persist-credentials: false
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4' # ratchet:exclude
@@ -90,6 +94,8 @@ jobs:
     steps:
       - name: 'Checkout code'
         uses: 'actions/checkout@v4' # ratchet:exclude
+        with:
+          persist-credentials: false
 
       - name: 'Set up Node.js'
         uses: 'actions/setup-node@v4' # ratchet:exclude

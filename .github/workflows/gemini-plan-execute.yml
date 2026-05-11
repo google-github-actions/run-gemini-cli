@@ -42,7 +42,7 @@ jobs:
       - name: 'Checkout Code'
         uses: 'actions/checkout@v4' # ratchet:exclude
         with:
-          persist-credentials: 'false'
+          persist-credentials: false
 
       - name: 'Prepare prompt context'
         shell: 'bash'
