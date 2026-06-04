@@ -9,13 +9,13 @@ prompt = """
             This information is from the GitHub event that triggered your execution. Do not fetch this data again; use it as the primary source of truth for the task.
         </description>
         <github_event>
-            <event_type>!{echo $EVENT_NAME}</event_type>
-            <triggering_user>!{echo $TRIGGERING_ACTOR}</triggering_user>
+            <event_type>@{.gemini/context/EVENT_NAME.txt}</event_type>
+            <triggering_user>@{.gemini/context/TRIGGERING_ACTOR.txt}</triggering_user>
             <issue>
-                <repository>!{echo $REPOSITORY}</repository>
-                <number>!{echo $ISSUE_NUMBER}</number>
-                <title>!{echo $ISSUE_TITLE}</title>
-                <body>!{echo $ISSUE_BODY}</body>
+                <repository>@{.gemini/context/REPOSITORY.txt}</repository>
+                <number>@{.gemini/context/ISSUE_NUMBER.txt}</number>
+                <title>@{.gemini/context/ISSUE_TITLE.txt}</title>
+                <body>@{.gemini/context/ISSUE_BODY.txt}</body>
             </issue>
         </github_event>
     </context>
@@ -38,10 +38,10 @@ prompt = """
                     - Present a clear, actionable TODO list (using markdown checklists `[ ]`) outlining your plan to fix the issue.
             </step>
             <step id="3" name="Create Branch locally">
-                Use the `git` CLI tool to checkout a new branch for your work. Name it `!{echo $BRANCH_NAME}`. The command should be: `git checkout -b !{echo $BRANCH_NAME}`.
+                Use the `git` CLI tool to checkout a new branch for your work. Name it `@{.gemini/context/BRANCH_NAME.txt}`. The command should be: `git checkout -b @{.gemini/context/BRANCH_NAME.txt}`.
             </step>
             <step id="4" name="Create Branch remotely">
-                Use the GitHub MCP `create_branch` tool to create a new branch for your work. Name it `!{echo $BRANCH_NAME}`.
+                Use the GitHub MCP `create_branch` tool to create a new branch for your work. Name it `@{.gemini/context/BRANCH_NAME.txt}`.
             </step>
             <step id="5" name="Investigate and Implement">
                 Use tools, like the GitHub MCP `search_code` and GitHub MCP `get_file_contents` tools, to explore the codebase and implement the necessary code changes. As your plan evolves, you must keep the TODO list in your initial comment updated. To do this, use the `gh` command-line tool directly, as the MCP toolset does not support editing comments. Use the following command: `gh issue comment --edit-last --body "..."`
@@ -50,7 +50,7 @@ prompt = """
                 Follow the project-specific instructions from `GEMINI.md` or `CONTRIBUTING.md` to run builds, linters, and tests. Ensure your changes have not introduced any regressions.
             </step>
             <step id="7" name="Commit the changes">
-                Commit the changes to the branch `!{echo $BRANCH_NAME}`, using the Conventional Commits specification for commit messages. Use the `git` CLI tool, such as with `git status` to see changed/added/removed files, `git diff` to see changes, `git add .` to stage all changes files, and `git commit -m '<my commit message>'`.
+                Commit the changes to the branch `@{.gemini/context/BRANCH_NAME.txt}`, using the Conventional Commits specification for commit messages. Use the `git` CLI tool, such as with `git status` to see changed/added/removed files, `git diff` to see changes, `git add .` to stage all changes files, and `git commit -m '<my commit message>'`.
             </step>
             <step id="8" name="Create Pull Request">
                 Once the solution is fully implemented and verified, use the GitHub MCP `create_pull_request` tool to open a PR. The PR description should clearly link to the issue and summarize the changes you made.
