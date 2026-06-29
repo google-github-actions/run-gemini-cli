@@ -347,13 +347,13 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
     --condition=None
 
-# Allow the service account to generate an access tokens
-print_info "Granting 'Service Account Token Creator' role to Service Account..."
+# Allow the service account to generate an access tokens (self-impersonation only)
+print_info "Granting 'Service Account Token Creator' role to Service Account (self-impersonation)..."
 
-gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
+gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
+    --project="${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/iam.serviceAccountTokenCreator" \
-    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
-    --condition=None
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}"
 
 # Grant logging permissions to the service account
 print_info "Granting 'Logging Writer' role to Service Account..."
