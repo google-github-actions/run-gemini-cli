@@ -347,13 +347,33 @@ gcloud projects add-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
     --condition=None
 
-# Allow the service account to generate an access tokens (self-impersonation only)
+# Allow the service account to generate access tokens (self-impersonation only)
 print_info "Granting 'Service Account Token Creator' role to Service Account (self-impersonation)..."
 
-gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
+# Add the self-impersonation binding only if it does not already exist (idempotency guard)
+EXISTING_TOKEN_CREATOR_BINDING=$(gcloud iam service-accounts get-iam-policy "${SERVICE_ACCOUNT_EMAIL}" \
     --project="${GOOGLE_CLOUD_PROJECT}" \
+    --flatten="bindings[].members" \
+    --filter="bindings.members:${SERVICE_ACCOUNT_EMAIL}" \
+    --format="value(bindings.role)" \
+    2>/dev/null | grep -Fx "roles/iam.serviceAccountTokenCreator" || true)
+
+if [[ -z "${EXISTING_TOKEN_CREATOR_BINDING}" ]]; then
+    gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT_EMAIL}" \
+        --project="${GOOGLE_CLOUD_PROJECT}" \
+        --role="roles/iam.serviceAccountTokenCreator" \
+        --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}"
+fi
+
+# Remove the legacy project-level Token Creator binding from pre-#530 installs so
+# existing setups also converge to self-impersonation. Ignore errors if the binding
+# was never granted at the project level.
+print_info "Removing legacy project-level 'Service Account Token Creator' binding (if present)..."
+gcloud projects remove-iam-policy-binding "${GOOGLE_CLOUD_PROJECT}" \
     --role="roles/iam.serviceAccountTokenCreator" \
-    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}"
+    --member="serviceAccount:${SERVICE_ACCOUNT_EMAIL}" \
+    --condition=None \
+    2>/dev/null || true
 
 # Grant logging permissions to the service account
 print_info "Granting 'Logging Writer' role to Service Account..."
