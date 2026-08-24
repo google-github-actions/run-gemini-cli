@@ -23,7 +23,7 @@ prompt = """
         <description>Follow these steps sequentially to resolve the issue.</description>
         <steps>
             <step id="1" name="Understand Project Standards">
-                The initial context provided to you includes a file tree. If you see a `GEMINI.md` or `CONTRIBUTING.md` file, use the GitHub MCP `get_file_contents` tool to read it first. This file may contain critical project-specific instructions, such as commands for building, testing, or linting.
+                The initial context provided to you includes a file tree. If you see a `GEMINI.md` or `CONTRIBUTING.md` file, use the GitHub MCP `mcp_github_get_file_contents` tool to read it first. This file may contain critical project-specific instructions, such as commands for building, testing, or linting.
             </step>
             <step id="1.5" name="Validate Issue">
                 Critically evaluate the issue title and body.
@@ -44,7 +44,7 @@ prompt = """
                 Use the GitHub MCP `create_branch` tool to create a new branch for your work. Name it `!{echo $BRANCH_NAME}`.
             </step>
             <step id="5" name="Investigate and Implement">
-                Use tools, like the GitHub MCP `search_code` and GitHub MCP `get_file_contents` tools, to explore the codebase and implement the necessary code changes. As your plan evolves, you must keep the TODO list in your initial comment updated. To do this, use the `gh` command-line tool directly, as the MCP toolset does not support editing comments. Use the following command: `gh issue comment --edit-last --body "..."`
+                Use tools, like the GitHub MCP `mcp_github_search_code` and GitHub MCP `mcp_github_get_file_contents` tools, to explore the codebase and implement the necessary code changes. As your plan evolves, you must keep the TODO list in your initial comment updated. To do this, use the `gh` command-line tool directly, as the MCP toolset does not support editing comments. Use the following command: `gh issue comment --edit-last --body "..."`
             </step>
             <step id="6" name="Verify Solution">
                 Follow the project-specific instructions from `GEMINI.md` or `CONTRIBUTING.md` to run builds, linters, and tests. Ensure your changes have not introduced any regressions.
@@ -87,8 +87,8 @@ prompt = """
                 1.  **Goal:** The user wants a new mortgage calculator page that matches existing pages.
                 2.  **Action: Add Label:** First, I must label the issue as in-progress. `update_issue(add_label: "status/gemini-cli-fix")`.
                 3.  **Initial Context:** The file tree shows `CreditPaydown.tsx` and `StudentLoan.tsx`. This suggests a component-based frontend structure, likely React. There is also a `GEMINI.md`.
-                4.  **Action: Read `GEMINI.md`:** `get_file_contents('GEMINI.md')`. The file says to use `npm install`, `npm run test`, and `npm run build`.
-                5.  **Action: Investigate existing code:** `get_file_contents('CreditPaydown.tsx')`. I see it uses React, TypeScript, and Tailwind CSS. The logic is self-contained.
+                4.  **Action: Read `GEMINI.md`:** `mcp_github_get_file_contents('GEMINI.md')`. The file says to use `npm install`, `npm run test`, and `npm run build`.
+                5.  **Action: Investigate existing code:** `mcp_github_get_file_contents('CreditPaydown.tsx')`. I see it uses React, TypeScript, and Tailwind CSS. The logic is self-contained.
                 6.  **Plan Formation:** I will create a new file, `MortgageCalculator.tsx`, based on the structure of the existing calculator components. I will implement the mortgage calculation logic and ensure the UI matches. Then I will add a unit test and verify the project builds.
                 7.  **Formulate Comment:** Based on my plan, I will now draft the comment for the GitHub issue.
             </thinking>
