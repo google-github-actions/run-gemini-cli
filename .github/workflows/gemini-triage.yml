@@ -67,6 +67,8 @@ jobs:
         env:
           AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
+          # Security: ISSUE_BODY is attacker-controlled. GITHUB_TOKEN must
+          # not be set in this step to limit prompt injection blast radius.
           ISSUE_BODY: '${{ github.event.issue.body }}'
 
       - name: 'Run Gemini issue analysis'
@@ -78,6 +80,8 @@ jobs:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
           ISSUE_TITLE: '${{ github.event.issue.title }}'
+          # Security: ISSUE_BODY is attacker-controlled. GITHUB_TOKEN must
+          # not be set in this step to limit prompt injection blast radius.
           ISSUE_BODY: '${{ github.event.issue.body }}'
           AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
         with:
