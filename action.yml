@@ -214,6 +214,22 @@ runs:
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
 
+    - name: 'Write context files for safe interpolation'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+        mkdir -p .gemini/context
+        for var in TITLE DESCRIPTION EVENT_NAME IS_PULL_REQUEST \
+                   ISSUE_NUMBER REPOSITORY ADDITIONAL_CONTEXT \
+                   ISSUE_TITLE ISSUE_BODY PULL_REQUEST_NUMBER \
+                   AVAILABLE_LABELS ISSUES_TO_TRIAGE BRANCH_NAME \
+                   TRIGGERING_ACTOR GITHUB_ENV; do
+          if [ -n "${!var+x}" ]; then
+            printf '%s' "${!var}" > ".gemini/context/${var}.txt"
+          fi
+        done
+
+
     - name: 'Authenticate to Google Cloud'
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}

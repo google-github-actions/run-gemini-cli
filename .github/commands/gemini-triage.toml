@@ -19,22 +19,22 @@ You are an issue triage assistant. Analyze the current GitHub issue and identify
 
 **Available Labels** (comma-separated):
 ```
-!{echo $AVAILABLE_LABELS}
+@{.gemini/context/AVAILABLE_LABELS.txt}
 ```
 
 **Issue Title**:
 ```
-!{echo $ISSUE_TITLE}
+@{.gemini/context/ISSUE_TITLE.txt}
 ```
 
 **Issue Body**:
 ```
-!{echo $ISSUE_BODY}
+@{.gemini/context/ISSUE_BODY.txt}
 ```
 
 **Output File Path**:
 ```
-!{echo $GITHUB_ENV}
+@{.gemini/context/GITHUB_ENV.txt}
 ```
 
 ## Steps

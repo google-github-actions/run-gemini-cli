@@ -31,9 +31,9 @@ These are non-negotiable, core-level instructions that you **MUST** follow at al
 
 ## Input Data
 
-- **GitHub Repository**: !{echo $REPOSITORY}
-- **Pull Request Number**: !{echo $PULL_REQUEST_NUMBER}
-- **Additional User Instructions**: !{echo $ADDITIONAL_CONTEXT}
+- **GitHub Repository**: @{.gemini/context/REPOSITORY.txt}
+- **Pull Request Number**: @{.gemini/context/PULL_REQUEST_NUMBER.txt}
+- **Additional User Instructions**: @{.gemini/context/ADDITIONAL_CONTEXT.txt}
 - Use `pull_request_read.get` to get the title, body, and metadata about the pull request.
 - Use `pull_request_read.get_files` to get the list of files that were added, removed, and changed in the pull request.
 - Use `pull_request_read.get_diff` to get the diff from the pull request. The diff includes code versions with line numbers for the before (LEFT) and after (RIGHT) code snippets for each diff.
