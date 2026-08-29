@@ -248,13 +248,18 @@ runs:
         set -euo pipefail
 
         VERSION_INPUT="${GEMINI_CLI_VERSION:-latest}"
+        GEMINI_CLI_INSTALL_PREFIX="${RUNNER_TEMP:-${HOME}}/gemini-cli-install"
+        mkdir -p "${GEMINI_CLI_INSTALL_PREFIX}/bin"
+        export PATH="${GEMINI_CLI_INSTALL_PREFIX}/bin:${PATH}"
+        echo "${GEMINI_CLI_INSTALL_PREFIX}/bin" >> "${GITHUB_PATH}"
 
         if [[ "${VERSION_INPUT}" == "latest" || "${VERSION_INPUT}" == "preview" || "${VERSION_INPUT}" == "nightly" || "${VERSION_INPUT}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
           echo "Installing Gemini CLI from npm: @google/gemini-cli@${VERSION_INPUT}"
           if [[ "${USE_PNPM}" == "true" ]]; then
+            export PNPM_HOME="${GEMINI_CLI_INSTALL_PREFIX}/bin"
             pnpm add --silent --global @google/gemini-cli@"${VERSION_INPUT}"
           else
-            npm install --silent --no-audit --prefer-offline --global @google/gemini-cli@"${VERSION_INPUT}"
+            npm install --silent --no-audit --prefer-offline --global --prefix "${GEMINI_CLI_INSTALL_PREFIX}" @google/gemini-cli@"${VERSION_INPUT}"
           fi
         else
           echo "Installing Gemini CLI from GitHub: github:google-gemini/gemini-cli#${VERSION_INPUT}"
@@ -263,7 +268,7 @@ runs:
           git checkout "${VERSION_INPUT}"
           npm install
           npm run bundle
-          npm install --silent --no-audit --prefer-offline --global .
+          npm install --silent --no-audit --prefer-offline --global --prefix "${GEMINI_CLI_INSTALL_PREFIX}" .
         fi
         echo "Verifying installation:"
         if command -v gemini >/dev/null 2>&1; then
