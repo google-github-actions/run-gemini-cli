@@ -175,6 +175,10 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_google_api_key"></a><a href="#user-content-__input_google_api_key"><code>google_api_key</code></a>: _(Optional)_ The Vertex AI API key to use with Gemini.
 
+-   <a name="__input_orcarouter_api_key"></a><a href="#user-content-__input_orcarouter_api_key"><code>orcarouter_api_key</code></a>: _(Optional)_ The API key for [OrcaRouter](https://www.orcarouter.ai). When set, the
+    Gemini CLI is routed through OrcaRouter's OpenAI-compatible gateway
+    (`https://api.orcarouter.ai`) instead of Google's Gemini API.
+
 -   <a name="__input_prompt"></a><a href="#user-content-__input_prompt"><code>prompt</code></a>: _(Optional, default: `You are a helpful assistant.`)_ A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/configuration.md#command-line-arguments).
 
 -   <a name="__input_settings"></a><a href="#user-content-__input_settings"><code>settings</code></a>: _(Optional)_ A JSON string written to `.gemini/settings.json` to configure the CLI's _project_ settings.
@@ -246,11 +250,12 @@ For details about repository variables, refer to the [GitHub documentation on va
 
 You can set the following secrets in your repository:
 
-| Name              | Description                                   | Required | When Required                         |
-| ----------------- | --------------------------------------------- | -------- | ------------------------------------- |
-| `GEMINI_API_KEY`  | Your Gemini API key from Google AI Studio.    | No       | You don't have a GCP project.         |
-| `APP_PRIVATE_KEY` | Private key for your GitHub App (PEM format). | No       | Using a custom GitHub App.            |
-| `GOOGLE_API_KEY`  | Your Google API Key to use with Vertex AI.    | No       | You have a express Vertex AI account. |
+| Name                 | Description                                           | Required | When Required                         |
+| -------------------- | ----------------------------------------------------- | -------- | ------------------------------------- |
+| `GEMINI_API_KEY`     | Your Gemini API key from Google AI Studio.            | No       | You don't have a GCP project.         |
+| `ORCAROUTER_API_KEY` | Your [OrcaRouter](https://www.orcarouter.ai) API key. | No       | You want to route through OrcaRouter. |
+| `APP_PRIVATE_KEY`    | Private key for your GitHub App (PEM format).         | No       | Using a custom GitHub App.            |
+| `GOOGLE_API_KEY`     | Your Google API Key to use with Vertex AI.            | No       | You have a express Vertex AI account. |
 
 To add a secret:
 
@@ -271,6 +276,7 @@ Choose the authentication method that best fits your use case:
 
 1. **Gemini API Key:** The simplest method for projects that don't require Google Cloud integration
 2. **Workload Identity Federation:** The most secure method for authenticating to Google Cloud services
+3. **OrcaRouter API Key:** Route the Gemini CLI through [OrcaRouter](https://www.orcarouter.ai)'s OpenAI-compatible gateway instead of Google's Gemini API
 
 ### GitHub Authentication
 
