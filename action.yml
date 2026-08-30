@@ -54,6 +54,12 @@ inputs:
   google_api_key:
     description: 'The Vertex AI API key to use with Gemini.'
     required: false
+  orcarouter_api_key:
+    description: |-
+      The API key for [OrcaRouter](https://www.orcarouter.ai). When set, the
+      Gemini CLI is routed through OrcaRouter's OpenAI-compatible gateway
+      (`https://api.orcarouter.ai`) instead of Google's Gemini API.
+    required: false
   prompt:
     description: |-
       A string passed to the Gemini CLI's [`--prompt` argument](https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/configuration.md#command-line-arguments).
@@ -136,13 +142,14 @@ runs:
         if [[ "${INPUT_GEMINI_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
         if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
         if [[ "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
+        if [[ "${INPUT_ORCAROUTER_API_KEY_PRESENT:-false}" == "true" ]]; then ((++auth_methods)); fi
 
         if [[ ${auth_methods} -eq 0 ]]; then
-          warn "No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
+          warn "No authentication method provided. Please provide one of 'gemini_api_key', 'google_api_key', 'gcp_workload_identity_provider', or 'orcarouter_api_key'."
         fi
 
         if [[ ${auth_methods} -gt 1 ]]; then
-          warn "Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', or 'gcp_workload_identity_provider'."
+          warn "Multiple authentication methods provided. Please use only one of 'gemini_api_key', 'google_api_key', 'gcp_workload_identity_provider', or 'orcarouter_api_key'."
         fi
 
         # Validate Workload Identity Federation inputs
@@ -180,6 +187,7 @@ runs:
         INPUT_GEMINI_API_KEY_PRESENT: "${{ inputs.gemini_api_key != '' }}"
         INPUT_GOOGLE_API_KEY_PRESENT: "${{ inputs.google_api_key != '' }}"
         INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT: "${{ inputs.gcp_workload_identity_provider != '' }}"
+        INPUT_ORCAROUTER_API_KEY_PRESENT: "${{ inputs.orcarouter_api_key != '' }}"
         INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
         INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
         INPUT_GCP_TOKEN_FORMAT: '${{ inputs.gcp_token_format }}'
@@ -204,6 +212,18 @@ runs:
       shell: 'bash'
       env:
         SETTINGS: '${{ inputs.settings }}'
+
+    - name: 'Configure OrcaRouter auth'
+      if: |-
+        ${{ inputs.orcarouter_api_key != '' }}
+      run: |-
+        mkdir -p .gemini/
+        if [[ -f .gemini/settings.json ]]; then
+          jq '.security.auth.selectedType = "gemini-api-key"' .gemini/settings.json > .gemini/settings.json.tmp && mv .gemini/settings.json.tmp .gemini/settings.json
+        else
+          echo '{"security":{"auth":{"selectedType":"gemini-api-key"}}}' > .gemini/settings.json
+        fi
+      shell: 'bash'
 
     - name: 'Install Custom Commands'
       shell: 'bash'
@@ -415,7 +435,7 @@ runs:
         fi
       env:
         GEMINI_DEBUG: '${{ fromJSON(inputs.gemini_debug || false) }}'
-        GEMINI_API_KEY: '${{ inputs.gemini_api_key }}'
+        GEMINI_API_KEY: "${{ inputs.orcarouter_api_key != '' ? inputs.orcarouter_api_key : inputs.gemini_api_key }}"
         SURFACE: 'GitHub'
         GOOGLE_CLOUD_PROJECT: '${{ inputs.gcp_project_id }}'
         GOOGLE_CLOUD_LOCATION: '${{ inputs.gcp_location }}'
@@ -423,8 +443,9 @@ runs:
         GOOGLE_API_KEY: '${{ inputs.google_api_key }}'
         GOOGLE_GENAI_USE_GCA: '${{ inputs.use_gemini_code_assist }}'
         GOOGLE_CLOUD_ACCESS_TOKEN: '${{steps.auth.outputs.access_token}}'
+        GOOGLE_GEMINI_BASE_URL: "${{ inputs.orcarouter_api_key != '' ? 'https://api.orcarouter.ai' : '' }}"
         PROMPT: '${{ inputs.prompt }}'
-        GEMINI_MODEL: '${{ inputs.gemini_model }}'
+        GEMINI_MODEL: "${{ inputs.gemini_model != '' ? inputs.gemini_model : (inputs.orcarouter_api_key != '' ? 'orcarouter/auto' : '') }}"
         GH_WORKFLOW_NAME: '${{ steps.sanitize_workflow_name.outputs.gh_workflow_name }}'
         GH_PR_NUMBER: '${{ inputs.github_pr_number }}'
         GH_ISSUE_NUMBER: '${{ inputs.github_issue_number }}'
