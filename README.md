@@ -190,6 +190,8 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 
 -   <a name="__input_upload_artifacts"></a><a href="#user-content-__input_upload_artifacts"><code>upload_artifacts</code></a>: _(Optional, default: `false`)_ Whether to upload artifacts to the github action.
 
+-   <a name="__input_output_to_file"></a><a href="#user-content-__input_output_to_file"><code>output_to_file</code></a>: _(Optional, default: `false`)_ When true, redirect all output to files and return file paths as step outputs instead of content. Useful when gemini_debug is true to avoid exceeding GitHub Actions output limits.
+
 -   <a name="__input_use_pnpm"></a><a href="#user-content-__input_use_pnpm"><code>use_pnpm</code></a>: _(Optional, default: `false`)_ Whether or not to use pnpm instead of npm to install gemini-cli
 
 -   <a name="__input_workflow_name"></a><a href="#user-content-__input_workflow_name"><code>workflow_name</code></a>: _(Optional, default: `${{ github.workflow }}`)_ The GitHub workflow name, used for telemetry purposes.
@@ -210,6 +212,10 @@ go to the [Gemini Assistant workflow documentation](./examples/workflows/gemini-
 -   <a name="__output_summary"></a><a href="#user-content-__output_summary"><code>summary</code></a>: The summarized output from the Gemini CLI execution.
 
 -   <a name="__output_error"></a><a href="#user-content-__output_error"><code>error</code></a>: The error output from the Gemini CLI execution, if any.
+
+-   <a name="__output_output_mode"></a><a href="#user-content-__output_output_mode"><code>output_mode</code></a>: Output mode used: "content" (default) or "file".
+
+-   <a name="__output_artifacts_dir"></a><a href="#user-content-__output_artifacts_dir"><code>artifacts_dir</code></a>: Path to gemini-artifacts/ directory containing stdout.log, stderr.log, telemetry.log.
 
 
 <!-- END_AUTOGEN_OUTPUTS -->
