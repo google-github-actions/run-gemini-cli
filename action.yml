@@ -298,6 +298,27 @@ runs:
         }
         trap cleanup EXIT
 
+        function emit_non_json_output {
+          local stream_name="$1"
+          local file_path="$2"
+          local artifact_name="$3"
+          local max_lines="${4:-200}"
+          local stop_token="GEMINI_CLI_STOP_$(date +%s%N)"
+          local line_count
+          line_count=$(awk 'END { print NR }' "${file_path}")
+
+          echo "::warning::Gemini CLI ${stream_name} was not valid JSON. Showing raw ${stream_name} below."
+          echo "::group::Gemini CLI raw ${stream_name}"
+          echo "::stop-commands::${stop_token}"
+          sed -n "1,${max_lines}p" "${file_path}"
+          if (( line_count > max_lines )); then
+            echo
+            echo "[truncated: showing first ${max_lines} of ${line_count} lines; see gemini-artifacts/${artifact_name} for full output]"
+          fi
+          echo "::${stop_token}::"
+          echo "::endgroup::"
+        }
+
         # Keep track of whether we've failed
         FAILED=false
 
@@ -341,11 +362,11 @@ runs:
         fi
 
         if { [[ -s "${TEMP_STDERR}" ]] && ! jq -e . "${TEMP_STDERR}" >/dev/null 2>&1; }; then
-          echo "::warning::Gemini CLI stderr was not valid JSON"
+          emit_non_json_output "stderr" "${TEMP_STDERR}" "stderr.log"
         fi
 
         if { [[ -s "${TEMP_STDOUT}" ]] && ! jq -e . "${TEMP_STDOUT}" >/dev/null 2>&1; }; then
-          echo "::warning::Gemini CLI stdout was not valid JSON"
+          emit_non_json_output "stdout" "${TEMP_STDOUT}" "stdout.log"
         fi
 
 
