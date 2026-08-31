@@ -218,7 +218,7 @@ runs:
       if: |-
         ${{ inputs.gcp_workload_identity_provider != '' }}
       id: 'auth'
-      uses: 'google-github-actions/auth@v3' # ratchet:exclude
+      uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # ratchet:google-github-actions/auth@v3
       with:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
@@ -432,7 +432,7 @@ runs:
     - name: 'Upload Gemini CLI outputs'
       if: |-
         ${{ inputs.upload_artifacts == 'true' }}
-      uses: 'actions/upload-artifact@v6' # ratchet:exclude
+      uses: 'actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f' # ratchet:actions/upload-artifact@v6
       with:
         name: 'gemini-output'
         path: 'gemini-artifacts/'
