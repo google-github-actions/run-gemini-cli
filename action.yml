@@ -30,6 +30,10 @@ inputs:
   gcp_workload_identity_provider:
     description: 'The Google Cloud Workload Identity Provider.'
     required: false
+  gcp_audience:
+    description: |-
+      The audience (aud) claim to request in the GitHub OIDC token. Only used when 'gcp_workload_identity_provider' is set. Defaults to the workload identity provider, which is what Google Cloud expects unless the provider itself is configured with a custom audience.
+    required: false
   gcp_token_format:
     description: 'The token format for authentication. Set to "access_token" to generate access tokens (requires service account), or set to empty string for direct WIF. Can be "access_token" or "id_token".'
     required: false
@@ -160,6 +164,12 @@ runs:
           fi
         fi
 
+        # The audience is only used for the OIDC token handed to the Workload
+        # Identity Provider, so it does nothing on its own.
+        if [[ -n "${INPUT_GCP_AUDIENCE}" && "${INPUT_GCP_WORKLOAD_IDENTITY_PROVIDER_PRESENT:-false}" != "true" ]]; then
+          warn "'gcp_audience' is only used with 'gcp_workload_identity_provider' and will be ignored."
+        fi
+
         # Validate Vertex AI API Key
         if [[ "${INPUT_GOOGLE_API_KEY_PRESENT:-false}" == "true" ]]; then
           if [[ "${INPUT_USE_VERTEX_AI:-false}" != "true" ]]; then
@@ -183,6 +193,7 @@ runs:
         INPUT_GCP_PROJECT_ID_PRESENT: "${{ inputs.gcp_project_id != '' }}"
         INPUT_GCP_SERVICE_ACCOUNT_PRESENT: "${{ inputs.gcp_service_account != '' }}"
         INPUT_GCP_TOKEN_FORMAT: '${{ inputs.gcp_token_format }}'
+        INPUT_GCP_AUDIENCE: '${{ inputs.gcp_audience }}'
         INPUT_USE_VERTEX_AI: '${{ inputs.use_vertex_ai }}'
         INPUT_USE_GEMINI_CODE_ASSIST: '${{ inputs.use_gemini_code_assist }}'
 
@@ -223,6 +234,7 @@ runs:
         project_id: '${{ inputs.gcp_project_id }}'
         workload_identity_provider: '${{ inputs.gcp_workload_identity_provider }}'
         service_account: '${{ inputs.gcp_service_account }}'
+        audience: '${{ inputs.gcp_audience }}'
         token_format: '${{ inputs.gcp_token_format }}'
         access_token_scopes: '${{ inputs.gcp_access_token_scopes }}'
 
