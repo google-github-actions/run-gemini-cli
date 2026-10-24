@@ -1,0 +1,19 @@
+name: Gemini AI Code Review
+on:
+  pull_request:
+    types: [opened] # This triggers the AI when a new PR is opened
+
+jobs:
+  review-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Ask Gemini to summarize
+        uses: google-github-actions/run-gemini-cli@v1
+        with:
+          # The instruction you give the AI
+          prompt: "Please review the attached code changes and summarize any bugs."
+          # Authenticating securely via GitHub Secrets
+          api-key: ${{ secrets.GEMINI_API_KEY }}
