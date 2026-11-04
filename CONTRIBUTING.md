@@ -147,6 +147,7 @@ Before submitting your PR:
 
 - **Validate action.yml**: Ensure the manifest is valid YAML
 - **Test workflows**: Verify example workflows work as expected
+- **Run evaluations**: For changes to prompts or workflows, run evals per [evals/README.md](./evals/README.md) to benchmark and verify quality
 - **Check documentation**: Ensure all examples and references are accurate
 - **Lint shell scripts**: Use tools like `shellcheck` for script validation
 
