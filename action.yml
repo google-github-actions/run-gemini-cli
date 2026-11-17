@@ -211,8 +211,31 @@ runs:
         set -euo pipefail
         mkdir -p .gemini/commands
         cp -r "${GITHUB_ACTION_PATH}/.github/commands/"* .gemini/commands/
+        if [[ -f ".gemini/context.json" ]]; then
+          node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --ensure-geminiignore
+        fi
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
+
+    - name: 'Verify approved plan'
+      if: |-
+        ${{ inputs.workflow_name == 'gemini-plan-execute' || contains(inputs.prompt, '/gemini-plan-execute') }}
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+        if [[ "${WORKFLOW_NAME}" != "gemini-plan-execute" && ! "${PROMPT_INPUT}" =~ ^[[:space:]]*/gemini-plan-execute([[:space:]]|$) ]]; then
+          exit 0
+        fi
+        rm -f .gemini/approved_plan.json
+        node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --verify
+        if [[ ! -s ".gemini/approved_plan.json" ]]; then
+          echo "::error title=Plan verification failed::Verified plan artifact was not created." >&2
+          exit 1
+        fi
+      env:
+        GITHUB_ACTION_PATH: '${{ github.action_path }}'
+        WORKFLOW_NAME: '${{ inputs.workflow_name }}'
+        PROMPT_INPUT: '${{ inputs.prompt }}'
 
     - name: 'Authenticate to Google Cloud'
       if: |-
