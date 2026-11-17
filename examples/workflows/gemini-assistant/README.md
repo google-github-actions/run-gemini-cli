@@ -131,11 +131,11 @@ flowchart TD
     I -- No --> K
 ```
 
-1.  **Acknowledge**: The action first posts a brief comment to let the user know the request has been received.
-2.  **Plan (if needed)**: For requests that may involve code changes or complex actions, the AI will first create a step-by-step plan. It will post this plan as a comment and wait for the user to approve it by replying with `@gemini-cli /approve`. This ensures the user has full control before any changes are made.
-3.  **Execute**: Once the plan is approved (or if no plan was needed), it runs the Gemini model, providing it with the user's request, repository context, and a set of tools.
-4.  **Commit (if needed)**: If the AI uses tools to modify files, it will automatically commit and push the changes to the branch.
-5.  **Respond**: The AI posts a final, comprehensive response as a comment on the issue or pull request.
+1.  **Acknowledge**: The action first posts a brief comment to let you know it received the request.
+2.  **Plan (if needed)**: For requests that involve code changes or multi-step actions, Gemini CLI creates a step-by-step plan and posts it as a comment. Copy the link or comment ID of that plan comment and reply with `@gemini-cli /approve <comment-url-or-id>` (optionally adding `sha256:<prefix>` if you want to pin the exact comment digest). Bare `@gemini-cli /approve` without a comment link or ID is rejected so only the exact bot-authored plan you reviewed can run.
+3.  **Execute**: After verifying the approved plan comment's bot authorship, timestamp, and digest, the workflow runs Gemini CLI against that verified plan artifact.
+4.  **Open pull request (if needed)**: When the verified plan modifies files, Gemini CLI creates a feature branch, commits the file updates, and opens a pull request for review. We recommend enabling branch protection rules on your default branch (`main`).
+5.  **Respond**: Gemini CLI posts a final summary comment on the issue or pull request.
 
 ## Configuration
 
@@ -152,6 +152,7 @@ The Gemini CLI assistant prompts are defined in the `gemini-invoke.toml` and `ge
    ```
 
 2. Edit `.gemini/commands/gemini-invoke.toml` and `.gemini/commands/gemini-plan-execute.toml` to customize:
+
    - Change its persona or primary function
    - Add project-specific guidelines or context
    - Instruct it to format its output in a specific way

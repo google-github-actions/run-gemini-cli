@@ -5,7 +5,7 @@
   "scripts": {
     "build": "echo \"No build required for composite action\"",
     "docs": "./node_modules/.bin/actions-gen-readme",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run --config evals/vitest.security.config.ts",
     "test:evals": "vitest run --config evals/vitest.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

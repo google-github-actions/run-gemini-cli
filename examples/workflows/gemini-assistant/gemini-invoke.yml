@@ -38,9 +38,9 @@ jobs:
           permission-pull-requests: 'write'
 
       - name: 'Checkout Code'
-        uses: 'actions/checkout@v4' # ratchet:exclude
+        uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
         with:
-          persist-credentials: 'false'
+          persist-credentials: false
 
       - name: 'Prepare prompt context'
         shell: 'bash'
@@ -59,7 +59,7 @@ jobs:
           TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
           DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
           EVENT_NAME: '${{ github.event_name }}'
-          IS_PULL_REQUEST: '${{ !!github.event.pull_request }}'
+          IS_PULL_REQUEST: '${{ !!(github.event.pull_request || github.event.issue.pull_request) }}'
           ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
           ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
