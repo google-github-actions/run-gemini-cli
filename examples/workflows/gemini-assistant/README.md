@@ -152,7 +152,6 @@ The Gemini CLI assistant prompts are defined in the `gemini-invoke.toml` and `ge
    ```
 
 2. Edit `.gemini/commands/gemini-invoke.toml` and `.gemini/commands/gemini-plan-execute.toml` to customize:
-
    - Change its persona or primary function
    - Add project-specific guidelines or context
    - Instruct it to format its output in a specific way

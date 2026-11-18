@@ -52,7 +52,14 @@ describe('Gemini Plan Execution Workflow', () => {
             JSON.stringify(item.approved_plan, null, 2),
           );
         }
+        for (const baseDir of [rig.testDir, rig.homeDir]) {
+          const settingsPath = join(baseDir, '.gemini/settings.json');
+          const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+          settings.tools = { core: [] };
+          writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        }
         sanitizePlanExecuteSettingsFile(rig.testDir);
+        sanitizePlanExecuteSettingsFile(rig.homeDir);
         ensureGeminiIgnoreAllowsContextFiles(rig.testDir);
         copyFileSync(
           '.github/commands/gemini-plan-execute.toml',
@@ -96,6 +103,8 @@ describe('Gemini Plan Execution Workflow', () => {
         if (!item.approved_plan) {
           for (const forbidden of [
             'issue_read',
+            'issue_read.get_comments',
+            'issue_read_get_comments',
             'create_branch',
             'create_or_update_file',
             'create_pull_request',

@@ -35,6 +35,8 @@ export const DISALLOWED_PLAN_EXECUTE_MCP_TOOLS = Object.freeze([
   'fork_repository',
   'merge_pull_request',
   'issue_read',
+  'issue_read.get',
+  'issue_read.get_comments',
   'list_issues',
   'search_issues',
 ]);
