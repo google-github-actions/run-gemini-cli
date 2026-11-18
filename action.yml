@@ -211,11 +211,11 @@ runs:
         set -euo pipefail
         mkdir -p .gemini/commands
         cp -r "${GITHUB_ACTION_PATH}/.github/commands/"* .gemini/commands/
-        if [[ -f ".gemini/context.json" ]]; then
-          node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --ensure-geminiignore
-        fi
+        node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --ensure-geminiignore
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
+        WORKFLOW_NAME: '${{ inputs.workflow_name }}'
+        PROMPT_INPUT: '${{ inputs.prompt }}'
 
     - name: 'Verify approved plan'
       if: |-

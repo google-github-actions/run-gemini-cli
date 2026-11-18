@@ -16,9 +16,9 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 
 export const PLAN_HEADING_MARKER = 'AI Assistant: Plan of Action';
 export const APPROVAL_COMMAND_PREFIX = '@gemini-cli /approve';
@@ -27,11 +27,13 @@ export const DEFAULT_APPROVED_PLAN_PATH = '.gemini/approved_plan.json';
 export const DEFAULT_CONTEXT_PATH = '.gemini/context.json';
 export const DEFAULT_SETTINGS_PATH = '.gemini/settings.json';
 export const MIN_SHA256_PREFIX_LENGTH = 7;
+export const MAX_SHA256_PREFIX_LENGTH = 64;
 
 export const DISALLOWED_PLAN_EXECUTE_MCP_TOOLS = Object.freeze([
   'push_files',
   'delete_file',
   'fork_repository',
+  'merge_pull_request',
   'issue_read',
   'list_issues',
   'search_issues',
@@ -44,11 +46,14 @@ const ALLOWED_APPROVER_ASSOCIATIONS = new Set([
   'COLLABORATOR',
 ]);
 const PLAN_HEADING_REGEX = /^\s*#{1,6}\s+.*AI Assistant:\s*Plan of Action\b/m;
-const REPOSITORY_SLUG_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const REPOSITORY_SLUG_PATTERN =
+  /^(?!\.\.?$)[A-Za-z0-9_.-]+\/(?!\.\.?$)[A-Za-z0-9_.-]+$/;
 const FULL_COMMENT_URL_PATTERN =
   /^https?:\/\/[^/\s#]+\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(\d+)#issuecomment-(\d+)$/i;
 const SHORT_COMMENT_ID_PATTERN =
   /^(?:#?issuecomment-(\d+)|comment-(\d+)|(\d+))$/i;
+const EXPLICIT_TRAILING_COMMENT_ID_PATTERN =
+  /^(?:#?issuecomment-(\d+)|comment-(\d+))$/i;
 const SHA256_TOKEN_PATTERN = /^sha256:([a-f0-9]+)$/i;
 
 const GEMINI_IGNORE_STANZA = Object.freeze([
@@ -195,6 +200,11 @@ function parseBindingToken(token, state) {
       `Plan sha256 prefix must be at least ${MIN_SHA256_PREFIX_LENGTH} hex characters.`,
     );
   }
+  if (prefix.length > MAX_SHA256_PREFIX_LENGTH) {
+    throw new PlanVerificationError(
+      `Plan sha256 prefix cannot exceed ${MAX_SHA256_PREFIX_LENGTH} hex characters.`,
+    );
+  }
   state.targetSha256Prefix = prefix;
   return true;
 }
@@ -234,11 +244,13 @@ export function parseApprovalDirective(rawBody) {
     consumed += 1;
   }
 
-  // Reject duplicate comment-ID or sha256 tokens appearing after free-form text
+  // Reject explicit comment-ID, URL, or sha256 tokens appearing after free-form text
+  // without rejecting ordinary prose numbers (e.g., "looks good for step 1").
   for (const trailing of tokens.slice(consumed)) {
     if (
-      SHORT_COMMENT_ID_PATTERN.test(trailing) ||
-      FULL_COMMENT_URL_PATTERN.test(trailing) ||
+      EXPLICIT_TRAILING_COMMENT_ID_PATTERN.test(trailing) ||
+      /^https?:\/\//i.test(trailing) ||
+      trailing.includes('#issuecomment-') ||
       SHA256_TOKEN_PATTERN.test(trailing)
     ) {
       parseBindingToken(trailing, state);
@@ -556,9 +568,25 @@ export function selectVerifiedPlan(
     );
   }
 
-  if (typeof target.issue_url === 'string' && repoForCheck) {
+  if (repoForCheck) {
+    if (
+      typeof target.issue_url !== 'string' ||
+      target.issue_url.trim() === ''
+    ) {
+      throw new PlanVerificationError(
+        `Comment #${targetCommentId} is missing a valid issue_url for cross-issue verification.`,
+      );
+    }
+    let issueUrlPathname;
+    try {
+      issueUrlPathname = new URL(target.issue_url).pathname.toLowerCase();
+    } catch {
+      throw new PlanVerificationError(
+        `Comment #${targetCommentId} has a malformed issue_url (${target.issue_url}).`,
+      );
+    }
     const expectedSuffix = `/repos/${repoForCheck.toLowerCase()}/issues/${approvalContext.issueNumber}`;
-    if (!target.issue_url.toLowerCase().endsWith(expectedSuffix)) {
+    if (!issueUrlPathname.endsWith(expectedSuffix)) {
       throw new PlanVerificationError(
         `Comment #${targetCommentId} belongs to a different issue (${target.issue_url}).`,
       );
@@ -649,6 +677,14 @@ export async function fetchIssueCommentById({
       'Unexpected non-object comment payload from GitHub API.',
     );
   }
+  if (
+    typeof payload.issue_url !== 'string' ||
+    payload.issue_url.trim() === ''
+  ) {
+    throw new PlanVerificationError(
+      `GitHub API comment #${commentId} payload is missing a valid issue_url.`,
+    );
+  }
   return payload;
 }
 
@@ -729,22 +765,28 @@ function assertSafeWorkspaceTarget(workspaceRoot, relativePath) {
   const realRoot = realpathSync(workspaceRoot);
   const candidate = resolve(realRoot, relativePath);
   const rel = relative(realRoot, candidate);
-  if (rel.startsWith('..') || rel === '') {
+  if (
+    rel === '' ||
+    rel === '..' ||
+    rel.startsWith(`..${sep}`) ||
+    isAbsolute(rel)
+  ) {
     throw new PlanVerificationError(
       `Refusing to access path outside workspace: ${relativePath}`,
     );
   }
 
-  const parentDir = dirname(candidate);
-  if (existsSync(parentDir) && lstatSync(parentDir).isSymbolicLink()) {
-    throw new PlanVerificationError(
-      `Refusing to write inside symlinked directory: ${parentDir}`,
-    );
-  }
-  if (existsSync(candidate) && lstatSync(candidate).isSymbolicLink()) {
-    throw new PlanVerificationError(
-      `Refusing to overwrite symlinked file: ${candidate}`,
-    );
+  let current = realRoot;
+  const segments = rel.split(sep);
+  for (let i = 0; i < segments.length; i++) {
+    current = resolve(current, segments[i]);
+    const stat = lstatSync(current, { throwIfNoEntry: false });
+    if (stat?.isSymbolicLink()) {
+      const kind = i === segments.length - 1 ? 'file' : 'directory';
+      throw new PlanVerificationError(
+        `Refusing to access symlinked ${kind}: ${current}`,
+      );
+    }
   }
   return candidate;
 }
@@ -762,7 +804,8 @@ function writeSafeWorkspaceFile(workspaceRoot, relativePath, content) {
 }
 
 /**
- * Prunes disallowed MCP tools from `.gemini/settings.json` if present so
+ * Prunes disallowed MCP tools from `.gemini/settings.json` across all configured
+ * MCP servers (and populates `excludeTools` when `includeTools` is omitted) so
  * existing `@v0` consumers automatically receive least-privilege tool scoping.
  *
  * @param {string} workspaceRoot
@@ -785,20 +828,73 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
   if (!isRecord(parsed) || !isRecord(parsed.mcpServers)) {
     return;
   }
-  const githubServer = parsed.mcpServers.github;
-  if (!isRecord(githubServer) || !Array.isArray(githubServer.includeTools)) {
-    return;
-  }
 
   const disallowed = new Set(DISALLOWED_PLAN_EXECUTE_MCP_TOOLS);
-  githubServer.includeTools = githubServer.includeTools.filter(
-    (tool) => typeof tool === 'string' && !disallowed.has(tool),
-  );
-  writeSafeWorkspaceFile(
-    workspaceRoot,
-    DEFAULT_SETTINGS_PATH,
-    `${JSON.stringify(parsed, null, 2)}\n`,
-  );
+  let mutated = false;
+  for (const server of Object.values(parsed.mcpServers)) {
+    if (!isRecord(server)) {
+      continue;
+    }
+    if (Array.isArray(server.includeTools)) {
+      server.includeTools = server.includeTools.filter(
+        (tool) => typeof tool === 'string' && !disallowed.has(tool),
+      );
+      mutated = true;
+    } else {
+      const existingExclude = Array.isArray(server.excludeTools)
+        ? server.excludeTools.filter((tool) => typeof tool === 'string')
+        : [];
+      server.excludeTools = Array.from(
+        new Set([...existingExclude, ...DISALLOWED_PLAN_EXECUTE_MCP_TOOLS]),
+      );
+      mutated = true;
+    }
+  }
+
+  if (mutated) {
+    writeSafeWorkspaceFile(
+      workspaceRoot,
+      DEFAULT_SETTINGS_PATH,
+      `${JSON.stringify(parsed, null, 2)}\n`,
+    );
+  }
+}
+
+/**
+ * Resolves the repository `.git` metadata directory (supporting both standard
+ * `.git/` directories and git worktree `.git` files while rejecting symlinks).
+ *
+ * @param {string} workspaceRoot
+ * @returns {string | null}
+ */
+function resolveSafeGitDir(workspaceRoot) {
+  const realRoot = realpathSync(workspaceRoot);
+  const dotGitPath = resolve(realRoot, '.git');
+  const dotGitStat = lstatSync(dotGitPath, { throwIfNoEntry: false });
+  if (!dotGitStat || dotGitStat.isSymbolicLink()) {
+    return null;
+  }
+  if (dotGitStat.isDirectory()) {
+    return dotGitPath;
+  }
+  if (dotGitStat.isFile()) {
+    const content = readFileSync(dotGitPath, 'utf8');
+    const match = content.match(/^gitdir:\s*(.+)\s*$/m);
+    if (!match) {
+      return null;
+    }
+    const targetGitDir = resolve(realRoot, match[1].trim());
+    const targetStat = lstatSync(targetGitDir, { throwIfNoEntry: false });
+    if (
+      !targetStat ||
+      targetStat.isSymbolicLink() ||
+      !targetStat.isDirectory()
+    ) {
+      return null;
+    }
+    return targetGitDir;
+  }
+  return null;
 }
 
 /**
@@ -808,17 +904,28 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
  * @param {string} workspaceRoot
  */
 function excludeUntrackedGeminiIgnoreInGit(workspaceRoot) {
-  const gitInfoDir = resolve(workspaceRoot, '.git', 'info');
-  if (!existsSync(gitInfoDir) || lstatSync(gitInfoDir).isSymbolicLink()) {
+  const gitDir = resolveSafeGitDir(workspaceRoot);
+  if (!gitDir) {
     return;
   }
+  const gitInfoDir = resolve(gitDir, 'info');
+  const infoStat = lstatSync(gitInfoDir, { throwIfNoEntry: false });
+  if (!infoStat || infoStat.isSymbolicLink()) {
+    if (!infoStat) {
+      mkdirSync(gitInfoDir, { recursive: true });
+    } else {
+      return;
+    }
+  } else if (!infoStat.isDirectory()) {
+    return;
+  }
+
   const excludePath = resolve(gitInfoDir, 'exclude');
-  if (existsSync(excludePath) && lstatSync(excludePath).isSymbolicLink()) {
+  const excludeStat = lstatSync(excludePath, { throwIfNoEntry: false });
+  if (excludeStat && (excludeStat.isSymbolicLink() || !excludeStat.isFile())) {
     return;
   }
-  const current = existsSync(excludePath)
-    ? readFileSync(excludePath, 'utf8')
-    : '';
+  const current = excludeStat ? readFileSync(excludePath, 'utf8') : '';
   const lines = current.split(/\r?\n/).map((line) => line.trim());
   if (lines.includes('/.geminiignore') || lines.includes('.geminiignore')) {
     return;
@@ -831,10 +938,12 @@ function excludeUntrackedGeminiIgnoreInGit(workspaceRoot) {
 /**
  * @param {string} workspaceRoot
  * @param {string} [approvedPlanRelPath]
+ * @param {string} [contextRelPath]
  */
 export function ensureGeminiIgnoreAllowsContextFiles(
   workspaceRoot,
   approvedPlanRelPath = DEFAULT_APPROVED_PLAN_PATH,
+  contextRelPath = DEFAULT_CONTEXT_PATH,
 ) {
   const geminiIgnorePath = assertSafeWorkspaceTarget(
     workspaceRoot,
@@ -848,14 +957,18 @@ export function ensureGeminiIgnoreAllowsContextFiles(
   const normalizedPlanPath = approvedPlanRelPath
     .replace(/\\/g, '/')
     .replace(/^\.?\//, '');
+  const normalizedContextPath = contextRelPath
+    .replace(/\\/g, '/')
+    .replace(/^\.?\//, '');
   const stanza =
-    normalizedPlanPath === DEFAULT_APPROVED_PLAN_PATH
+    normalizedPlanPath === DEFAULT_APPROVED_PLAN_PATH &&
+    normalizedContextPath === DEFAULT_CONTEXT_PATH
       ? [...GEMINI_IGNORE_STANZA]
       : [
           '!.gemini',
           '!.gemini/',
           '.gemini/*',
-          `!${DEFAULT_CONTEXT_PATH}`,
+          `!${normalizedContextPath}`,
           `!${normalizedPlanPath}`,
         ];
 
@@ -883,6 +996,88 @@ export function ensureGeminiIgnoreAllowsContextFiles(
   if (!fileExistedBefore) {
     excludeUntrackedGeminiIgnoreInGit(workspaceRoot);
   }
+}
+
+const LEGACY_CONTEXT_ENV_KEYS = Object.freeze([
+  'TITLE',
+  'DESCRIPTION',
+  'EVENT_NAME',
+  'IS_PULL_REQUEST',
+  'ISSUE_NUMBER',
+  'REPOSITORY',
+  'ADDITIONAL_CONTEXT',
+  'ISSUE_TITLE',
+  'ISSUE_BODY',
+  'PULL_REQUEST_NUMBER',
+]);
+
+/**
+ * Ensures `.geminiignore` allows `.gemini/context.json` when present, and
+ * synthesizes `.gemini/context.json` from legacy workflow `env:` variables for
+ * existing `@v0` `gemini-invoke` consumers that have not yet added a
+ * `Prepare prompt context` step to their workflow YAML.
+ *
+ * @param {{
+ *   workspaceRoot?: string;
+ *   env?: NodeJS.ProcessEnv;
+ *   workflowName?: string;
+ *   promptInput?: string;
+ *   contextRelPath?: string;
+ * }} [options]
+ */
+export function prepareContextAndGeminiIgnore({
+  workspaceRoot = process.cwd(),
+  env = process.env,
+  workflowName = process.env.WORKFLOW_NAME ?? '',
+  promptInput = process.env.PROMPT_INPUT ?? '',
+  contextRelPath = DEFAULT_CONTEXT_PATH,
+} = {}) {
+  const contextPath = assertSafeWorkspaceTarget(workspaceRoot, contextRelPath);
+  if (existsSync(contextPath)) {
+    ensureGeminiIgnoreAllowsContextFiles(
+      workspaceRoot,
+      DEFAULT_APPROVED_PLAN_PATH,
+      contextRelPath,
+    );
+    return;
+  }
+
+  const isPlanExecute =
+    workflowName === 'gemini-plan-execute' ||
+    /^\s*\/gemini-plan-execute(?:\s|$)/.test(promptInput);
+  if (isPlanExecute) {
+    return;
+  }
+
+  const hasLegacyEnvContext =
+    workflowName === 'gemini-invoke' ||
+    /^\s*\/gemini-invoke(?:\s|$)/.test(promptInput) ||
+    LEGACY_CONTEXT_ENV_KEYS.some(
+      (key) => typeof env[key] === 'string' && env[key] !== '',
+    );
+  if (!hasLegacyEnvContext) {
+    return;
+  }
+
+  const synthesizedContext = {
+    title: env.TITLE ?? env.ISSUE_TITLE ?? '',
+    description: env.DESCRIPTION ?? env.ISSUE_BODY ?? '',
+    event_name: env.EVENT_NAME ?? env.GITHUB_EVENT_NAME ?? '',
+    is_pull_request: env.IS_PULL_REQUEST ?? '',
+    issue_number: env.ISSUE_NUMBER ?? env.PULL_REQUEST_NUMBER ?? '',
+    repository: env.REPOSITORY ?? env.GITHUB_REPOSITORY ?? '',
+    additional_context: env.ADDITIONAL_CONTEXT ?? '',
+  };
+  writeSafeWorkspaceFile(
+    workspaceRoot,
+    contextRelPath,
+    `${JSON.stringify(synthesizedContext, null, 2)}\n`,
+  );
+  ensureGeminiIgnoreAllowsContextFiles(
+    workspaceRoot,
+    DEFAULT_APPROVED_PLAN_PATH,
+    contextRelPath,
+  );
 }
 
 /**
@@ -991,7 +1186,11 @@ export async function verifyAndWriteApprovedPlan({
   );
 
   sanitizePlanExecuteSettingsFile(workspaceRoot);
-  ensureGeminiIgnoreAllowsContextFiles(workspaceRoot, approvedPlanRelPath);
+  ensureGeminiIgnoreAllowsContextFiles(
+    workspaceRoot,
+    approvedPlanRelPath,
+    contextRelPath,
+  );
   return verifiedPlan;
 }
 
@@ -1022,11 +1221,15 @@ function isExecutedAsMainScript() {
 if (
   isExecutedAsMainScript() ||
   process.argv.includes('--verify') ||
-  process.argv.includes('--ensure-geminiignore')
+  process.argv.includes('--ensure-geminiignore') ||
+  process.argv.includes('--prepare-context')
 ) {
-  if (process.argv.includes('--ensure-geminiignore')) {
+  if (
+    process.argv.includes('--ensure-geminiignore') ||
+    process.argv.includes('--prepare-context')
+  ) {
     try {
-      ensureGeminiIgnoreAllowsContextFiles(process.cwd());
+      prepareContextAndGeminiIgnore();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(

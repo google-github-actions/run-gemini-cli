@@ -43,6 +43,7 @@ jobs:
         uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
         with:
           persist-credentials: false
+          ref: '${{ github.event.repository.default_branch }}'
 
       - name: 'Prepare prompt context'
         shell: 'bash'
@@ -62,7 +63,7 @@ jobs:
 
       - name: 'Run Gemini CLI'
         id: 'run_gemini'
-        uses: 'google-github-actions/run-gemini-cli@387c8ddb7a72078825da941758b811b9153c71e8' # ratchet:exclude
+        uses: './'
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'

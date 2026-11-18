@@ -89,6 +89,19 @@ describe('Gemini Plan Execution Workflow', () => {
         }
         expect(hasSomeExpectedToolCalls).toBe(true);
 
+        if (!item.approved_plan) {
+          for (const forbidden of [
+            'issue_read',
+            'create_branch',
+            'create_or_update_file',
+            'create_pull_request',
+            'push_files',
+            'delete_file',
+          ]) {
+            expect(toolNamesStripped).not.toContain(forbidden);
+          }
+        }
+
         // 2. Content check (plan relevance)
         const outputLower = stdout.toLowerCase();
         const foundKeywords = item.expected_plan_keywords.filter((kw) =>

@@ -11,6 +11,7 @@ export const DEFAULT_APPROVED_PLAN_PATH: string;
 export const DEFAULT_CONTEXT_PATH: string;
 export const DEFAULT_SETTINGS_PATH: string;
 export const MIN_SHA256_PREFIX_LENGTH: number;
+export const MAX_SHA256_PREFIX_LENGTH: number;
 export const DISALLOWED_PLAN_EXECUTE_MCP_TOOLS: readonly string[];
 
 export class PlanVerificationError extends Error {
@@ -93,7 +94,15 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot: string): void;
 export function ensureGeminiIgnoreAllowsContextFiles(
   workspaceRoot: string,
   approvedPlanRelPath?: string,
+  contextRelPath?: string,
 ): void;
+export function prepareContextAndGeminiIgnore(options?: {
+  workspaceRoot?: string;
+  env?: NodeJS.ProcessEnv;
+  workflowName?: string;
+  promptInput?: string;
+  contextRelPath?: string;
+}): void;
 
 export function verifyAndWriteApprovedPlan(options?: {
   workspaceRoot?: string;
