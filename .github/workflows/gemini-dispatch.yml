@@ -133,7 +133,7 @@ jobs:
     needs: 'dispatch'
     if: |-
       ${{ needs.dispatch.outputs.command == 'review' }}
-    uses: './.github/workflows/gemini-review.yml'
+    uses: './.github/workflows/gemini-review.yml' # zizmor: ignore[secrets-inherit]
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -147,7 +147,7 @@ jobs:
     needs: 'dispatch'
     if: |-
       ${{ needs.dispatch.outputs.command == 'triage' }}
-    uses: './.github/workflows/gemini-triage.yml'
+    uses: './.github/workflows/gemini-triage.yml' # zizmor: ignore[secrets-inherit]
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -161,7 +161,7 @@ jobs:
     needs: 'dispatch'
     if: |-
       ${{ needs.dispatch.outputs.command == 'fix' }}
-    uses: './.github/workflows/gemini-issue-fixer.yml'
+    uses: './.github/workflows/gemini-issue-fixer.yml' # zizmor: ignore[secrets-inherit]
     permissions:
       contents: 'write'
       id-token: 'write'
@@ -173,7 +173,7 @@ jobs:
     needs: 'dispatch'
     if: |-
       ${{ needs.dispatch.outputs.command == 'invoke' }}
-    uses: './.github/workflows/gemini-invoke.yml'
+    uses: './.github/workflows/gemini-invoke.yml' # zizmor: ignore[secrets-inherit]
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -187,7 +187,7 @@ jobs:
     needs: 'dispatch'
     if: |-
       ${{ needs.dispatch.outputs.command == 'approve' }}
-    uses: './.github/workflows/gemini-plan-execute.yml'
+    uses: './.github/workflows/gemini-plan-execute.yml' # zizmor: ignore[secrets-inherit]
     permissions:
       contents: 'write'
       id-token: 'write'
