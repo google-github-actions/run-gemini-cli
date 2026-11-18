@@ -47,9 +47,9 @@ const ALLOWED_APPROVER_ASSOCIATIONS = new Set([
 ]);
 const PLAN_HEADING_REGEX = /^\s*#{1,6}\s+.*AI Assistant:\s*Plan of Action\b/m;
 const REPOSITORY_SLUG_PATTERN =
-  /^(?!\.\.?$)[A-Za-z0-9_.-]+\/(?!\.\.?$)[A-Za-z0-9_.-]+$/;
+  /^(?!\.\.?\/)[A-Za-z0-9_.-]+\/(?!\.\.?$)[A-Za-z0-9_.-]+$/;
 const FULL_COMMENT_URL_PATTERN =
-  /^https?:\/\/[^/\s#]+\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(\d+)#issuecomment-(\d+)$/i;
+  /^https?:\/\/[^/\s#?]+\/((?!\.\.?\/)[A-Za-z0-9_.-]+\/(?!\.\.?$)[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(\d+)(?:\?[^#\s]*)?#issuecomment-(\d+)$/i;
 const SHORT_COMMENT_ID_PATTERN =
   /^(?:#?issuecomment-(\d+)|comment-(\d+)|(\d+))$/i;
 const EXPLICIT_TRAILING_COMMENT_ID_PATTERN =
@@ -138,41 +138,40 @@ export function computePlanSha256(planBody) {
  * @returns {boolean}
  */
 function parseCommentTargetToken(token, state) {
+  const shortMatch = token.match(SHORT_COMMENT_ID_PATTERN);
+  if (shortMatch) {
+    if (state.targetCommentId !== null) {
+      throw new PlanVerificationError(
+        'Duplicate plan comment ID tokens in approval command.',
+      );
+    }
+    const rawId = shortMatch[1] ?? shortMatch[2] ?? shortMatch[3];
+    state.targetCommentId = parsePositiveSafeInt(rawId, 'comment ID');
+    return true;
+  }
+
   if (/^https?:\/\//i.test(token) || token.includes('#issuecomment-')) {
     const urlMatch = token.match(FULL_COMMENT_URL_PATTERN);
-    if (urlMatch) {
-      if (state.targetCommentId !== null) {
-        throw new PlanVerificationError(
-          'Duplicate plan comment ID tokens in approval command.',
-        );
-      }
-      state.urlRepository = urlMatch[1];
-      state.urlIssueNumber = parsePositiveSafeInt(
-        urlMatch[2],
-        'URL issue number',
-      );
-      state.targetCommentId = parsePositiveSafeInt(urlMatch[3], 'comment ID');
-      return true;
-    }
-    if (/^https?:\/\//i.test(token)) {
+    if (!urlMatch) {
       throw new PlanVerificationError(
         `Invalid GitHub issue/PR comment URL in approval command: ${token}`,
       );
     }
+    if (state.targetCommentId !== null) {
+      throw new PlanVerificationError(
+        'Duplicate plan comment ID tokens in approval command.',
+      );
+    }
+    state.urlRepository = urlMatch[1];
+    state.urlIssueNumber = parsePositiveSafeInt(
+      urlMatch[2],
+      'URL issue number',
+    );
+    state.targetCommentId = parsePositiveSafeInt(urlMatch[3], 'comment ID');
+    return true;
   }
 
-  const shortMatch = token.match(SHORT_COMMENT_ID_PATTERN);
-  if (!shortMatch) {
-    return false;
-  }
-  if (state.targetCommentId !== null) {
-    throw new PlanVerificationError(
-      'Duplicate plan comment ID tokens in approval command.',
-    );
-  }
-  const rawId = shortMatch[1] ?? shortMatch[2] ?? shortMatch[3];
-  state.targetCommentId = parsePositiveSafeInt(rawId, 'comment ID');
-  return true;
+  return false;
 }
 
 /**
@@ -181,32 +180,34 @@ function parseCommentTargetToken(token, state) {
  * @returns {boolean}
  */
 function parseBindingToken(token, state) {
-  if (parseCommentTargetToken(token, state)) {
+  if (/^sha256:/i.test(token)) {
+    const shaMatch = token.match(SHA256_TOKEN_PATTERN);
+    if (!shaMatch) {
+      throw new PlanVerificationError(
+        `Invalid sha256 digest token in approval command: ${token}`,
+      );
+    }
+    if (state.targetSha256Prefix !== null) {
+      throw new PlanVerificationError(
+        'Duplicate sha256 tokens in approval command.',
+      );
+    }
+    const prefix = shaMatch[1].toLowerCase();
+    if (prefix.length < MIN_SHA256_PREFIX_LENGTH) {
+      throw new PlanVerificationError(
+        `Plan sha256 prefix must be at least ${MIN_SHA256_PREFIX_LENGTH} hex characters.`,
+      );
+    }
+    if (prefix.length > MAX_SHA256_PREFIX_LENGTH) {
+      throw new PlanVerificationError(
+        `Plan sha256 prefix cannot exceed ${MAX_SHA256_PREFIX_LENGTH} hex characters.`,
+      );
+    }
+    state.targetSha256Prefix = prefix;
     return true;
   }
 
-  const shaMatch = token.match(SHA256_TOKEN_PATTERN);
-  if (!shaMatch) {
-    return false;
-  }
-  if (state.targetSha256Prefix !== null) {
-    throw new PlanVerificationError(
-      'Duplicate sha256 tokens in approval command.',
-    );
-  }
-  const prefix = shaMatch[1].toLowerCase();
-  if (prefix.length < MIN_SHA256_PREFIX_LENGTH) {
-    throw new PlanVerificationError(
-      `Plan sha256 prefix must be at least ${MIN_SHA256_PREFIX_LENGTH} hex characters.`,
-    );
-  }
-  if (prefix.length > MAX_SHA256_PREFIX_LENGTH) {
-    throw new PlanVerificationError(
-      `Plan sha256 prefix cannot exceed ${MAX_SHA256_PREFIX_LENGTH} hex characters.`,
-    );
-  }
-  state.targetSha256Prefix = prefix;
-  return true;
+  return parseCommentTargetToken(token, state);
 }
 
 /**
@@ -244,16 +245,18 @@ export function parseApprovalDirective(rawBody) {
     consumed += 1;
   }
 
-  // Reject explicit comment-ID, URL, or sha256 tokens appearing after free-form text
-  // without rejecting ordinary prose numbers (e.g., "looks good for step 1").
+  // Reject any explicit comment-ID, URL, or sha256 token appearing after free-form text
+  // (prevents executing plans mentioned after negating prose like "do NOT approve #issuecomment-100").
   for (const trailing of tokens.slice(consumed)) {
     if (
       EXPLICIT_TRAILING_COMMENT_ID_PATTERN.test(trailing) ||
       /^https?:\/\//i.test(trailing) ||
       trailing.includes('#issuecomment-') ||
-      SHA256_TOKEN_PATTERN.test(trailing)
+      /^sha256:/i.test(trailing)
     ) {
-      parseBindingToken(trailing, state);
+      throw new PlanVerificationError(
+        `Binding token "${trailing}" must appear immediately after "${APPROVAL_COMMAND_PREFIX}", not after free-form text.`,
+      );
     }
   }
 
@@ -364,6 +367,14 @@ export function extractApprovalContext(eventName, eventPayload) {
     );
   }
 
+  if (
+    typeof source.id !== 'number' ||
+    !Number.isSafeInteger(source.id) ||
+    source.id <= 0
+  ) {
+    throw new PlanVerificationError('Missing or invalid approval event ID.');
+  }
+
   const timestampRaw = source.created_at ?? source.submitted_at;
   return {
     eventName,
@@ -372,7 +383,7 @@ export function extractApprovalContext(eventName, eventPayload) {
     repository: isRecord(eventPayload.repository)
       ? String(eventPayload.repository.full_name ?? '')
       : '',
-    approvalId: typeof source.id === 'number' ? source.id : null,
+    approvalId: source.id,
     sharesIssueCommentIdSpace,
     approvalTimestampMs: parseTimestampMs(timestampRaw, 'approval'),
     approverLogin: sourceUser ? String(sourceUser.login ?? '') : '',
@@ -388,13 +399,15 @@ export function resolveTrustedPlanAuthors(expectedPlanAuthor) {
   const normalized =
     typeof expectedPlanAuthor === 'string' ? expectedPlanAuthor.trim() : '';
   if (!normalized) {
-    return new Set([DEFAULT_BOT_LOGIN]);
+    return new Set([DEFAULT_BOT_LOGIN.toLowerCase()]);
   }
   const logins = normalized
     .split(',')
-    .map((entry) => entry.trim())
+    .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
-  return new Set(logins.length > 0 ? logins : [DEFAULT_BOT_LOGIN]);
+  return new Set(
+    logins.length > 0 ? logins : [DEFAULT_BOT_LOGIN.toLowerCase()],
+  );
 }
 
 /**
@@ -410,13 +423,17 @@ function verifyCommentAuthor(
 ) {
   const user = isRecord(comment.user) ? comment.user : null;
   const authorLogin = typeof user?.login === 'string' ? user.login : '';
-  if (trustedAuthors.has(authorLogin)) {
+  const normalizedLogin = authorLogin.toLowerCase();
+  const normalizedTrusted = new Set(
+    Array.from(trustedAuthors, (entry) => entry.toLowerCase()),
+  );
+  if (normalizedLogin !== '' && normalizedTrusted.has(normalizedLogin)) {
     return authorLogin;
   }
   if (
     allowInstalledGithubAppBots &&
     user?.type === 'Bot' &&
-    authorLogin.endsWith('[bot]') &&
+    normalizedLogin.endsWith('[bot]') &&
     isRecord(comment.performed_via_github_app)
   ) {
     return authorLogin;
@@ -550,6 +567,11 @@ export function selectVerifiedPlan(
   }
 
   const repoForCheck = options.targetRepository ?? approvalContext.repository;
+  if (!repoForCheck || !REPOSITORY_SLUG_PATTERN.test(repoForCheck)) {
+    throw new PlanVerificationError(
+      `Unable to determine valid target GitHub repository ("${String(repoForCheck ?? '')}").`,
+    );
+  }
   validateCommentUrlMatchesTarget(
     approvalContext.directive,
     repoForCheck,
@@ -568,29 +590,24 @@ export function selectVerifiedPlan(
     );
   }
 
-  if (repoForCheck) {
-    if (
-      typeof target.issue_url !== 'string' ||
-      target.issue_url.trim() === ''
-    ) {
-      throw new PlanVerificationError(
-        `Comment #${targetCommentId} is missing a valid issue_url for cross-issue verification.`,
-      );
-    }
-    let issueUrlPathname;
-    try {
-      issueUrlPathname = new URL(target.issue_url).pathname.toLowerCase();
-    } catch {
-      throw new PlanVerificationError(
-        `Comment #${targetCommentId} has a malformed issue_url (${target.issue_url}).`,
-      );
-    }
-    const expectedSuffix = `/repos/${repoForCheck.toLowerCase()}/issues/${approvalContext.issueNumber}`;
-    if (!issueUrlPathname.endsWith(expectedSuffix)) {
-      throw new PlanVerificationError(
-        `Comment #${targetCommentId} belongs to a different issue (${target.issue_url}).`,
-      );
-    }
+  if (typeof target.issue_url !== 'string' || target.issue_url.trim() === '') {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} is missing a valid issue_url for cross-issue verification.`,
+    );
+  }
+  let issueUrlPathname;
+  try {
+    issueUrlPathname = new URL(target.issue_url).pathname.toLowerCase();
+  } catch {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} has a malformed issue_url (${target.issue_url}).`,
+    );
+  }
+  const expectedSuffix = `/repos/${repoForCheck.toLowerCase()}/issues/${approvalContext.issueNumber}`;
+  if (!issueUrlPathname.endsWith(expectedSuffix)) {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} belongs to a different issue (${target.issue_url}).`,
+    );
   }
 
   const verifiedMeta = verifyPlanCommentProvenanceAndTiming(
@@ -666,12 +683,27 @@ export async function fetchIssueCommentById({
     );
   }
   if (!response.ok) {
+    const statusDesc = response.statusText
+      ? `${response.status} ${response.statusText}`
+      : String(response.status);
+    const rateLimitHint =
+      response.headers.get('x-ratelimit-remaining') === '0'
+        ? '; GitHub API rate limit exceeded'
+        : '';
     throw new PlanVerificationError(
-      `GitHub API failed fetching comment #${commentId} (${response.status} ${response.statusText}).`,
+      `GitHub API failed fetching comment #${commentId} (${statusDesc}${rateLimitHint}).`,
     );
   }
 
-  const payload = await response.json();
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new PlanVerificationError(
+      `GitHub API returned invalid JSON for comment #${commentId}: ${detail}`,
+    );
+  }
   if (!isRecord(payload)) {
     throw new PlanVerificationError(
       'Unexpected non-object comment payload from GitHub API.',
@@ -714,7 +746,7 @@ async function resolveDynamicAuthorPolicy({
     };
   }
 
-  const trustedAuthors = new Set([DEFAULT_BOT_LOGIN]);
+  const trustedAuthors = new Set([DEFAULT_BOT_LOGIN.toLowerCase()]);
   const userUrl = `${apiBaseUrl.replace(/\/$/, '')}/user`;
   try {
     const res = await fetchImpl(userUrl, {
@@ -733,7 +765,7 @@ async function resolveDynamicAuthorPolicy({
         typeof userObj.login === 'string' &&
         userObj.login
       ) {
-        trustedAuthors.add(userObj.login);
+        trustedAuthors.add(userObj.login.toLowerCase());
       }
       return { trustedAuthors, allowInstalledGithubAppBots: false };
     }
@@ -804,9 +836,70 @@ function writeSafeWorkspaceFile(workspaceRoot, relativePath, content) {
 }
 
 /**
+ * Strips `//` and `/* ... *\/` JSONC comments outside string literals so
+ * `.gemini/settings.json` is parsed identically to Gemini CLI.
+ *
+ * @param {string} raw
+ * @returns {string}
+ */
+function stripJsonComments(raw) {
+  let out = '';
+  let inString = false;
+  let i = 0;
+
+  while (i < raw.length) {
+    const ch = raw[i];
+    if (inString) {
+      out += ch;
+      if (ch === '\\' && i + 1 < raw.length) {
+        out += raw[i + 1];
+        i += 2;
+        continue;
+      }
+      if (ch === '"') {
+        inString = false;
+      }
+      i += 1;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+      out += ch;
+      i += 1;
+      continue;
+    }
+
+    if (ch === '/' && raw[i + 1] === '/') {
+      i += 2;
+      while (i < raw.length && raw[i] !== '\n' && raw[i] !== '\r') {
+        i += 1;
+      }
+      continue;
+    }
+
+    if (ch === '/' && raw[i + 1] === '*') {
+      const closeIdx = raw.indexOf('*/', i + 2);
+      if (closeIdx === -1) {
+        break;
+      }
+      out += ' ';
+      i = closeIdx + 2;
+      continue;
+    }
+
+    out += ch;
+    i += 1;
+  }
+
+  return out;
+}
+
+/**
  * Prunes disallowed MCP tools from `.gemini/settings.json` across all configured
- * MCP servers (and populates `excludeTools` when `includeTools` is omitted) so
- * existing `@v0` consumers automatically receive least-privilege tool scoping.
+ * MCP servers and populates `excludeTools` so existing `@v0` consumers
+ * automatically receive least-privilege tool scoping. Fails closed if the
+ * settings file is unreadable or contains invalid JSON/JSONC.
  *
  * @param {string} workspaceRoot
  */
@@ -821,12 +914,26 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
 
   let parsed;
   try {
-    parsed = JSON.parse(readFileSync(settingsPath, 'utf8'));
-  } catch {
+    const raw = readFileSync(settingsPath, 'utf8');
+    parsed = JSON.parse(stripJsonComments(raw));
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new PlanVerificationError(
+      `Failed to parse ${DEFAULT_SETTINGS_PATH} during plan-execute tool sanitization: ${detail}`,
+    );
+  }
+  if (!isRecord(parsed)) {
+    throw new PlanVerificationError(
+      `Invalid ${DEFAULT_SETTINGS_PATH}: expected a JSON object.`,
+    );
+  }
+  if (parsed.mcpServers === undefined) {
     return;
   }
-  if (!isRecord(parsed) || !isRecord(parsed.mcpServers)) {
-    return;
+  if (!isRecord(parsed.mcpServers)) {
+    throw new PlanVerificationError(
+      `Invalid ${DEFAULT_SETTINGS_PATH}: expected "mcpServers" to be an object.`,
+    );
   }
 
   const disallowed = new Set(DISALLOWED_PLAN_EXECUTE_MCP_TOOLS);
@@ -836,19 +943,21 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
       continue;
     }
     if (Array.isArray(server.includeTools)) {
-      server.includeTools = server.includeTools.filter(
-        (tool) => typeof tool === 'string' && !disallowed.has(tool),
-      );
-      mutated = true;
-    } else {
-      const existingExclude = Array.isArray(server.excludeTools)
-        ? server.excludeTools.filter((tool) => typeof tool === 'string')
-        : [];
-      server.excludeTools = Array.from(
-        new Set([...existingExclude, ...DISALLOWED_PLAN_EXECUTE_MCP_TOOLS]),
-      );
-      mutated = true;
+      server.includeTools = server.includeTools.filter((tool) => {
+        if (typeof tool !== 'string') {
+          return false;
+        }
+        const baseName = tool.split('(')[0].trim();
+        return baseName !== '' && !disallowed.has(baseName);
+      });
     }
+    const existingExclude = Array.isArray(server.excludeTools)
+      ? server.excludeTools.filter((tool) => typeof tool === 'string')
+      : [];
+    server.excludeTools = Array.from(
+      new Set([...existingExclude, ...DISALLOWED_PLAN_EXECUTE_MCP_TOOLS]),
+    );
+    mutated = true;
   }
 
   if (mutated) {
@@ -862,7 +971,8 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
 
 /**
  * Resolves the repository `.git` metadata directory (supporting both standard
- * `.git/` directories and git worktree `.git` files while rejecting symlinks).
+ * `.git/` directories and git worktree `.git` files while rejecting symlinks
+ * and non-Git target directories).
  *
  * @param {string} workspaceRoot
  * @returns {string | null}
@@ -892,6 +1002,19 @@ function resolveSafeGitDir(workspaceRoot) {
     ) {
       return null;
     }
+    try {
+      if (realpathSync(targetGitDir) !== targetGitDir) {
+        return null;
+      }
+    } catch {
+      return null;
+    }
+    const headStat = lstatSync(resolve(targetGitDir, 'HEAD'), {
+      throwIfNoEntry: false,
+    });
+    if (!headStat || headStat.isSymbolicLink() || !headStat.isFile()) {
+      return null;
+    }
     return targetGitDir;
   }
   return null;
@@ -910,13 +1033,9 @@ function excludeUntrackedGeminiIgnoreInGit(workspaceRoot) {
   }
   const gitInfoDir = resolve(gitDir, 'info');
   const infoStat = lstatSync(gitInfoDir, { throwIfNoEntry: false });
-  if (!infoStat || infoStat.isSymbolicLink()) {
-    if (!infoStat) {
-      mkdirSync(gitInfoDir, { recursive: true });
-    } else {
-      return;
-    }
-  } else if (!infoStat.isDirectory()) {
+  if (!infoStat) {
+    mkdirSync(gitInfoDir, { recursive: true });
+  } else if (infoStat.isSymbolicLink() || !infoStat.isDirectory()) {
     return;
   }
 
@@ -1218,12 +1337,7 @@ function isExecutedAsMainScript() {
   }
 }
 
-if (
-  isExecutedAsMainScript() ||
-  process.argv.includes('--verify') ||
-  process.argv.includes('--ensure-geminiignore') ||
-  process.argv.includes('--prepare-context')
-) {
+if (isExecutedAsMainScript()) {
   if (
     process.argv.includes('--ensure-geminiignore') ||
     process.argv.includes('--prepare-context')

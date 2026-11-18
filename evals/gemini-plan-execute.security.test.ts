@@ -10,6 +10,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -19,6 +20,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as planVerifierModule from '../scripts/resolve-approved-plan.mjs';
 import {
   computePlanSha256,
   DEFAULT_BOT_LOGIN,
@@ -37,6 +39,8 @@ import {
 
 interface McpServerSettings {
   includeTools?: string[];
+  excludeTools?: string[];
+  httpUrl?: string;
 }
 
 interface WorkflowGeminiSettings {
@@ -292,6 +296,12 @@ describe('gemini-plan-execute static security invariants', () => {
     expect(actionYaml).toContain(
       'node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --verify',
     );
+    expect(actionYaml).toContain(
+      'if [[ -L ".gemini" || -L ".gemini/settings.json" ]]',
+    );
+    expect(actionYaml).toContain(
+      'if [[ -L ".gemini" || -L ".gemini/commands" ]]',
+    );
     expect(actionYaml).toContain('rm -f .gemini/approved_plan.json');
     expect(actionYaml).toContain('if [[ ! -s ".gemini/approved_plan.json" ]]');
 
@@ -301,10 +311,23 @@ describe('gemini-plan-execute static security invariants', () => {
     }
   });
 
+  it('keeps runtime exports in 1:1 parity with scripts/resolve-approved-plan.d.mts', () => {
+    const dts = readRepoFile('scripts/resolve-approved-plan.d.mts');
+    const declaredValueExports = Array.from(
+      dts.matchAll(/^export\s+(?:const|class|function)\s+([A-Za-z0-9_]+)/gm),
+      (match) => match[1],
+    ).sort();
+    const runtimeValueExports = Object.keys(planVerifierModule).sort();
+    expect(runtimeValueExports).toEqual(declaredValueExports);
+  });
+
   it.each(DISPATCH_WORKFLOWS)(
-    'forwards /approve arguments as additional_context in %s',
+    'enforces word-boundary on /approve and forwards arguments as additional_context in %s',
     (dispatchPath) => {
       const dispatchYaml = readRepoFile(dispatchPath);
+      expect(dispatchYaml).toContain(
+        '/^@gemini-cli \\/approve(?:\\s|$)/.test(request)',
+      );
       expect(dispatchYaml).toMatch(
         /request\.replace\(\/\^@gemini-cli \\\/approve\/,\s*''\)\.trim\(\)/,
       );
@@ -359,9 +382,21 @@ describe('parseApprovalDirective & computePlanSha256', () => {
       urlIssueNumber: 42,
       additionalContext: 'proceed',
     });
+
+    expect(
+      parseApprovalDirective(
+        '@gemini-cli /approve https://github.com/acme/demo-repo/issues/42?notification_referrer_id=NT_kwDOA#issuecomment-345678',
+      ),
+    ).toEqual({
+      targetCommentId: 345678,
+      targetSha256Prefix: null,
+      urlRepository: 'acme/demo-repo',
+      urlIssueNumber: 42,
+      additionalContext: '',
+    });
   });
 
-  it('rejects duplicate comment IDs, duplicate sha256 tokens, unsafe integers, and malformed URLs', () => {
+  it('rejects duplicate comment IDs, duplicate/malformed sha256 tokens, trailing binding tokens after prose, and malformed URLs', () => {
     expect(() =>
       parseApprovalDirective('@gemini-cli /approve 100 200'),
     ).toThrow(/Duplicate plan comment ID/);
@@ -379,8 +414,19 @@ describe('parseApprovalDirective & computePlanSha256', () => {
       ),
     ).toThrow(/Invalid GitHub issue\/PR comment URL/);
     expect(() =>
+      parseApprovalDirective(
+        '@gemini-cli /approve acme/demo-repo#issuecomment-100',
+      ),
+    ).toThrow(/Invalid GitHub issue\/PR comment URL/);
+    expect(() =>
       parseApprovalDirective('@gemini-cli /approve 100 sha256:abc12'),
     ).toThrow(PlanVerificationError);
+    expect(() =>
+      parseApprovalDirective('@gemini-cli /approve 100 sha256:abcdef123456.'),
+    ).toThrow(/Invalid sha256 digest token/);
+    expect(() =>
+      parseApprovalDirective('@gemini-cli /approve 100 sha256:0xabcdef12'),
+    ).toThrow(/Invalid sha256 digest token/);
     expect(() =>
       parseApprovalDirective(
         `@gemini-cli /approve 100 sha256:${'a'.repeat(65)}`,
@@ -390,7 +436,22 @@ describe('parseApprovalDirective & computePlanSha256', () => {
       parseApprovalDirective(
         '@gemini-cli /approve 100 looks good #issuecomment-200',
       ),
-    ).toThrow(/Duplicate plan comment ID/);
+    ).toThrow(/must appear immediately after/);
+    expect(() =>
+      parseApprovalDirective(
+        '@gemini-cli /approve should NOT be run on #issuecomment-100',
+      ),
+    ).toThrow(/must appear immediately after/);
+    expect(() =>
+      parseApprovalDirective(
+        '@gemini-cli /approve do not execute https://github.com/acme/demo-repo/issues/42#issuecomment-100',
+      ),
+    ).toThrow(/must appear immediately after/);
+    expect(() =>
+      parseApprovalDirective(
+        '@gemini-cli /approve 100 ignore sha256:abcdef123456',
+      ),
+    ).toThrow(/must appear immediately after/);
 
     // Ordinary numbers in trailing free-form prose do not trigger duplicate ID errors
     expect(
@@ -502,10 +563,15 @@ describe('extractApprovalContext', () => {
     },
   );
 
-  it('rejects non-User sender types even if association string is present', () => {
+  it('rejects non-User sender types and missing/invalid approval IDs', () => {
     const event = createIssueCommentEvent({ senderType: 'Bot' });
     expect(() => extractApprovalContext('issue_comment', event)).toThrow(
       PlanVerificationError,
+    );
+
+    const zeroIdEvent = createIssueCommentEvent({ commentId: 0 });
+    expect(() => extractApprovalContext('issue_comment', zeroIdEvent)).toThrow(
+      /Missing or invalid approval event ID/,
     );
   });
 });
@@ -671,9 +737,23 @@ describe('selectVerifiedPlan (TOCTOU, URL spoofing & provenance defenses)', () =
         defaultTrusted,
       ),
     ).toThrow(/does not contain a Markdown heading/);
+
+    // Fails closed if repository slug is missing or starts with dot-segments
+    expect(() =>
+      selectVerifiedPlan(
+        validComment,
+        { ...standardApproval, repository: '' },
+        defaultTrusted,
+      ),
+    ).toThrow(/Unable to determine valid target GitHub repository/);
+    expect(() =>
+      selectVerifiedPlan(validComment, standardApproval, defaultTrusted, {
+        targetRepository: '../victim',
+      }),
+    ).toThrow(/Unable to determine valid target GitHub repository/);
   });
 
-  it('rejects untrusted authors and supports @v0 installed GitHub App bots when allowInstalledGithubAppBots is true', () => {
+  it('rejects untrusted authors (including ghu_ user-to-server tokens), matches EXPECTED_PLAN_AUTHOR case-insensitively, and supports @v0 installed GitHub App bots', () => {
     const approval = extractApprovalContext(
       'issue_comment',
       createIssueCommentEvent({
@@ -682,16 +762,17 @@ describe('selectVerifiedPlan (TOCTOU, URL spoofing & provenance defenses)', () =
       }),
     );
 
-    const externalUserComment = {
+    const ghuUserSpoofComment = {
       id: 150,
       issue_url: 'https://api.github.com/repos/acme/demo-repo/issues/42',
       body: SAMPLE_BOT_PLAN_B,
       created_at: '2026-11-17T18:05:00Z',
       updated_at: '2026-11-17T18:05:00Z',
+      performed_via_github_app: { id: 9876, slug: 'acme-custom-app' },
       user: { login: 'external-commenter', type: 'User' },
     };
     expect(() =>
-      selectVerifiedPlan(externalUserComment, approval, defaultTrusted, {
+      selectVerifiedPlan(ghuUserSpoofComment, approval, defaultTrusted, {
         allowInstalledGithubAppBots: true,
       }),
     ).toThrow(/not an authorized plan bot/);
@@ -712,6 +793,13 @@ describe('selectVerifiedPlan (TOCTOU, URL spoofing & provenance defenses)', () =
       { allowInstalledGithubAppBots: true },
     );
     expect(verifiedAppPlan.author_login).toBe('acme-custom-app[bot]');
+
+    // Case-insensitive EXPECTED_PLAN_AUTHOR matching
+    const mixedCaseTrusted = resolveTrustedPlanAuthors('Acme-Custom-App[BOT]');
+    expect(
+      selectVerifiedPlan(installedAppBotComment, approval, mixedCaseTrusted)
+        .author_login,
+    ).toBe('acme-custom-app[bot]');
 
     // When EXPECTED_PLAN_AUTHOR is explicitly pinned, other bots are rejected
     const pinnedTrusted = resolveTrustedPlanAuthors('expected-app[bot]');
@@ -1053,17 +1141,51 @@ describe('End-to-end verification (O(1) HTTP API, symlinked runner, settings pru
       }),
     ).rejects.toThrow(/was not found on issue #42/);
 
-    // Rejects dot-segment repository slugs and API responses missing issue_url
+    // Rejects leading/trailing dot-segment repository slugs, rate-limited 403, non-JSON 200, and missing issue_url
+    for (const badSlug of ['acme/..', '../victim', './victim']) {
+      await expect(
+        fetchIssueCommentById({
+          apiBaseUrl: 'https://api.github.com',
+          repository: badSlug,
+          commentId: 100,
+          issueNumber: 42,
+          githubToken: 'ghs_test_token',
+          fetchImpl: notFoundFetch,
+        }),
+      ).rejects.toThrow(/Invalid repository slug/);
+    }
+
+    const rateLimitedFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('Forbidden', {
+        status: 403,
+        statusText: '',
+        headers: { 'x-ratelimit-remaining': '0' },
+      }),
+    );
     await expect(
       fetchIssueCommentById({
         apiBaseUrl: 'https://api.github.com',
-        repository: 'acme/..',
-        commentId: 100,
+        repository: 'acme/demo-repo',
+        commentId: 101,
         issueNumber: 42,
         githubToken: 'ghs_test_token',
-        fetchImpl: notFoundFetch,
+        fetchImpl: rateLimitedFetch,
       }),
-    ).rejects.toThrow(/Invalid repository slug/);
+    ).rejects.toThrow(/\(403; GitHub API rate limit exceeded\)/);
+
+    const htmlProxyFetch = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response('<html>Gateway</html>', { status: 200 }));
+    await expect(
+      fetchIssueCommentById({
+        apiBaseUrl: 'https://api.github.com',
+        repository: 'acme/demo-repo',
+        commentId: 101,
+        issueNumber: 42,
+        githubToken: 'ghs_test_token',
+        fetchImpl: htmlProxyFetch,
+      }),
+    ).rejects.toThrow(/GitHub API returned invalid JSON/);
 
     const missingIssueUrlFetch = vi
       .fn<typeof fetch>()
@@ -1134,8 +1256,99 @@ describe('End-to-end verification (O(1) HTTP API, symlinked runner, settings pru
     ).toContain('!.gemini/context.json');
   });
 
-  it('enforces nested/dangling symlink guards, git worktree info/exclude, and excludeTools fallback', () => {
-    const outsideDir = mkdtempSync(join(tmpdir(), 'outside-nested-'));
+  it('parses JSONC comments, strips parameterized includeTools, fails closed on corrupt settings.json, and guards module imports', async () => {
+    mkdirSync(join(tempWorkspace, '.gemini'), { recursive: true });
+    writeFileSync(
+      join(tempWorkspace, '.gemini/settings.json'),
+      [
+        '{',
+        '  // Single-line JSONC comment allowed by Gemini CLI',
+        '  /* Multi-line JSONC comment */',
+        '  "mcpServers": {',
+        '    "github": {',
+        '      "httpUrl": "https://api.githubcopilot.com/mcp/*keep*/",',
+        '      "includeTools": [',
+        '        "add_issue_comment",',
+        '        "push_files(owner)",',
+        '        "issue_read()",',
+        '        "create_pull_request"',
+        '      ]',
+        '    }',
+        '  }',
+        '}',
+      ].join('\n'),
+    );
+
+    sanitizePlanExecuteSettingsFile(tempWorkspace);
+    const parsedJsonc = JSON.parse(
+      readFileSync(join(tempWorkspace, '.gemini/settings.json'), 'utf8'),
+    ) as WorkflowGeminiSettings;
+    expect(parsedJsonc.mcpServers?.['github']?.httpUrl).toBe(
+      'https://api.githubcopilot.com/mcp/*keep*/',
+    );
+    expect(parsedJsonc.mcpServers?.['github']?.includeTools).toEqual([
+      'add_issue_comment',
+      'create_pull_request',
+    ]);
+    expect(parsedJsonc.mcpServers?.['github']?.excludeTools).toEqual(
+      expect.arrayContaining([...DISALLOWED_PLAN_EXECUTE_MCP_TOOLS]),
+    );
+
+    // Corrupt JSON fails closed instead of silently skipping MCP sanitization
+    writeFileSync(
+      join(tempWorkspace, '.gemini/settings.json'),
+      '{ "mcpServers": [corrupt',
+    );
+    expect(() => sanitizePlanExecuteSettingsFile(tempWorkspace)).toThrow(
+      /Failed to parse \.gemini\/settings\.json/,
+    );
+
+    writeFileSync(join(tempWorkspace, '.gemini/settings.json'), '[]');
+    expect(() => sanitizePlanExecuteSettingsFile(tempWorkspace)).toThrow(
+      /expected a JSON object/,
+    );
+
+    // Importing resolve-approved-plan.mjs as an ES module does not execute CLI mode even if argv contains --verify
+    const moduleUrl = new URL(
+      '../scripts/resolve-approved-plan.mjs',
+      import.meta.url,
+    ).href;
+    const importResult = await new Promise<{
+      code: number | null;
+      stdout: string;
+      stderr: string;
+    }>((resolveImport, rejectImport) => {
+      const child = spawn(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          `import(${JSON.stringify(moduleUrl)}).then((m) => console.log(typeof m.selectVerifiedPlan));`,
+          '--',
+          '--verify',
+        ],
+        { cwd: tempWorkspace, stdio: ['ignore', 'pipe', 'pipe'] },
+      );
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', (chunk: Buffer) => {
+        stdout += chunk.toString('utf8');
+      });
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderr += chunk.toString('utf8');
+      });
+      child.on('error', rejectImport);
+      child.on('close', (code) => resolveImport({ code, stdout, stderr }));
+    });
+    expect(importResult.code).toBe(0);
+    expect(importResult.stdout.trim()).toBe('function');
+    expect(importResult.stderr).toBe('');
+  });
+
+  it('enforces nested/dangling symlink guards, git worktree HEAD/symlink validation, and excludeTools fallback', () => {
+    const outsideDir = realpathSync(
+      mkdtempSync(join(tmpdir(), 'outside-nested-')),
+    );
     try {
       // Nested path under symlinked .gemini fails closed before mkdirSync
       symlinkSync(outsideDir, join(tempWorkspace, '.gemini'));
@@ -1193,10 +1406,18 @@ describe('End-to-end verification (O(1) HTTP API, symlinked runner, settings pru
         ]),
       );
 
-      // Git worktree (.git file pointing to gitdir) registers /.geminiignore in worktree info/exclude,
-      // while a dangling .git/info/exclude symlink is never followed.
+      // Non-git directory (missing HEAD) in .git file is ignored and never creates info/exclude
+      const nonGitDir = join(outsideDir, 'arbitrary-dir');
+      mkdirSync(nonGitDir, { recursive: true });
+      writeFileSync(join(tempWorkspace, '.git'), `gitdir: ${nonGitDir}\n`);
+      ensureGeminiIgnoreAllowsContextFiles(tempWorkspace);
+      expect(existsSync(join(nonGitDir, 'info/exclude'))).toBe(false);
+      rmSync(join(tempWorkspace, '.geminiignore'), { force: true });
+
+      // Valid Git worktree (.git file pointing to gitdir with HEAD) registers /.geminiignore in worktree info/exclude
       const fakeGitDir = join(outsideDir, 'worktree-gitdir');
       mkdirSync(join(fakeGitDir, 'info'), { recursive: true });
+      writeFileSync(join(fakeGitDir, 'HEAD'), 'ref: refs/heads/main\n');
       writeFileSync(join(tempWorkspace, '.git'), `gitdir: ${fakeGitDir}\n`);
       ensureGeminiIgnoreAllowsContextFiles(
         tempWorkspace,
@@ -1210,7 +1431,23 @@ describe('End-to-end verification (O(1) HTTP API, symlinked runner, settings pru
         '/.geminiignore',
       );
 
+      // Intermediate symlink traversal in gitdir: path is rejected
+      rmSync(join(tempWorkspace, '.geminiignore'), { force: true });
+      const traversedGitDir = join(outsideDir, 'traversed-gitdir');
+      mkdirSync(traversedGitDir, { recursive: true });
+      writeFileSync(join(traversedGitDir, 'HEAD'), 'ref: refs/heads/main\n');
+      const symlinkHop = join(tempWorkspace, 'hop');
+      symlinkSync(outsideDir, symlinkHop);
+      writeFileSync(
+        join(tempWorkspace, '.git'),
+        'gitdir: hop/traversed-gitdir\n',
+      );
+      ensureGeminiIgnoreAllowsContextFiles(tempWorkspace);
+      expect(existsSync(join(traversedGitDir, 'info/exclude'))).toBe(false);
+      rmSync(symlinkHop, { force: true });
+
       // Dangling exclude symlink is safely ignored
+      writeFileSync(join(tempWorkspace, '.git'), `gitdir: ${fakeGitDir}\n`);
       rmSync(join(tempWorkspace, '.geminiignore'), { force: true });
       rmSync(join(fakeGitDir, 'info/exclude'), { force: true });
       const danglingTarget = join(outsideDir, 'dangling-exclude-target');

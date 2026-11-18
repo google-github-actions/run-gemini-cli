@@ -199,8 +199,13 @@ runs:
       if: |-
         ${{ inputs.settings != '' }}
       run: |-
+        set -euo pipefail
+        if [[ -L ".gemini" || -L ".gemini/settings.json" ]]; then
+          echo "::error title=Unsafe workspace symlink::Refusing to write inside symlinked .gemini path." >&2
+          exit 1
+        fi
         mkdir -p .gemini/
-        echo "${SETTINGS}" > ".gemini/settings.json"
+        printf '%s\n' "${SETTINGS}" > ".gemini/settings.json"
       shell: 'bash'
       env:
         SETTINGS: '${{ inputs.settings }}'
@@ -209,7 +214,18 @@ runs:
       shell: 'bash'
       run: |-
         set -euo pipefail
+        if [[ -L ".gemini" || -L ".gemini/commands" ]]; then
+          echo "::error title=Unsafe workspace symlink::Refusing to write inside symlinked .gemini path." >&2
+          exit 1
+        fi
         mkdir -p .gemini/commands
+        for cmd_path in "${GITHUB_ACTION_PATH}/.github/commands/"*; do
+          cmd_name="$(basename "${cmd_path}")"
+          if [[ -L ".gemini/commands/${cmd_name}" ]]; then
+            echo "::error title=Unsafe workspace symlink::Refusing to overwrite symlinked command file .gemini/commands/${cmd_name}." >&2
+            exit 1
+          fi
+        done
         cp -r "${GITHUB_ACTION_PATH}/.github/commands/"* .gemini/commands/
         node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --ensure-geminiignore
       env:
@@ -226,7 +242,9 @@ runs:
         if [[ "${WORKFLOW_NAME}" != "gemini-plan-execute" && ! "${PROMPT_INPUT}" =~ ^[[:space:]]*/gemini-plan-execute([[:space:]]|$) ]]; then
           exit 0
         fi
-        rm -f .gemini/approved_plan.json
+        if [[ ! -L ".gemini" && ! -L ".gemini/approved_plan.json" ]]; then
+          rm -f .gemini/approved_plan.json
+        fi
         node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --verify
         if [[ ! -s ".gemini/approved_plan.json" ]]; then
           echo "::error title=Plan verification failed::Verified plan artifact was not created." >&2

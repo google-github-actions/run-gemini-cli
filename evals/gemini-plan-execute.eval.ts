@@ -8,7 +8,10 @@ import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
 import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ensureGeminiIgnoreAllowsContextFiles } from '../scripts/resolve-approved-plan.mjs';
+import {
+  ensureGeminiIgnoreAllowsContextFiles,
+  sanitizePlanExecuteSettingsFile,
+} from '../scripts/resolve-approved-plan.mjs';
 
 interface ExecutionCase {
   id: string;
@@ -49,6 +52,7 @@ describe('Gemini Plan Execution Workflow', () => {
             JSON.stringify(item.approved_plan, null, 2),
           );
         }
+        sanitizePlanExecuteSettingsFile(rig.testDir);
         ensureGeminiIgnoreAllowsContextFiles(rig.testDir);
         copyFileSync(
           '.github/commands/gemini-plan-execute.toml',
@@ -70,9 +74,9 @@ describe('Gemini Plan Execution Workflow', () => {
         const toolNamesStripped = toolNames.map((name) =>
           name.replace(/^mcp_github_/, ''),
         );
-        const hasSomeExpectedToolCalls =
+        const hasAllExpectedToolCalls =
           item.expected_tools.length === 0 ||
-          item.expected_tools.some(
+          item.expected_tools.every(
             (action) =>
               toolNamesStripped.includes(action) ||
               toolCalls.some(
@@ -81,13 +85,13 @@ describe('Gemini Plan Execution Workflow', () => {
               ),
           );
 
-        if (!hasSomeExpectedToolCalls) {
+        if (!hasAllExpectedToolCalls) {
           console.error(
-            `Expected some of ${item.expected_tools} but got tools:`,
+            `Expected all of ${item.expected_tools} but got tools:`,
             toolNames,
           );
         }
-        expect(hasSomeExpectedToolCalls).toBe(true);
+        expect(hasAllExpectedToolCalls).toBe(true);
 
         if (!item.approved_plan) {
           for (const forbidden of [

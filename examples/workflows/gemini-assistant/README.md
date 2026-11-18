@@ -124,7 +124,7 @@ flowchart TD
     G --> F
     F -- Yes --> H
     F -- No --> K
-    E -- No --> H
+    E -- No --> K
     H --> I
     I -- Yes --> J
     J --> K
