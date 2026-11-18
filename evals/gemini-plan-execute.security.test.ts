@@ -29,6 +29,7 @@ import {
   fetchIssueCommentById,
   parseApprovalDirective,
   PlanVerificationError,
+  prepareContextAndGeminiIgnore,
   resolveTrustedPlanAuthors,
   sanitizePlanExecuteSettingsFile,
   selectVerifiedPlan,
@@ -263,6 +264,10 @@ describe('gemini-plan-execute static security invariants', () => {
         '@gemini-cli /approve <comment-url-or-id>',
       );
     }
+
+    expect(readRepoFile('scripts/generate-examples.sh')).toContain(
+      "s|uses: './'|uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude|g",
+    );
   });
 
   it('gates plan execution fail-closed in action.yml and keeps .d.mts exports in 1:1 parity', () => {
@@ -920,6 +925,19 @@ describe('End-to-end verification (HTTP API, symlinked runner, settings pruning 
       }),
     ).rejects.toThrow(/does not match event payload repository/);
 
+    const unauthFetchSpy = vi.fn<typeof fetch>();
+    await expect(
+      verifyAndWriteApprovedPlan({
+        workspaceRoot: tempWorkspace,
+        eventName: 'issue_comment',
+        eventPath,
+        expectedPlanAuthor: '',
+        githubToken: '',
+        fetchImpl: unauthFetchSpy,
+      }),
+    ).rejects.toThrow(/GITHUB_TOKEN is required/);
+    expect(unauthFetchSpy).not.toHaveBeenCalled();
+
     const notFoundFetch = vi
       .fn<typeof fetch>()
       .mockResolvedValue(new Response('Not Found', { status: 404 }));
@@ -981,6 +999,62 @@ describe('End-to-end verification (HTTP API, symlinked runner, settings pruning 
     );
     expect(importResult.code).toBe(0);
     expect(importResult.stdout.trim()).toBe('function');
+  });
+
+  it('synthesizes .gemini/context.json for legacy @v0 gemini-invoke runs and excludes untracked .geminiignore in .git/info/exclude', async () => {
+    mkdirSync(join(tempWorkspace, '.git/info'), { recursive: true });
+
+    // Non-invoke runs never synthesize untrusted TITLE/DESCRIPTION
+    prepareContextAndGeminiIgnore({
+      workspaceRoot: tempWorkspace,
+      env: {
+        WORKFLOW_NAME: 'gemini-plan-execute',
+        TITLE: 'Untrusted',
+        DESCRIPTION: 'Untrusted',
+        REPOSITORY: 'acme/demo-repo',
+      },
+    });
+    expect(existsSync(join(tempWorkspace, '.gemini/context.json'))).toBe(false);
+    expect(existsSync(join(tempWorkspace, '.geminiignore'))).toBe(false);
+
+    // Legacy @v0 gemini-invoke run via CLI --ensure-geminiignore synthesizes context.json and updates .git/info/exclude
+    const scriptPath = resolve(REPO_ROOT, 'scripts/resolve-approved-plan.mjs');
+    const cliResult = await runNodeScript(
+      scriptPath,
+      tempWorkspace,
+      {
+        WORKFLOW_NAME: 'gemini-invoke',
+        PROMPT_INPUT: '/gemini-invoke',
+        TITLE: 'Add caching',
+        DESCRIPTION: 'Please propose a plan.',
+        EVENT_NAME: 'issue_comment',
+        IS_PULL_REQUEST: 'false',
+        ISSUE_NUMBER: '77',
+        REPOSITORY: 'acme/demo-repo',
+        ADDITIONAL_CONTEXT: 'focus on memory bounds',
+      },
+      ['--ensure-geminiignore'],
+    );
+    expect(cliResult.code).toBe(0);
+
+    const synthesized = JSON.parse(
+      readFileSync(join(tempWorkspace, '.gemini/context.json'), 'utf8'),
+    );
+    expect(synthesized).toEqual({
+      title: 'Add caching',
+      description: 'Please propose a plan.',
+      event_name: 'issue_comment',
+      is_pull_request: 'false',
+      issue_number: '77',
+      repository: 'acme/demo-repo',
+      additional_context: 'focus on memory bounds',
+    });
+    expect(
+      readFileSync(join(tempWorkspace, '.geminiignore'), 'utf8'),
+    ).toContain('!.gemini/context.json');
+    expect(
+      readFileSync(join(tempWorkspace, '.git/info/exclude'), 'utf8'),
+    ).toContain('/.geminiignore');
   });
 });
 

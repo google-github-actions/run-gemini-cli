@@ -214,6 +214,8 @@ runs:
         node "${GITHUB_ACTION_PATH}/scripts/resolve-approved-plan.mjs" --ensure-geminiignore
       env:
         GITHUB_ACTION_PATH: '${{ github.action_path }}'
+        WORKFLOW_NAME: '${{ inputs.workflow_name }}'
+        PROMPT_INPUT: '${{ inputs.prompt }}'
 
     - name: 'Verify approved plan'
       if: |-

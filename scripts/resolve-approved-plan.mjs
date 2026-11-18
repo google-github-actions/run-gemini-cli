@@ -642,7 +642,8 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
  */
 export function ensureGeminiIgnoreAllowsContextFiles(workspaceRoot) {
   const geminiIgnorePath = resolve(workspaceRoot, '.geminiignore');
-  const existing = existsSync(geminiIgnorePath)
+  const fileExistedBefore = existsSync(geminiIgnorePath);
+  const existing = fileExistedBefore
     ? readFileSync(geminiIgnorePath, 'utf8')
     : '';
 
@@ -665,6 +666,80 @@ export function ensureGeminiIgnoreAllowsContextFiles(workspaceRoot) {
       `${prefix}${GEMINI_IGNORE_STANZA.join('\n')}\n`,
       'utf8',
     );
+  }
+
+  if (!fileExistedBefore && existsSync(resolve(workspaceRoot, '.git'))) {
+    const gitInfoDir = resolve(workspaceRoot, '.git/info');
+    if (
+      existsSync(gitInfoDir) ||
+      existsSync(resolve(workspaceRoot, '.git/HEAD'))
+    ) {
+      mkdirSync(gitInfoDir, { recursive: true });
+      const excludePath = resolve(gitInfoDir, 'exclude');
+      const current = existsSync(excludePath)
+        ? readFileSync(excludePath, 'utf8')
+        : '';
+      const lines = current.split(/\r?\n/).map((line) => line.trim());
+      if (
+        !lines.includes('/.geminiignore') &&
+        !lines.includes('.geminiignore')
+      ) {
+        const excludePrefix =
+          current.length > 0 && !current.endsWith('\n')
+            ? `${current}\n`
+            : current;
+        writeFileSync(excludePath, `${excludePrefix}/.geminiignore\n`, 'utf8');
+      }
+    }
+  }
+}
+
+/**
+ * Prepares `.gemini/context.json` from legacy workflow `env:` variables for
+ * existing `@v0` `gemini-invoke` consumers and ensures `.geminiignore` allows
+ * `.gemini/context.json` whenever present.
+ *
+ * @param {{
+ *   workspaceRoot?: string;
+ *   env?: NodeJS.ProcessEnv;
+ * }} [options]
+ */
+export function prepareContextAndGeminiIgnore({
+  workspaceRoot = process.cwd(),
+  env = process.env,
+} = {}) {
+  const contextPath = resolve(workspaceRoot, DEFAULT_CONTEXT_PATH);
+  const isInvoke =
+    env.WORKFLOW_NAME === 'gemini-invoke' ||
+    /^\s*\/gemini-invoke(?:\s|$)/.test(env.PROMPT_INPUT ?? '');
+
+  if (
+    !existsSync(contextPath) &&
+    isInvoke &&
+    (env.REPOSITORY || env.ISSUE_NUMBER || env.TITLE || env.DESCRIPTION)
+  ) {
+    mkdirSync(dirname(contextPath), { recursive: true });
+    writeFileSync(
+      contextPath,
+      `${JSON.stringify(
+        {
+          title: env.TITLE ?? '',
+          description: env.DESCRIPTION ?? '',
+          event_name: env.EVENT_NAME ?? '',
+          is_pull_request: env.IS_PULL_REQUEST ?? '',
+          issue_number: env.ISSUE_NUMBER ?? '',
+          repository: env.REPOSITORY ?? '',
+          additional_context: env.ADDITIONAL_CONTEXT ?? '',
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
+  }
+
+  if (existsSync(contextPath)) {
+    ensureGeminiIgnoreAllowsContextFiles(workspaceRoot);
   }
 }
 
@@ -781,6 +856,12 @@ export async function verifyAndWriteApprovedPlan({
     );
   }
 
+  if (!githubToken) {
+    throw new PlanVerificationError(
+      'GITHUB_TOKEN is required to verify the approved plan.',
+    );
+  }
+
   const authorPolicy = await resolveDynamicAuthorPolicy({
     expectedPlanAuthor,
     apiBaseUrl,
@@ -847,9 +928,7 @@ function isExecutedAsMainScript() {
 
 if (isExecutedAsMainScript()) {
   if (process.argv.includes('--ensure-geminiignore')) {
-    if (existsSync(resolve(process.cwd(), DEFAULT_CONTEXT_PATH))) {
-      ensureGeminiIgnoreAllowsContextFiles(process.cwd());
-    }
+    prepareContextAndGeminiIgnore();
   } else {
     verifyAndWriteApprovedPlan()
       .then((verified) => {

@@ -78,6 +78,10 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot: string): void;
 export function ensureGeminiIgnoreAllowsContextFiles(
   workspaceRoot: string,
 ): void;
+export function prepareContextAndGeminiIgnore(options?: {
+  workspaceRoot?: string;
+  env?: NodeJS.ProcessEnv;
+}): void;
 export function verifyAndWriteApprovedPlan(options?: {
   workspaceRoot?: string;
   eventName?: string;
