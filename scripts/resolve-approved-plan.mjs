@@ -9,14 +9,12 @@ import console from 'node:console';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
-  lstatSync,
   mkdirSync,
   readFileSync,
   realpathSync,
-  rmSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, URL } from 'node:url';
 
@@ -26,8 +24,6 @@ export const DEFAULT_BOT_LOGIN = 'github-actions[bot]';
 export const DEFAULT_APPROVED_PLAN_PATH = '.gemini/approved_plan.json';
 export const DEFAULT_CONTEXT_PATH = '.gemini/context.json';
 export const DEFAULT_SETTINGS_PATH = '.gemini/settings.json';
-export const MIN_SHA256_PREFIX_LENGTH = 7;
-export const MAX_SHA256_PREFIX_LENGTH = 64;
 
 export const DISALLOWED_PLAN_EXECUTE_MCP_TOOLS = Object.freeze([
   'push_files',
@@ -56,7 +52,6 @@ const SHORT_COMMENT_ID_PATTERN =
   /^(?:#?issuecomment-(\d+)|comment-(\d+)|(\d+))$/i;
 const EXPLICIT_TRAILING_COMMENT_ID_PATTERN =
   /^(?:#?issuecomment-(\d+)|comment-(\d+))$/i;
-const SHA256_TOKEN_PATTERN = /^sha256:([a-f0-9]+)$/i;
 
 const GEMINI_IGNORE_STANZA = Object.freeze([
   '!.gemini',
@@ -127,90 +122,11 @@ export function computePlanSha256(planBody) {
 /**
  * @typedef {{
  *   targetCommentId: number | null;
- *   targetSha256Prefix: string | null;
  *   urlRepository: string | null;
  *   urlIssueNumber: number | null;
  *   additionalContext: string;
  * }} ApprovalDirective
  */
-
-/**
- * @param {string} token
- * @param {{ targetCommentId: number | null; targetSha256Prefix: string | null; urlRepository: string | null; urlIssueNumber: number | null }} state
- * @returns {boolean}
- */
-function parseCommentTargetToken(token, state) {
-  const shortMatch = token.match(SHORT_COMMENT_ID_PATTERN);
-  if (shortMatch) {
-    if (state.targetCommentId !== null) {
-      throw new PlanVerificationError(
-        'Duplicate plan comment ID tokens in approval command.',
-      );
-    }
-    const rawId = shortMatch[1] ?? shortMatch[2] ?? shortMatch[3];
-    state.targetCommentId = parsePositiveSafeInt(rawId, 'comment ID');
-    return true;
-  }
-
-  if (/^https?:\/\//i.test(token) || token.includes('#issuecomment-')) {
-    const urlMatch = token.match(FULL_COMMENT_URL_PATTERN);
-    if (!urlMatch) {
-      throw new PlanVerificationError(
-        `Invalid GitHub issue/PR comment URL in approval command: ${token}`,
-      );
-    }
-    if (state.targetCommentId !== null) {
-      throw new PlanVerificationError(
-        'Duplicate plan comment ID tokens in approval command.',
-      );
-    }
-    state.urlRepository = urlMatch[1];
-    state.urlIssueNumber = parsePositiveSafeInt(
-      urlMatch[2],
-      'URL issue number',
-    );
-    state.targetCommentId = parsePositiveSafeInt(urlMatch[3], 'comment ID');
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * @param {string} token
- * @param {{ targetCommentId: number | null; targetSha256Prefix: string | null; urlRepository: string | null; urlIssueNumber: number | null }} state
- * @returns {boolean}
- */
-function parseBindingToken(token, state) {
-  if (/^sha256:/i.test(token)) {
-    const shaMatch = token.match(SHA256_TOKEN_PATTERN);
-    if (!shaMatch) {
-      throw new PlanVerificationError(
-        `Invalid sha256 digest token in approval command: ${token}`,
-      );
-    }
-    if (state.targetSha256Prefix !== null) {
-      throw new PlanVerificationError(
-        'Duplicate sha256 tokens in approval command.',
-      );
-    }
-    const prefix = shaMatch[1].toLowerCase();
-    if (prefix.length < MIN_SHA256_PREFIX_LENGTH) {
-      throw new PlanVerificationError(
-        `Plan sha256 prefix must be at least ${MIN_SHA256_PREFIX_LENGTH} hex characters.`,
-      );
-    }
-    if (prefix.length > MAX_SHA256_PREFIX_LENGTH) {
-      throw new PlanVerificationError(
-        `Plan sha256 prefix cannot exceed ${MAX_SHA256_PREFIX_LENGTH} hex characters.`,
-      );
-    }
-    state.targetSha256Prefix = prefix;
-    return true;
-  }
-
-  return parseCommentTargetToken(token, state);
-}
 
 /**
  * @param {unknown} rawBody
@@ -231,78 +147,67 @@ export function parseApprovalDirective(rawBody) {
   }
 
   const tokens = remainder.trim() ? remainder.trim().split(/\s+/) : [];
-  /** @type {{ targetCommentId: number | null; targetSha256Prefix: string | null; urlRepository: string | null; urlIssueNumber: number | null }} */
-  const state = {
-    targetCommentId: null,
-    targetSha256Prefix: null,
-    urlRepository: null,
-    urlIssueNumber: null,
-  };
-  let consumed = 0;
-
-  while (
-    consumed < tokens.length &&
-    parseBindingToken(tokens[consumed], state)
-  ) {
-    consumed += 1;
+  if (tokens.length === 0) {
+    return {
+      targetCommentId: null,
+      urlRepository: null,
+      urlIssueNumber: null,
+      additionalContext: '',
+    };
   }
 
-  // Reject any explicit comment-ID, URL, or sha256 token appearing after free-form text
-  // (prevents executing plans mentioned after negating prose like "do NOT approve #issuecomment-100").
-  for (const trailing of tokens.slice(consumed)) {
+  let targetCommentId = null;
+  let urlRepository = null;
+  let urlIssueNumber = null;
+  let consumed = 0;
+
+  const first = tokens[0];
+  const shortMatch = first.match(SHORT_COMMENT_ID_PATTERN);
+  if (shortMatch) {
+    const rawId = shortMatch[1] ?? shortMatch[2] ?? shortMatch[3];
+    targetCommentId = parsePositiveSafeInt(rawId, 'comment ID');
+    consumed = 1;
+  } else if (/^https?:\/\//i.test(first) || first.includes('#issuecomment-')) {
+    const urlMatch = first.match(FULL_COMMENT_URL_PATTERN);
+    if (!urlMatch) {
+      throw new PlanVerificationError(
+        `Invalid GitHub issue/PR comment URL in approval command: ${first}`,
+      );
+    }
+    urlRepository = urlMatch[1];
+    urlIssueNumber = parsePositiveSafeInt(urlMatch[2], 'URL issue number');
+    targetCommentId = parsePositiveSafeInt(urlMatch[3], 'comment ID');
+    consumed = 1;
+  }
+
+  const trailingTokens = tokens.slice(consumed);
+  if (consumed === 1 && trailingTokens.length > 0) {
+    const second = trailingTokens[0];
+    if (SHORT_COMMENT_ID_PATTERN.test(second)) {
+      throw new PlanVerificationError(
+        'Duplicate plan comment ID tokens in approval command.',
+      );
+    }
+  }
+
+  for (const trailing of trailingTokens) {
     if (
       EXPLICIT_TRAILING_COMMENT_ID_PATTERN.test(trailing) ||
       /^https?:\/\//i.test(trailing) ||
-      trailing.includes('#issuecomment-') ||
-      /^sha256:/i.test(trailing)
+      trailing.includes('#issuecomment-')
     ) {
       throw new PlanVerificationError(
-        `Binding token "${trailing}" must appear immediately after "${APPROVAL_COMMAND_PREFIX}", not after free-form text.`,
+        `Comment target "${trailing}" must appear immediately after "${APPROVAL_COMMAND_PREFIX}".`,
       );
     }
   }
 
   return {
-    targetCommentId: state.targetCommentId,
-    targetSha256Prefix: state.targetSha256Prefix,
-    urlRepository: state.urlRepository,
-    urlIssueNumber: state.urlIssueNumber,
-    additionalContext: tokens.slice(consumed).join(' '),
+    targetCommentId,
+    urlRepository,
+    urlIssueNumber,
+    additionalContext: trailingTokens.join(' '),
   };
-}
-
-/**
- * @param {string} eventName
- * @param {Record<string, unknown>} eventPayload
- */
-function resolveEventTriggerSource(eventName, eventPayload) {
-  const action = eventPayload.action;
-  if (eventName === 'pull_request_review' && isRecord(eventPayload.review)) {
-    if (action !== 'submitted') {
-      throw new PlanVerificationError(
-        `Unsupported pull_request_review action "${String(action)}"; expected "submitted".`,
-      );
-    }
-    return { source: eventPayload.review, sharesIssueCommentIdSpace: false };
-  }
-  if (
-    (eventName === 'issue_comment' ||
-      eventName === 'pull_request_review_comment') &&
-    isRecord(eventPayload.comment)
-  ) {
-    if (action !== 'created') {
-      throw new PlanVerificationError(
-        `Unsupported ${eventName} action "${String(action)}"; expected "created".`,
-      );
-    }
-    return {
-      source: eventPayload.comment,
-      sharesIssueCommentIdSpace: eventName === 'issue_comment',
-    };
-  }
-  throw new PlanVerificationError(
-    `Unsupported approval event payload for event "${eventName}".`,
-  );
 }
 
 /**
@@ -311,7 +216,7 @@ function resolveEventTriggerSource(eventName, eventPayload) {
  *   isPullRequest: boolean;
  *   issueNumber: number;
  *   repository: string;
- *   approvalId: number | null;
+ *   approvalId: number;
  *   sharesIssueCommentIdSpace: boolean;
  *   approvalTimestampMs: number;
  *   approverLogin: string;
@@ -329,10 +234,36 @@ export function extractApprovalContext(eventName, eventPayload) {
     throw new PlanVerificationError('GitHub event payload must be an object.');
   }
 
-  const { source, sharesIssueCommentIdSpace } = resolveEventTriggerSource(
-    eventName,
-    eventPayload,
-  );
+  const action = eventPayload.action;
+  /** @type {Record<string, unknown> | null} */
+  let source = null;
+  let sharesIssueCommentIdSpace = false;
+
+  if (eventName === 'pull_request_review' && isRecord(eventPayload.review)) {
+    if (action !== 'submitted') {
+      throw new PlanVerificationError(
+        `Unsupported pull_request_review action "${String(action)}"; expected "submitted".`,
+      );
+    }
+    source = eventPayload.review;
+  } else if (
+    (eventName === 'issue_comment' ||
+      eventName === 'pull_request_review_comment') &&
+    isRecord(eventPayload.comment)
+  ) {
+    if (action !== 'created') {
+      throw new PlanVerificationError(
+        `Unsupported ${eventName} action "${String(action)}"; expected "created".`,
+      );
+    }
+    source = eventPayload.comment;
+    sharesIssueCommentIdSpace = eventName === 'issue_comment';
+  } else {
+    throw new PlanVerificationError(
+      `Unsupported approval event payload for event "${eventName}".`,
+    );
+  }
+
   const sourceUser = isRecord(source.user) ? source.user : null;
   const senderType = isRecord(eventPayload.sender)
     ? eventPayload.sender.type
@@ -358,12 +289,15 @@ export function extractApprovalContext(eventName, eventPayload) {
   const hasTopLevelPr = isRecord(eventPayload.pull_request);
   const hasIssuePr =
     isRecord(eventPayload.issue) && isRecord(eventPayload.issue.pull_request);
-  const isPullRequest = hasTopLevelPr || hasIssuePr;
   const issueObj = hasTopLevelPr
     ? eventPayload.pull_request
     : eventPayload.issue;
   const issueNumber = isRecord(issueObj) ? issueObj.number : undefined;
-  if (typeof issueNumber !== 'number' || !Number.isInteger(issueNumber)) {
+  if (
+    typeof issueNumber !== 'number' ||
+    !Number.isSafeInteger(issueNumber) ||
+    issueNumber <= 0
+  ) {
     throw new PlanVerificationError(
       'Unable to determine target issue or PR number.',
     );
@@ -377,17 +311,19 @@ export function extractApprovalContext(eventName, eventPayload) {
     throw new PlanVerificationError('Missing or invalid approval event ID.');
   }
 
-  const timestampRaw = source.created_at ?? source.submitted_at;
   return {
     eventName,
-    isPullRequest,
+    isPullRequest: hasTopLevelPr || hasIssuePr,
     issueNumber,
     repository: isRecord(eventPayload.repository)
       ? String(eventPayload.repository.full_name ?? '')
       : '',
     approvalId: source.id,
     sharesIssueCommentIdSpace,
-    approvalTimestampMs: parseTimestampMs(timestampRaw, 'approval'),
+    approvalTimestampMs: parseTimestampMs(
+      source.created_at ?? source.submitted_at,
+      'approval',
+    ),
     approverLogin: sourceUser ? String(sourceUser.login ?? '') : '',
     directive,
   };
@@ -410,129 +346,6 @@ export function resolveTrustedPlanAuthors(expectedPlanAuthor) {
   return new Set(
     logins.length > 0 ? logins : [DEFAULT_BOT_LOGIN.toLowerCase()],
   );
-}
-
-/**
- * @param {Record<string, unknown>} comment
- * @param {Set<string>} trustedAuthors
- * @param {boolean} allowInstalledGithubAppBots
- * @returns {string}
- */
-function verifyCommentAuthor(
-  comment,
-  trustedAuthors,
-  allowInstalledGithubAppBots,
-) {
-  const user = isRecord(comment.user) ? comment.user : null;
-  const authorLogin = typeof user?.login === 'string' ? user.login : '';
-  const normalizedLogin = authorLogin.toLowerCase();
-  const normalizedTrusted = new Set(
-    Array.from(trustedAuthors, (entry) => entry.toLowerCase()),
-  );
-  if (normalizedLogin !== '' && normalizedTrusted.has(normalizedLogin)) {
-    return authorLogin;
-  }
-  if (
-    allowInstalledGithubAppBots &&
-    user?.type === 'Bot' &&
-    normalizedLogin.endsWith('[bot]') &&
-    isRecord(comment.performed_via_github_app)
-  ) {
-    return authorLogin;
-  }
-  throw new PlanVerificationError(
-    `Comment #${String(comment.id)} author "${authorLogin}" is not an authorized plan bot ([${Array.from(trustedAuthors).join(', ')}]).`,
-  );
-}
-
-/**
- * @param {Record<string, unknown>} comment
- * @param {ApprovalContext} approvalContext
- * @param {Set<string>} trustedAuthors
- * @param {boolean} allowInstalledGithubAppBots
- * @returns {{ body: string; authorLogin: string; createdAt: string; updatedAt: string }}
- */
-function verifyPlanCommentProvenanceAndTiming(
-  comment,
-  approvalContext,
-  trustedAuthors,
-  allowInstalledGithubAppBots,
-) {
-  if (
-    typeof comment.body !== 'string' ||
-    !PLAN_HEADING_REGEX.test(comment.body)
-  ) {
-    throw new PlanVerificationError(
-      `Comment #${String(comment.id)} does not contain a Markdown heading for "${PLAN_HEADING_MARKER}".`,
-    );
-  }
-
-  const authorLogin = verifyCommentAuthor(
-    comment,
-    trustedAuthors,
-    allowInstalledGithubAppBots,
-  );
-
-  if (
-    approvalContext.sharesIssueCommentIdSpace &&
-    approvalContext.approvalId !== null &&
-    typeof comment.id === 'number' &&
-    comment.id >= approvalContext.approvalId
-  ) {
-    throw new PlanVerificationError(
-      `Comment #${comment.id} was created after approval comment #${approvalContext.approvalId}.`,
-    );
-  }
-
-  const createdAt = String(comment.created_at ?? '');
-  const updatedAt = String(comment.updated_at ?? comment.created_at ?? '');
-  const createdMs = parseTimestampMs(createdAt, 'plan created_at');
-  const updatedMs = parseTimestampMs(updatedAt, 'plan updated_at');
-  if (
-    createdMs > approvalContext.approvalTimestampMs ||
-    updatedMs > approvalContext.approvalTimestampMs
-  ) {
-    throw new PlanVerificationError(
-      `Comment #${String(comment.id)} was created or modified after approval.`,
-    );
-  }
-
-  if (
-    updatedMs !== createdMs &&
-    approvalContext.directive.targetSha256Prefix === null
-  ) {
-    const digestHint = computePlanSha256(comment.body).slice(0, 12);
-    throw new PlanVerificationError(
-      `Comment #${String(comment.id)} was edited after creation; inspect the comment and approve with explicit "sha256:${digestHint}" if intentional.`,
-    );
-  }
-
-  return { body: comment.body, authorLogin, createdAt, updatedAt };
-}
-
-/**
- * @param {ApprovalDirective} directive
- * @param {string} repository
- * @param {number} issueNumber
- */
-function validateCommentUrlMatchesTarget(directive, repository, issueNumber) {
-  if (
-    directive.urlRepository !== null &&
-    repository &&
-    directive.urlRepository.toLowerCase() !== repository.toLowerCase()
-  ) {
-    throw new PlanVerificationError(
-      `Approval URL repository "${directive.urlRepository}" does not match current repository "${repository}".`,
-    );
-  }
-  if (
-    directive.urlIssueNumber !== null &&
-    directive.urlIssueNumber !== issueNumber
-  ) {
-    throw new PlanVerificationError(
-      `Approval URL issue #${directive.urlIssueNumber} does not match current issue #${issueNumber}.`,
-    );
-  }
 }
 
 /**
@@ -561,7 +374,8 @@ export function selectVerifiedPlan(
   trustedAuthors,
   options = {},
 ) {
-  const { targetCommentId, targetSha256Prefix } = approvalContext.directive;
+  const { targetCommentId, urlRepository, urlIssueNumber } =
+    approvalContext.directive;
   if (targetCommentId === null) {
     throw new PlanVerificationError(
       'Approval must bind to a specific plan comment ID or URL (for example, "@gemini-cli /approve <comment-url-or-id>"). Bare "@gemini-cli /approve" is rejected to prevent TOCTOU plan substitution.',
@@ -574,11 +388,22 @@ export function selectVerifiedPlan(
       `Unable to determine valid target GitHub repository ("${String(repoForCheck ?? '')}").`,
     );
   }
-  validateCommentUrlMatchesTarget(
-    approvalContext.directive,
-    repoForCheck,
-    approvalContext.issueNumber,
-  );
+  if (
+    urlRepository !== null &&
+    urlRepository.toLowerCase() !== repoForCheck.toLowerCase()
+  ) {
+    throw new PlanVerificationError(
+      `Approval URL repository "${urlRepository}" does not match current repository "${repoForCheck}".`,
+    );
+  }
+  if (
+    urlIssueNumber !== null &&
+    urlIssueNumber !== approvalContext.issueNumber
+  ) {
+    throw new PlanVerificationError(
+      `Approval URL issue #${urlIssueNumber} does not match current issue #${approvalContext.issueNumber}.`,
+    );
+  }
 
   const candidates = Array.isArray(commentsOrSingle)
     ? commentsOrSingle
@@ -612,29 +437,71 @@ export function selectVerifiedPlan(
     );
   }
 
-  const verifiedMeta = verifyPlanCommentProvenanceAndTiming(
-    target,
-    approvalContext,
-    trustedAuthors,
-    Boolean(options.allowInstalledGithubAppBots),
-  );
-
-  const sha256 = computePlanSha256(verifiedMeta.body);
-  if (targetSha256Prefix !== null && !sha256.startsWith(targetSha256Prefix)) {
+  if (
+    typeof target.body !== 'string' ||
+    !PLAN_HEADING_REGEX.test(target.body)
+  ) {
     throw new PlanVerificationError(
-      `Approved plan digest mismatch for comment #${targetCommentId}: expected prefix "${targetSha256Prefix}", got "${sha256.slice(0, 12)}".`,
+      `Comment #${targetCommentId} does not contain a Markdown heading for "${PLAN_HEADING_MARKER}".`,
+    );
+  }
+
+  const user = isRecord(target.user) ? target.user : null;
+  const authorLogin = typeof user?.login === 'string' ? user.login : '';
+  const normalizedLogin = authorLogin.toLowerCase();
+  const normalizedTrusted = new Set(
+    Array.from(trustedAuthors, (entry) => entry.toLowerCase()),
+  );
+  const isTrustedAuthor =
+    (normalizedLogin !== '' && normalizedTrusted.has(normalizedLogin)) ||
+    (Boolean(options.allowInstalledGithubAppBots) &&
+      user?.type === 'Bot' &&
+      normalizedLogin.endsWith('[bot]') &&
+      isRecord(target.performed_via_github_app));
+
+  if (!isTrustedAuthor) {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} author "${authorLogin}" is not an authorized plan bot ([${Array.from(trustedAuthors).join(', ')}]).`,
+    );
+  }
+
+  if (
+    approvalContext.sharesIssueCommentIdSpace &&
+    typeof target.id === 'number' &&
+    target.id >= approvalContext.approvalId
+  ) {
+    throw new PlanVerificationError(
+      `Comment #${target.id} was created after approval comment #${approvalContext.approvalId}.`,
+    );
+  }
+
+  const createdAt = String(target.created_at ?? '');
+  const updatedAt = String(target.updated_at ?? target.created_at ?? '');
+  const createdMs = parseTimestampMs(createdAt, 'plan created_at');
+  const updatedMs = parseTimestampMs(updatedAt, 'plan updated_at');
+  if (
+    createdMs > approvalContext.approvalTimestampMs ||
+    updatedMs > approvalContext.approvalTimestampMs
+  ) {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} was created or modified after approval.`,
+    );
+  }
+  if (updatedMs !== createdMs) {
+    throw new PlanVerificationError(
+      `Comment #${targetCommentId} was edited after creation; please generate a fresh plan comment before approving.`,
     );
   }
 
   return {
     verified: true,
     comment_id: targetCommentId,
-    author_login: verifiedMeta.authorLogin,
-    created_at: verifiedMeta.createdAt,
-    updated_at: verifiedMeta.updatedAt,
+    author_login: authorLogin,
+    created_at: createdAt,
+    updated_at: updatedAt,
     approved_by: approvalContext.approverLogin,
-    sha256,
-    plan: verifiedMeta.body,
+    sha256: computePlanSha256(target.body),
+    plan: target.body,
   };
 }
 
@@ -685,33 +552,14 @@ export async function fetchIssueCommentById({
     );
   }
   if (!response.ok) {
-    const statusDesc = response.statusText
-      ? `${response.status} ${response.statusText}`
-      : String(response.status);
-    const rateLimitHint =
-      response.headers.get('x-ratelimit-remaining') === '0'
-        ? '; GitHub API rate limit exceeded'
-        : '';
     throw new PlanVerificationError(
-      `GitHub API failed fetching comment #${commentId} (${statusDesc}${rateLimitHint}).`,
+      `GitHub API failed fetching comment #${commentId} (${response.status}).`,
     );
   }
 
-  let payload;
-  try {
-    payload = await response.json();
-  } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    throw new PlanVerificationError(
-      `GitHub API returned invalid JSON for comment #${commentId}: ${detail}`,
-    );
-  }
-  if (!isRecord(payload)) {
-    throw new PlanVerificationError(
-      'Unexpected non-object comment payload from GitHub API.',
-    );
-  }
+  const payload = await response.json();
   if (
+    !isRecord(payload) ||
     typeof payload.issue_url !== 'string' ||
     payload.issue_url.trim() === ''
   ) {
@@ -723,205 +571,24 @@ export async function fetchIssueCommentById({
 }
 
 /**
- * Resolves additional token author permissions when EXPECTED_PLAN_AUTHOR is unset
- * (for backward compatibility with existing @v0 workflows using Custom GitHub Apps or PATs).
- *
- * @param {{
- *   expectedPlanAuthor: string;
- *   apiBaseUrl: string;
- *   githubToken: string;
- *   fetchImpl?: typeof fetch;
- * }} params
- * @returns {Promise<{ trustedAuthors: Set<string>; allowInstalledGithubAppBots: boolean }>}
- */
-async function resolveDynamicAuthorPolicy({
-  expectedPlanAuthor,
-  apiBaseUrl,
-  githubToken,
-  fetchImpl = globalThis.fetch,
-}) {
-  const trimmed = expectedPlanAuthor.trim();
-  if (trimmed !== '') {
-    return {
-      trustedAuthors: resolveTrustedPlanAuthors(trimmed),
-      allowInstalledGithubAppBots: false,
-    };
-  }
-
-  const trustedAuthors = new Set([DEFAULT_BOT_LOGIN.toLowerCase()]);
-  const userUrl = `${apiBaseUrl.replace(/\/$/, '')}/user`;
-  try {
-    const res = await fetchImpl(userUrl, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${githubToken}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      redirect: 'error',
-      signal: globalThis.AbortSignal.timeout(API_TIMEOUT_MS),
-    });
-    if (res.ok) {
-      const userObj = await res.json();
-      if (
-        isRecord(userObj) &&
-        typeof userObj.login === 'string' &&
-        userObj.login
-      ) {
-        trustedAuthors.add(userObj.login.toLowerCase());
-      }
-      return { trustedAuthors, allowInstalledGithubAppBots: false };
-    }
-  } catch {
-    // Non-fatal probe fallback: installation tokens reject /user with 403
-  }
-  return { trustedAuthors, allowInstalledGithubAppBots: true };
-}
-
-/**
- * @param {ApprovalContext} approvalContext
- * @param {string} repository
- */
-export function buildSanitizedRoutingContext(approvalContext, repository) {
-  return {
-    event_name: approvalContext.eventName,
-    is_pull_request: String(approvalContext.isPullRequest),
-    issue_number: String(approvalContext.issueNumber),
-    repository,
-  };
-}
-
-/**
- * @param {string} workspaceRoot
- * @param {string} relativePath
- * @returns {string}
- */
-function assertSafeWorkspaceTarget(workspaceRoot, relativePath) {
-  const realRoot = realpathSync(workspaceRoot);
-  const candidate = resolve(realRoot, relativePath);
-  const rel = relative(realRoot, candidate);
-  if (
-    rel === '' ||
-    rel === '..' ||
-    rel.startsWith(`..${sep}`) ||
-    isAbsolute(rel)
-  ) {
-    throw new PlanVerificationError(
-      `Refusing to access path outside workspace: ${relativePath}`,
-    );
-  }
-
-  let current = realRoot;
-  const segments = rel.split(sep);
-  for (let i = 0; i < segments.length; i++) {
-    current = resolve(current, segments[i]);
-    const stat = lstatSync(current, { throwIfNoEntry: false });
-    if (stat?.isSymbolicLink()) {
-      const kind = i === segments.length - 1 ? 'file' : 'directory';
-      throw new PlanVerificationError(
-        `Refusing to access symlinked ${kind}: ${current}`,
-      );
-    }
-  }
-  return candidate;
-}
-
-/**
- * @param {string} workspaceRoot
- * @param {string} relativePath
- * @param {string} content
- */
-function writeSafeWorkspaceFile(workspaceRoot, relativePath, content) {
-  const destination = assertSafeWorkspaceTarget(workspaceRoot, relativePath);
-  mkdirSync(dirname(destination), { recursive: true });
-  rmSync(destination, { force: true });
-  writeFileSync(destination, content, 'utf8');
-}
-
-/**
- * Strips `//` and `/* ... *\/` JSONC comments outside string literals so
- * `.gemini/settings.json` is parsed identically to Gemini CLI.
- *
- * @param {string} raw
- * @returns {string}
- */
-function stripJsonComments(raw) {
-  let out = '';
-  let inString = false;
-  let i = 0;
-
-  while (i < raw.length) {
-    const ch = raw[i];
-    if (inString) {
-      out += ch;
-      if (ch === '\\' && i + 1 < raw.length) {
-        out += raw[i + 1];
-        i += 2;
-        continue;
-      }
-      if (ch === '"') {
-        inString = false;
-      }
-      i += 1;
-      continue;
-    }
-
-    if (ch === '"') {
-      inString = true;
-      out += ch;
-      i += 1;
-      continue;
-    }
-
-    if (ch === '/' && raw[i + 1] === '/') {
-      i += 2;
-      while (i < raw.length && raw[i] !== '\n' && raw[i] !== '\r') {
-        i += 1;
-      }
-      continue;
-    }
-
-    if (ch === '/' && raw[i + 1] === '*') {
-      const closeIdx = raw.indexOf('*/', i + 2);
-      if (closeIdx === -1) {
-        break;
-      }
-      out += ' ';
-      i = closeIdx + 2;
-      continue;
-    }
-
-    out += ch;
-    i += 1;
-  }
-
-  return out;
-}
-
-/**
- * Prunes disallowed MCP tools from `.gemini/settings.json` across all configured
- * MCP servers and populates `excludeTools` so existing `@v0` consumers
- * automatically receive least-privilege tool scoping. Fails closed if the
- * settings file is unreadable or contains invalid JSON/JSONC.
+ * Prunes disallowed MCP tools from `.gemini/settings.json` so existing `@v0`
+ * consumers automatically receive least-privilege tool scoping.
  *
  * @param {string} workspaceRoot
  */
 export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
-  const settingsPath = assertSafeWorkspaceTarget(
-    workspaceRoot,
-    DEFAULT_SETTINGS_PATH,
-  );
+  const settingsPath = resolve(workspaceRoot, DEFAULT_SETTINGS_PATH);
   if (!existsSync(settingsPath)) {
     return;
   }
 
   let parsed;
   try {
-    const raw = readFileSync(settingsPath, 'utf8');
-    parsed = JSON.parse(stripJsonComments(raw));
+    parsed = JSON.parse(readFileSync(settingsPath, 'utf8'));
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     throw new PlanVerificationError(
-      `Failed to parse ${DEFAULT_SETTINGS_PATH} during plan-execute tool sanitization: ${detail}`,
+      `Failed to parse ${DEFAULT_SETTINGS_PATH}: ${detail}`,
     );
   }
   if (!isRecord(parsed)) {
@@ -963,242 +630,92 @@ export function sanitizePlanExecuteSettingsFile(workspaceRoot) {
   }
 
   if (mutated) {
-    writeSafeWorkspaceFile(
-      workspaceRoot,
-      DEFAULT_SETTINGS_PATH,
-      `${JSON.stringify(parsed, null, 2)}\n`,
-    );
+    writeFileSync(settingsPath, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
   }
 }
 
 /**
- * Resolves the repository `.git` metadata directory (supporting both standard
- * `.git/` directories and git worktree `.git` files while rejecting symlinks
- * and non-Git target directories).
- *
- * @param {string} workspaceRoot
- * @returns {string | null}
- */
-function resolveSafeGitDir(workspaceRoot) {
-  const realRoot = realpathSync(workspaceRoot);
-  const dotGitPath = resolve(realRoot, '.git');
-  const dotGitStat = lstatSync(dotGitPath, { throwIfNoEntry: false });
-  if (!dotGitStat || dotGitStat.isSymbolicLink()) {
-    return null;
-  }
-  if (dotGitStat.isDirectory()) {
-    return dotGitPath;
-  }
-  if (dotGitStat.isFile()) {
-    const content = readFileSync(dotGitPath, 'utf8');
-    const match = content.match(/^gitdir:\s*(.+)\s*$/m);
-    if (!match) {
-      return null;
-    }
-    const targetGitDir = resolve(realRoot, match[1].trim());
-    const targetStat = lstatSync(targetGitDir, { throwIfNoEntry: false });
-    if (
-      !targetStat ||
-      targetStat.isSymbolicLink() ||
-      !targetStat.isDirectory()
-    ) {
-      return null;
-    }
-    try {
-      if (realpathSync(targetGitDir) !== targetGitDir) {
-        return null;
-      }
-    } catch {
-      return null;
-    }
-    const headStat = lstatSync(resolve(targetGitDir, 'HEAD'), {
-      throwIfNoEntry: false,
-    });
-    if (!headStat || headStat.isSymbolicLink() || !headStat.isFile()) {
-      return null;
-    }
-    return targetGitDir;
-  }
-  return null;
-}
-
-/**
- * Registers `/.geminiignore` in `.git/info/exclude` when creating an untracked
- * `.geminiignore` so workflows that run `git add .` never commit it.
+ * Ensures `.geminiignore` negates `.gemini/context.json` and
+ * `.gemini/approved_plan.json` when `.gitignore` ignores `.gemini/`.
  *
  * @param {string} workspaceRoot
  */
-function excludeUntrackedGeminiIgnoreInGit(workspaceRoot) {
-  const gitDir = resolveSafeGitDir(workspaceRoot);
-  if (!gitDir) {
-    return;
-  }
-  const gitInfoDir = resolve(gitDir, 'info');
-  const infoStat = lstatSync(gitInfoDir, { throwIfNoEntry: false });
-  if (!infoStat) {
-    mkdirSync(gitInfoDir, { recursive: true });
-  } else if (infoStat.isSymbolicLink() || !infoStat.isDirectory()) {
-    return;
-  }
-
-  const excludePath = resolve(gitInfoDir, 'exclude');
-  const excludeStat = lstatSync(excludePath, { throwIfNoEntry: false });
-  if (excludeStat && (excludeStat.isSymbolicLink() || !excludeStat.isFile())) {
-    return;
-  }
-  const current = excludeStat ? readFileSync(excludePath, 'utf8') : '';
-  const lines = current.split(/\r?\n/).map((line) => line.trim());
-  if (lines.includes('/.geminiignore') || lines.includes('.geminiignore')) {
-    return;
-  }
-  const prefix =
-    current.length > 0 && !current.endsWith('\n') ? `${current}\n` : current;
-  writeFileSync(excludePath, `${prefix}/.geminiignore\n`, 'utf8');
-}
-
-/**
- * @param {string} workspaceRoot
- * @param {string} [approvedPlanRelPath]
- * @param {string} [contextRelPath]
- */
-export function ensureGeminiIgnoreAllowsContextFiles(
-  workspaceRoot,
-  approvedPlanRelPath = DEFAULT_APPROVED_PLAN_PATH,
-  contextRelPath = DEFAULT_CONTEXT_PATH,
-) {
-  const geminiIgnorePath = assertSafeWorkspaceTarget(
-    workspaceRoot,
-    '.geminiignore',
-  );
-  const fileExistedBefore = existsSync(geminiIgnorePath);
-  const existing = fileExistedBefore
+export function ensureGeminiIgnoreAllowsContextFiles(workspaceRoot) {
+  const geminiIgnorePath = resolve(workspaceRoot, '.geminiignore');
+  const existing = existsSync(geminiIgnorePath)
     ? readFileSync(geminiIgnorePath, 'utf8')
     : '';
-
-  const normalizedPlanPath = approvedPlanRelPath
-    .replace(/\\/g, '/')
-    .replace(/^\.?\//, '');
-  const normalizedContextPath = contextRelPath
-    .replace(/\\/g, '/')
-    .replace(/^\.?\//, '');
-  const stanza =
-    normalizedPlanPath === DEFAULT_APPROVED_PLAN_PATH &&
-    normalizedContextPath === DEFAULT_CONTEXT_PATH
-      ? [...GEMINI_IGNORE_STANZA]
-      : [
-          '!.gemini',
-          '!.gemini/',
-          '.gemini/*',
-          `!${normalizedContextPath}`,
-          `!${normalizedPlanPath}`,
-        ];
 
   const nonEmptyLines = existing
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
-  const tail = nonEmptyLines.slice(-stanza.length);
+  const tail = nonEmptyLines.slice(-GEMINI_IGNORE_STANZA.length);
   const alreadyEndsWithStanza =
-    tail.length === stanza.length &&
-    tail.every((line, idx) => line === stanza[idx]);
+    tail.length === GEMINI_IGNORE_STANZA.length &&
+    tail.every((line, idx) => line === GEMINI_IGNORE_STANZA[idx]);
 
   if (!alreadyEndsWithStanza) {
     const prefix =
       existing.length > 0 && !existing.endsWith('\n')
         ? `${existing}\n`
         : existing;
-    writeSafeWorkspaceFile(
-      workspaceRoot,
-      '.geminiignore',
-      `${prefix}${stanza.join('\n')}\n`,
+    writeFileSync(
+      geminiIgnorePath,
+      `${prefix}${GEMINI_IGNORE_STANZA.join('\n')}\n`,
+      'utf8',
     );
-  }
-
-  if (!fileExistedBefore) {
-    excludeUntrackedGeminiIgnoreInGit(workspaceRoot);
   }
 }
 
-const LEGACY_CONTEXT_ENV_KEYS = Object.freeze([
-  'TITLE',
-  'DESCRIPTION',
-  'EVENT_NAME',
-  'IS_PULL_REQUEST',
-  'ISSUE_NUMBER',
-  'REPOSITORY',
-  'ADDITIONAL_CONTEXT',
-  'ISSUE_TITLE',
-  'ISSUE_BODY',
-  'PULL_REQUEST_NUMBER',
-]);
-
 /**
- * Ensures `.geminiignore` allows `.gemini/context.json` when present, and
- * synthesizes `.gemini/context.json` from legacy workflow `env:` variables for
- * existing `@v0` `gemini-invoke` consumers that have not yet added a
- * `Prepare prompt context` step to their workflow YAML.
- *
  * @param {{
- *   workspaceRoot?: string;
- *   env?: NodeJS.ProcessEnv;
- *   workflowName?: string;
- *   promptInput?: string;
- *   contextRelPath?: string;
- * }} [options]
+ *   expectedPlanAuthor: string;
+ *   apiBaseUrl: string;
+ *   githubToken: string;
+ *   fetchImpl: typeof fetch;
+ * }} params
  */
-export function prepareContextAndGeminiIgnore({
-  workspaceRoot = process.cwd(),
-  env = process.env,
-  workflowName = process.env.WORKFLOW_NAME ?? '',
-  promptInput = process.env.PROMPT_INPUT ?? '',
-  contextRelPath = DEFAULT_CONTEXT_PATH,
-} = {}) {
-  const contextPath = assertSafeWorkspaceTarget(workspaceRoot, contextRelPath);
-  if (existsSync(contextPath)) {
-    ensureGeminiIgnoreAllowsContextFiles(
-      workspaceRoot,
-      DEFAULT_APPROVED_PLAN_PATH,
-      contextRelPath,
-    );
-    return;
+async function resolveDynamicAuthorPolicy({
+  expectedPlanAuthor,
+  apiBaseUrl,
+  githubToken,
+  fetchImpl,
+}) {
+  const trimmed = expectedPlanAuthor.trim();
+  if (trimmed !== '') {
+    return {
+      trustedAuthors: resolveTrustedPlanAuthors(trimmed),
+      allowInstalledGithubAppBots: false,
+    };
   }
 
-  const isPlanExecute =
-    workflowName === 'gemini-plan-execute' ||
-    /^\s*\/gemini-plan-execute(?:\s|$)/.test(promptInput);
-  if (isPlanExecute) {
-    return;
+  const trustedAuthors = new Set([DEFAULT_BOT_LOGIN.toLowerCase()]);
+  try {
+    const res = await fetchImpl(`${apiBaseUrl.replace(/\/$/, '')}/user`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${githubToken}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      redirect: 'error',
+      signal: globalThis.AbortSignal.timeout(API_TIMEOUT_MS),
+    });
+    if (res.ok) {
+      const userObj = await res.json();
+      if (
+        isRecord(userObj) &&
+        typeof userObj.login === 'string' &&
+        userObj.login
+      ) {
+        trustedAuthors.add(userObj.login.toLowerCase());
+      }
+      return { trustedAuthors, allowInstalledGithubAppBots: false };
+    }
+  } catch {
+    // Installation tokens reject /user with 403; fall back to installed App bot check
   }
-
-  const hasLegacyEnvContext =
-    workflowName === 'gemini-invoke' ||
-    /^\s*\/gemini-invoke(?:\s|$)/.test(promptInput) ||
-    LEGACY_CONTEXT_ENV_KEYS.some(
-      (key) => typeof env[key] === 'string' && env[key] !== '',
-    );
-  if (!hasLegacyEnvContext) {
-    return;
-  }
-
-  const synthesizedContext = {
-    title: env.TITLE ?? env.ISSUE_TITLE ?? '',
-    description: env.DESCRIPTION ?? env.ISSUE_BODY ?? '',
-    event_name: env.EVENT_NAME ?? env.GITHUB_EVENT_NAME ?? '',
-    is_pull_request: env.IS_PULL_REQUEST ?? '',
-    issue_number: env.ISSUE_NUMBER ?? env.PULL_REQUEST_NUMBER ?? '',
-    repository: env.REPOSITORY ?? env.GITHUB_REPOSITORY ?? '',
-    additional_context: env.ADDITIONAL_CONTEXT ?? '',
-  };
-  writeSafeWorkspaceFile(
-    workspaceRoot,
-    contextRelPath,
-    `${JSON.stringify(synthesizedContext, null, 2)}\n`,
-  );
-  ensureGeminiIgnoreAllowsContextFiles(
-    workspaceRoot,
-    DEFAULT_APPROVED_PLAN_PATH,
-    contextRelPath,
-  );
+  return { trustedAuthors, allowInstalledGithubAppBots: true };
 }
 
 /**
@@ -1210,8 +727,6 @@ export function prepareContextAndGeminiIgnore({
  *   apiBaseUrl?: string;
  *   githubToken?: string;
  *   expectedPlanAuthor?: string;
- *   approvedPlanRelPath?: string;
- *   contextRelPath?: string;
  *   fetchImpl?: typeof fetch;
  * }} [options]
  * @returns {Promise<VerifiedPlanRecord>}
@@ -1224,8 +739,6 @@ export async function verifyAndWriteApprovedPlan({
   apiBaseUrl = process.env.GITHUB_API_URL ?? 'https://api.github.com',
   githubToken = process.env.GITHUB_TOKEN ?? '',
   expectedPlanAuthor = process.env.EXPECTED_PLAN_AUTHOR ?? '',
-  approvedPlanRelPath = DEFAULT_APPROVED_PLAN_PATH,
-  contextRelPath = DEFAULT_CONTEXT_PATH,
   fetchImpl = globalThis.fetch,
 } = {}) {
   if (!eventPath || !existsSync(eventPath)) {
@@ -1245,6 +758,16 @@ export async function verifyAndWriteApprovedPlan({
   }
 
   const approvalContext = extractApprovalContext(eventName, eventPayload);
+  if (
+    repository &&
+    approvalContext.repository &&
+    repository.toLowerCase() !== approvalContext.repository.toLowerCase()
+  ) {
+    throw new PlanVerificationError(
+      `Repository "${repository}" does not match event payload repository "${approvalContext.repository}".`,
+    );
+  }
+
   const targetRepo = repository || approvalContext.repository;
   if (!targetRepo || !REPOSITORY_SLUG_PATTERN.test(targetRepo)) {
     throw new PlanVerificationError(
@@ -1257,12 +780,6 @@ export async function verifyAndWriteApprovedPlan({
       'Approval must bind to a specific plan comment ID or URL (for example, "@gemini-cli /approve <comment-url-or-id>"). Bare "@gemini-cli /approve" is rejected to prevent TOCTOU plan substitution.',
     );
   }
-
-  validateCommentUrlMatchesTarget(
-    approvalContext.directive,
-    targetRepo,
-    approvalContext.issueNumber,
-  );
 
   const authorPolicy = await resolveDynamicAuthorPolicy({
     expectedPlanAuthor,
@@ -1290,40 +807,29 @@ export async function verifyAndWriteApprovedPlan({
     },
   );
 
-  writeSafeWorkspaceFile(
-    workspaceRoot,
-    approvedPlanRelPath,
+  const approvedPlanPath = resolve(workspaceRoot, DEFAULT_APPROVED_PLAN_PATH);
+  mkdirSync(dirname(approvedPlanPath), { recursive: true });
+  writeFileSync(
+    approvedPlanPath,
     `${JSON.stringify(verifiedPlan, null, 2)}\n`,
+    'utf8',
   );
 
-  const routingContext = buildSanitizedRoutingContext(
-    approvalContext,
-    targetRepo,
-  );
-  writeSafeWorkspaceFile(
-    workspaceRoot,
-    contextRelPath,
+  const routingContext = {
+    event_name: approvalContext.eventName,
+    is_pull_request: String(approvalContext.isPullRequest),
+    issue_number: String(approvalContext.issueNumber),
+    repository: targetRepo,
+  };
+  writeFileSync(
+    resolve(workspaceRoot, DEFAULT_CONTEXT_PATH),
     `${JSON.stringify(routingContext, null, 2)}\n`,
+    'utf8',
   );
 
   sanitizePlanExecuteSettingsFile(workspaceRoot);
-  ensureGeminiIgnoreAllowsContextFiles(
-    workspaceRoot,
-    approvedPlanRelPath,
-    contextRelPath,
-  );
+  ensureGeminiIgnoreAllowsContextFiles(workspaceRoot);
   return verifiedPlan;
-}
-
-/**
- * @param {string} message
- * @returns {string}
- */
-function escapeWorkflowCommandMessage(message) {
-  return message
-    .replace(/%/g, '%25')
-    .replace(/\r/g, '%0D')
-    .replace(/\n/g, '%0A');
 }
 
 /** @returns {boolean} */
@@ -1340,18 +846,9 @@ function isExecutedAsMainScript() {
 }
 
 if (isExecutedAsMainScript()) {
-  if (
-    process.argv.includes('--ensure-geminiignore') ||
-    process.argv.includes('--prepare-context')
-  ) {
-    try {
-      prepareContextAndGeminiIgnore();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(
-        `::error title=Gemini ignore setup failed::${escapeWorkflowCommandMessage(message)}`,
-      );
-      process.exit(1);
+  if (process.argv.includes('--ensure-geminiignore')) {
+    if (existsSync(resolve(process.cwd(), DEFAULT_CONTEXT_PATH))) {
+      ensureGeminiIgnoreAllowsContextFiles(process.cwd());
     }
   } else {
     verifyAndWriteApprovedPlan()
@@ -1362,9 +859,11 @@ if (isExecutedAsMainScript()) {
       })
       .catch((err) => {
         const message = err instanceof Error ? err.message : String(err);
-        console.error(
-          `::error title=Plan verification failed::${escapeWorkflowCommandMessage(message)}`,
-        );
+        const escaped = message
+          .replace(/%/g, '%25')
+          .replace(/\r/g, '%0D')
+          .replace(/\n/g, '%0A');
+        console.error(`::error title=Plan verification failed::${escaped}`);
         process.exit(1);
       });
   }

@@ -48,8 +48,7 @@ for workflow_file in "${WORKFLOWS_DIR}"/*.yml; do
 
   # Update lines that are different in the /examples/, such as the version of the action
   sed \
-    -e "s|uses: './'|uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude|g" \
-    -e "s|uses: 'google-github-actions/run-gemini-cli@[^']*'|uses: 'google-github-actions/run-gemini-cli@v0'|g" \
+    -e "s|uses: 'google-github-actions/run-gemini-cli@main'|uses: 'google-github-actions/run-gemini-cli@v0'|g" \
     "${workflow_file}" > "${example_file}"
 done
 

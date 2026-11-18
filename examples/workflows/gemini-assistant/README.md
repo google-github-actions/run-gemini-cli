@@ -132,8 +132,8 @@ flowchart TD
 ```
 
 1.  **Acknowledge**: The action first posts a brief comment to let you know it received the request.
-2.  **Plan (if needed)**: For requests that involve code changes or multi-step actions, Gemini CLI creates a step-by-step plan and posts it as a comment. Copy the link or comment ID of that plan comment and reply with `@gemini-cli /approve <comment-url-or-id>` (optionally adding `sha256:<prefix>` if you want to pin the exact comment digest). Bare `@gemini-cli /approve` without a comment link or ID is rejected so only the exact bot-authored plan you reviewed can run.
-3.  **Execute**: After verifying the approved plan comment's bot authorship (`EXPECTED_PLAN_AUTHOR`, which defaults to `<app-slug>[bot]` or `github-actions[bot]` and can be customized if your plans are posted under a custom bot or user account), timestamp, and digest, the workflow runs Gemini CLI against that verified plan artifact.
+2.  **Plan (if needed)**: For requests that involve code changes or multi-step actions, Gemini CLI creates a step-by-step plan and posts it as a comment. Copy the link or comment ID of that plan comment and reply with `@gemini-cli /approve <comment-url-or-id>`. Bare `@gemini-cli /approve` without a comment link or ID is rejected so only the exact bot-authored plan you reviewed can run.
+3.  **Execute**: After verifying the approved plan comment's bot authorship (`EXPECTED_PLAN_AUTHOR`, which defaults to `<app-slug>[bot]` or `github-actions[bot]`), immutability, and pre-approval timestamp, the workflow runs Gemini CLI against that verified plan artifact.
 4.  **Open pull request (if needed)**: When the verified plan modifies files, Gemini CLI creates a feature branch, commits the file updates, and opens a pull request for review. We recommend enabling branch protection rules on your default branch (`main`).
 5.  **Respond**: Gemini CLI posts a final summary comment on the issue or pull request.
 

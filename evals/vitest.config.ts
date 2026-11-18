@@ -1,9 +1,3 @@
-/**
- * @license
- * Copyright 2026 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -13,7 +7,10 @@ export default defineConfig({
     hookTimeout: 900000,
     globals: true,
     pool: 'forks',
-    maxWorkers: 2,
+    forks: {
+      minForks: 1,
+      maxForks: 2,
+    },
     sequence: {
       concurrent: true,
     },

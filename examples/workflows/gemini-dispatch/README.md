@@ -23,19 +23,17 @@ This workflow is triggered by the following events:
 
 The workflow uses a dispatch job to determine which command to execute based on the following logic:
 
-- If a comment starts with `@gemini-cli /review`, it calls the `gemini-review.yml` workflow.
-- If a comment starts with `@gemini-cli /triage`, it calls the `gemini-triage.yml` workflow.
-- If a comment starts with `@gemini-cli /approve <comment-url-or-id>`, it calls the `gemini-plan-execute.yml` workflow for maintainers (`OWNER`, `MEMBER`, or `COLLABORATOR`).
-- If a comment starts with `@gemini-cli` (without a specific command), it calls the `gemini-invoke.yml` workflow.
+- If a comment contains `@gemini-cli /review`, it calls the `gemini-review.yml` workflow.
+- If a comment contains `@gemini-cli /triage`, it calls the `gemini-triage.yml` workflow.
+- If a comment contains `@gemini-cli` (without a specific command), it calls the `gemini-invoke.yml` workflow.
 - When a new pull request is opened, it calls the `gemini-review.yml` workflow.
 - When a new issue is opened or reopened, it calls the `gemini-triage.yml` workflow.
 
 ## In-Built Workflows
 
-- **[gemini-review.yml](../pr-review/gemini-review.yml):** Reviews a pull request.
-- **[gemini-triage.yml](../issue-triage/gemini-triage.yml):** Triages an issue.
-- **[gemini-invoke.yml](../gemini-assistant/gemini-invoke.yml):** Formulates plans and answers questions on issues and pull requests.
-- **[gemini-plan-execute.yml](../gemini-assistant/gemini-plan-execute.yml):** Verifies and executes an approved plan comment on a feature branch and opens a pull request.
+- **[gemini-review.yml](../pr-review/gemini-review.yml):** This workflow reviews a pull request.
+- **[gemini-triage.yml](../issue-triage/gemini-triage.yml):** This workflow triages an issue.
+- **[gemini-invoke.yml](../gemini-assistant/gemini-invoke.yml):** This workflow is a general-purpose workflow that can be used to perform various tasks.
 
 ## Adding Your Own Workflows
 

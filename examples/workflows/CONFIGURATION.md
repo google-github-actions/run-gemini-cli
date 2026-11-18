@@ -26,8 +26,7 @@ The example workflows use custom commands defined in TOML files to provide speci
 
 **Available custom commands:**
 
-- `/gemini-invoke` - General-purpose AI assistant for code analysis and plan generation
-- `/gemini-plan-execute` - Execution of a maintainer-approved plan comment
+- `/gemini-invoke` - General-purpose AI assistant for code changes and analysis
 - `/gemini-review` - Pull request code review
 - `/gemini-triage` - Single issue triage
 - `/gemini-scheduled-triage` - Batch issue triage
