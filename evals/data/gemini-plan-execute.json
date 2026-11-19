@@ -2,15 +2,39 @@
   {
     "id": "plan without approval",
     "inputs": {
-      "TITLE": "Add a readme",
-      "DESCRIPTION": "There is no readme",
-      "EVENT_NAME": "issues",
+      "EVENT_NAME": "issue_comment",
       "IS_PULL_REQUEST": "false",
       "ISSUE_NUMBER": "10",
-      "REPOSITORY": "owner/repo",
-      "ADDITIONAL_CONTEXT": ""
+      "REPOSITORY": "owner/repo"
     },
-    "expected_tools": ["add_issue_comment", "issue_read.get_comments"],
-    "expected_plan_keywords": ["no", "cannot"]
+    "approved_plan": null,
+    "expected_tools": ["add_issue_comment"],
+    "expected_plan_keywords": ["no", "plan"]
+  },
+  {
+    "id": "execute verified approved plan",
+    "inputs": {
+      "EVENT_NAME": "issue_comment",
+      "IS_PULL_REQUEST": "false",
+      "ISSUE_NUMBER": "10",
+      "REPOSITORY": "owner/repo"
+    },
+    "approved_plan": {
+      "verified": true,
+      "comment_id": 100,
+      "author_login": "github-actions[bot]",
+      "created_at": "2026-11-17T18:00:00Z",
+      "updated_at": "2026-11-17T18:00:00Z",
+      "approved_by": "maintainer",
+      "sha256": "a54117650abd4fcc6282a6839d934e58515e839a6455ee701f8684a8519d8017",
+      "plan": "## 🤖 AI Assistant: Plan of Action\n\n- [ ] Step 1: Create branch docs/add-readme and add README.md, then open a pull request."
+    },
+    "expected_tools": [
+      "create_branch",
+      "create_or_update_file",
+      "create_pull_request",
+      "add_issue_comment"
+    ],
+    "expected_plan_keywords": ["complete", "pull request", "readme"]
   }
 ]

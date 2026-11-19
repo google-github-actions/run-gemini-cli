@@ -1,7 +1,14 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
-import { mkdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ensureGeminiIgnoreAllowsContextFiles } from '../scripts/resolve-approved-plan.mjs';
 
 interface AssistantCase {
   id: string;
@@ -26,6 +33,23 @@ describe('Gemini Assistant Workflow', () => {
         );
 
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
+        writeFileSync(
+          join(rig.testDir, '.gemini/context.json'),
+          JSON.stringify(
+            {
+              title: item.inputs.TITLE ?? '',
+              description: item.inputs.DESCRIPTION ?? '',
+              event_name: item.inputs.EVENT_NAME ?? 'issues',
+              is_pull_request: item.inputs.IS_PULL_REQUEST ?? 'false',
+              issue_number: item.inputs.ISSUE_NUMBER ?? '1',
+              repository: item.inputs.REPOSITORY ?? 'owner/repo',
+              additional_context: item.inputs.ADDITIONAL_CONTEXT ?? '',
+            },
+            null,
+            2,
+          ),
+        );
+        ensureGeminiIgnoreAllowsContextFiles(rig.testDir);
         copyFileSync(
           '.github/commands/gemini-invoke.toml',
           join(rig.testDir, '.gemini/commands/gemini-invoke.toml'),
@@ -45,6 +69,7 @@ describe('Gemini Assistant Workflow', () => {
         // 1. Structural check
         const hasCommentAction =
           toolNames.includes('add_issue_comment') ||
+          toolNames.includes('mcp_github_add_issue_comment') ||
           toolCalls.some(
             (c) =>
               c.name === 'run_shell_command' &&

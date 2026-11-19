@@ -1,11 +1,22 @@
-import { describe, expect, it, vi } from 'vitest';
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { describe, expect, it } from 'vitest';
 import { TestRig } from './test-rig';
-import { mkdirSync, copyFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  ensureGeminiIgnoreAllowsContextFiles,
+  sanitizePlanExecuteSettingsFile,
+} from '../scripts/resolve-approved-plan.mjs';
 
 interface ExecutionCase {
   id: string;
   inputs: Record<string, string>;
+  approved_plan?: Record<string, unknown> | null;
   expected_tools: string[];
   expected_plan_keywords: string[];
 }
@@ -22,6 +33,34 @@ describe('Gemini Plan Execution Workflow', () => {
         rig.setupMockMcp();
 
         mkdirSync(join(rig.testDir, '.gemini/commands'), { recursive: true });
+        writeFileSync(
+          join(rig.testDir, '.gemini/context.json'),
+          JSON.stringify(
+            {
+              event_name: item.inputs.EVENT_NAME ?? 'issue_comment',
+              is_pull_request: item.inputs.IS_PULL_REQUEST ?? 'false',
+              issue_number: item.inputs.ISSUE_NUMBER ?? '10',
+              repository: item.inputs.REPOSITORY ?? 'owner/repo',
+            },
+            null,
+            2,
+          ),
+        );
+        if (item.approved_plan) {
+          writeFileSync(
+            join(rig.testDir, '.gemini/approved_plan.json'),
+            JSON.stringify(item.approved_plan, null, 2),
+          );
+        }
+        for (const baseDir of [rig.testDir, rig.homeDir]) {
+          const settingsPath = join(baseDir, '.gemini/settings.json');
+          const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+          settings.tools = { core: [] };
+          writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+        }
+        sanitizePlanExecuteSettingsFile(rig.testDir);
+        sanitizePlanExecuteSettingsFile(rig.homeDir);
+        ensureGeminiIgnoreAllowsContextFiles(rig.testDir);
         copyFileSync(
           '.github/commands/gemini-plan-execute.toml',
           join(rig.testDir, '.gemini/commands/gemini-plan-execute.toml'),
@@ -42,9 +81,9 @@ describe('Gemini Plan Execution Workflow', () => {
         const toolNamesStripped = toolNames.map((name) =>
           name.replace(/^mcp_github_/, ''),
         );
-        const hasSomeExpectedToolCalls =
+        const hasAllExpectedToolCalls =
           item.expected_tools.length === 0 ||
-          item.expected_tools.some(
+          item.expected_tools.every(
             (action) =>
               toolNamesStripped.includes(action) ||
               toolCalls.some(
@@ -53,13 +92,28 @@ describe('Gemini Plan Execution Workflow', () => {
               ),
           );
 
-        if (!hasSomeExpectedToolCalls) {
+        if (!hasAllExpectedToolCalls) {
           console.error(
-            `Expected some of ${item.expected_tools} but got tools:`,
+            `Expected all of ${item.expected_tools} but got tools:`,
             toolNames,
           );
         }
-        expect(hasSomeExpectedToolCalls).toBe(true);
+        expect(hasAllExpectedToolCalls).toBe(true);
+
+        if (!item.approved_plan) {
+          for (const forbidden of [
+            'issue_read',
+            'issue_read.get_comments',
+            'issue_read_get_comments',
+            'create_branch',
+            'create_or_update_file',
+            'create_pull_request',
+            'push_files',
+            'delete_file',
+          ]) {
+            expect(toolNamesStripped).not.toContain(forbidden);
+          }
+        }
 
         // 2. Content check (plan relevance)
         const outputLower = stdout.toLowerCase();

@@ -40,45 +40,34 @@ jobs:
           permission-pull-requests: 'write'
 
       - name: 'Checkout Code'
-        uses: 'actions/checkout@v4' # ratchet:exclude
+        uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
         with:
           persist-credentials: false
+          ref: '${{ github.event.repository.default_branch }}'
 
       - name: 'Prepare prompt context'
         shell: 'bash'
         run: |-
           mkdir -p .gemini
           jq -n \
-            --arg title "${TITLE}" \
-            --arg desc "${DESCRIPTION}" \
             --arg event "${EVENT_NAME}" \
             --arg pr "${IS_PULL_REQUEST}" \
             --arg num "${ISSUE_NUMBER}" \
             --arg repo "${REPOSITORY}" \
-            --arg context "${ADDITIONAL_CONTEXT}" \
-            '{title: $title, description: $desc, event_name: $event, is_pull_request: $pr, issue_number: $num, repository: $repo, additional_context: $context}' > .gemini/context.json
+            '{event_name: $event, is_pull_request: $pr, issue_number: $num, repository: $repo}' > .gemini/context.json
         env:
-          TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
-          DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
           EVENT_NAME: '${{ github.event_name }}'
-          IS_PULL_REQUEST: '${{ !!github.event.pull_request }}'
+          IS_PULL_REQUEST: '${{ !!(github.event.pull_request || github.event.issue.pull_request) }}'
           ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
-          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
 
       - name: 'Run Gemini CLI'
         id: 'run_gemini'
-        uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
+        uses: './'
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
-          TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
-          DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
-          EVENT_NAME: '${{ github.event_name }}'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
-          IS_PULL_REQUEST: '${{ !!github.event.pull_request }}'
-          ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          REPOSITORY: '${{ github.repository }}'
-          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
+          EXPECTED_PLAN_AUTHOR: "${{ steps.mint_identity_token.outputs.app-slug && format('{0}[bot]', steps.mint_identity_token.outputs.app-slug) || 'github-actions[bot]' }}"
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -93,6 +82,8 @@ jobs:
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
           upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
           workflow_name: 'gemini-plan-execute'
+          # Assistant workflows can be triggered by comments on either Issues or PRs.
+          # We explicitly map both fields so the CLI can correctly categorize the interaction.
           github_pr_number: '${{ github.event.pull_request.number }}'
           github_issue_number: '${{ github.event.issue.number }}'
           settings: |-
@@ -118,21 +109,15 @@ jobs:
                   ],
                   "includeTools": [
                     "add_issue_comment",
-                    "issue_read",
-                    "list_issues",
-                    "search_issues",
                     "create_pull_request",
                     "pull_request_read",
                     "list_pull_requests",
                     "search_pull_requests",
                     "create_branch",
                     "create_or_update_file",
-                    "delete_file",
-                    "fork_repository",
                     "get_commit",
                     "get_file_contents",
                     "list_commits",
-                    "push_files",
                     "search_code"
                   ],
                   "env": {
