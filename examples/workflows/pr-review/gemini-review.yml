@@ -112,7 +112,10 @@ jobs:
                 }
               },
               "tools": {
-                "core": []
+                "core": [
+                  "activate_skill",
+                  "mcp_github_*"
+                ]
               }
             }
           extensions: |

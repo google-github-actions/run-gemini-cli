@@ -58,7 +58,7 @@ jobs:
           ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
 
       - name: 'Run Gemini pull request review'
-        uses: 'google-github-actions/run-gemini-cli@main' # ratchet:exclude
+        uses: 'google-github-actions/run-gemini-cli@387c8ddb7a72078825da941758b811b9153c71e8' # ratchet:exclude
         id: 'gemini_pr_review'
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
@@ -116,7 +116,10 @@ jobs:
                 }
               },
               "tools": {
-                "core": []
+                "core": [
+                  "activate_skill",
+                  "mcp_github_*"
+                ]
               }
             }
           extensions: |
