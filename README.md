@@ -325,7 +325,9 @@ follow for a given repository.
 
 Contributions are welcome! Check out the Gemini CLI
 [**Contributing Guide**](./CONTRIBUTING.md) for more details on how to get
-started.
+started. When making changes to prompts or workflows, see the
+[**Evaluations Guide**](./evals/README.md) for instructions on writing and running
+evals to verify your changes.
 
 [secrets]: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
 [settings_json]: https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/configuration.md#settings-files
