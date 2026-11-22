@@ -9,6 +9,10 @@ This guide covers the different ways to authenticate the Gemini CLI action in yo
       - [Prerequisites](#prerequisites)
       - [Setup](#setup)
       - [Example](#example)
+    - [Method 1b: Authenticating with an OrcaRouter API Key](#method-1b-authenticating-with-an-orcarouter-api-key)
+      - [Prerequisites](#prerequisites-1)
+      - [Setup](#setup-1)
+      - [Example](#example-1)
     - [Method 2: Authenticating with Google Cloud](#method-2-authenticating-with-google-cloud)
       - [Setup Script](#setup-script)
       - [Connecting to Vertex AI](#connecting-to-vertex-ai)
@@ -28,10 +32,11 @@ This guide covers the different ways to authenticate the Gemini CLI action in yo
 
 The Gemini CLI Action requires authentication. Choose the one that best fits your use case.
 
-| Method                           | Use Case                                                                              |
-| -------------------------------- | ------------------------------------------------------------------------------------- |
-| **Gemini API Key**               | The simplest method. Ideal for projects that do not require Google Cloud integration. |
-| **Workload Identity Federation** | The most secure method for authenticating to Google Cloud services.                   |
+| Method                           | Use Case                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Gemini API Key**               | The simplest method. Ideal for projects that do not require Google Cloud integration.             |
+| **OrcaRouter API Key**           | Route the Gemini CLI through [OrcaRouter](https://www.orcarouter.ai)'s OpenAI-compatible gateway. |
+| **Workload Identity Federation** | The most secure method for authenticating to Google Cloud services.                               |
 
 ### Method 1: Authenticating with a Gemini API Key
 
@@ -54,6 +59,30 @@ This is the simplest method and is suitable for projects that do not require Goo
     prompt: |-
       Explain this code
     gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
+```
+
+### Method 1b: Authenticating with an OrcaRouter API Key
+
+This method routes the Gemini CLI through [OrcaRouter](https://www.orcarouter.ai)'s OpenAI-compatible gateway instead of Google's Gemini API. It is a good fit for projects that want to access many models through one endpoint, or that want to combine routing, failover, observability, and guardrails behind the same API key.
+
+#### Prerequisites
+
+- An API key from [OrcaRouter](https://www.orcarouter.ai).
+
+#### Setup
+
+1.  **Create an API Key**: Sign up at OrcaRouter and create a new API key.
+2.  **Add to GitHub Secrets**: In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add a new repository secret with the name `ORCAROUTER_API_KEY` and paste your key as the value.
+3.  **Set the model (optional)**: Set the `gemini_model` input to the model you want to use (e.g. `orcarouter/auto`). If omitted, the action defaults to `orcarouter/auto`.
+
+#### Example
+
+```yaml
+- uses: 'google-github-actions/run-gemini-cli@v0'
+  with:
+    prompt: |-
+      Explain this code
+    orcarouter_api_key: '${{ secrets.ORCAROUTER_API_KEY }}'
 ```
 
 ### Method 2: Authenticating with a Vertex AI API Key
