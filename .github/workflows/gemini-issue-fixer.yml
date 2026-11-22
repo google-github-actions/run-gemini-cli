@@ -71,6 +71,8 @@ jobs:
           REPOSITORY: '${{ github.repository }}'
           ISSUE_NUMBER: '${{ github.event.issue.number }}'
           ISSUE_TITLE: '${{ github.event.issue.title }}'
+          # Security: ISSUE_BODY is attacker-controlled. GITHUB_TOKEN must
+          # not be set in this step to limit prompt injection blast radius.
           ISSUE_BODY: '${{ github.event.issue.body }}'
           BRANCH_NAME: 'gemini-fix-${{ github.event.issue.number }}'
           EVENT_NAME: '${{ github.event_name }}'
